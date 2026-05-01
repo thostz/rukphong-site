@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip --version)",
+      "Bash(python -m venv .venv)",
+      "Bash(.venv/Scripts/pip install *)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "PowerShell(Start-Process \"https://developers.line.biz/console/\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('/c/Users/U939/OneDrive/Desktop/Sandbox/Line/credentials.json'\\)\\); print\\('client_email:', d.get\\('client_email',''\\)\\)\")",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__computer",
+      "mcp__Claude_in_Chrome__find",
+      "mcp__Claude_in_Chrome__javascript_tool",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"User\"\\); ngrok version 2>&1)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"User\"\\); $proc = Start-Process -FilePath \"ngrok\" -ArgumentList \"http --log=stdout 5000\" -RedirectStandardOutput \"C:\\\\Users\\\\U939\\\\OneDrive\\\\Desktop\\\\Sandbox\\\\Line\\\\ngrok.log\" -WindowStyle Hidden -PassThru; Write-Host \"ngrok PID: $\\($proc.Id\\)\"; Start-Sleep -Seconds 6; Get-Content \"C:\\\\Users\\\\U939\\\\OneDrive\\\\Desktop\\\\Sandbox\\\\Line\\\\ngrok.log\" -Raw)",
+      "PowerShell(cd \"C:\\\\Users\\\\U939\\\\OneDrive\\\\Desktop\\\\Sandbox\\\\Line\"; $env:PYTHONIOENCODING=\"utf-8\"; .venv\\\\Scripts\\\\python.exe setup_rich_menu.py 2>&1)",
+      "Bash(pip list *)",
+      "Bash(python -c \"from googleapiclient.discovery import build; print\\('ok'\\)\")",
+      "Bash(ls venv/)",
+      "Bash(ls .venv/)",
+      "Bash(venv/Scripts/python sync_tasks.py)",
+      "WebFetch(domain:sites.google.com)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(ngrok version *)",
+      "Bash(\"C:/Users/U939/OneDrive/Desktop/Sandbox/Line/.venv/Scripts/python.exe\" -c \"import requests; print\\('ok'\\)\")",
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "mcp__Claude_in_Chrome__select_browser",
+      "mcp__Claude_in_Chrome__tabs_create_mcp"
+    ]
+  }
+}

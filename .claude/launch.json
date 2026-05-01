@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "LINE Bot Web UI",
+      "runtimeExecutable": "C:\\Users\\U939\\OneDrive\\Desktop\\Sandbox\\Line\\.venv\\Scripts\\python.exe",
+      "runtimeArgs": ["app.py"],
+      "port": 5000
+    }
+  ]
+}

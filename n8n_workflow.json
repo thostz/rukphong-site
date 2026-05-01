@@ -1,0 +1,155 @@
+{
+  "name": "RP Consultant – Email Notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rp-notify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "rp-notify"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "node-respond",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 160]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": false},
+          "conditions": [
+            {
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "contact",
+              "operator": {"type": "string", "operation": "equals"}
+            }
+          ]
+        }
+      },
+      "id": "node-if",
+      "name": "Contact or Register?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 360]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "email_subject",
+              "value": "=[Contact] {{ $json.body.subject || 'New message' }} from {{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "name": "email_body",
+              "value": "=<h2 style='color:#6366f1'>📩 New Contact Message</h2><table style='border-collapse:collapse;width:100%'><tr><td style='padding:8px;border:1px solid #e5e7eb;font-weight:bold'>Name</td><td style='padding:8px;border:1px solid #e5e7eb'>{{ $json.body.name }}</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;font-weight:bold'>Email</td><td style='padding:8px;border:1px solid #e5e7eb'>{{ $json.body.email }}</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;font-weight:bold'>Company</td><td style='padding:8px;border:1px solid #e5e7eb'>{{ $json.body.company || '-' }}</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;font-weight:bold'>Subject</td><td style='padding:8px;border:1px solid #e5e7eb'>{{ $json.body.subject || '-' }}</td></tr></table><h3>Message</h3><p style='background:#f9fafb;padding:16px;border-radius:8px'>{{ $json.body.message }}</p>",
+              "type": "string"
+            },
+            {"name": "reply_to", "value": "={{ $json.body.email }}", "type": "string"}
+          ]
+        }
+      },
+      "id": "node-set-contact",
+      "name": "Format Contact",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [680, 240]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "email_subject",
+              "value": "=[Register] New user: {{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "name": "email_body",
+              "value": "=<h2 style='color:#3b82f6'>👤 New User Registration</h2><table style='border-collapse:collapse;width:100%'><tr><td style='padding:8px;border:1px solid #e5e7eb;font-weight:bold'>Name</td><td style='padding:8px;border:1px solid #e5e7eb'>{{ $json.body.name }}</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;font-weight:bold'>Email</td><td style='padding:8px;border:1px solid #e5e7eb'>{{ $json.body.email }}</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;font-weight:bold'>Time</td><td style='padding:8px;border:1px solid #e5e7eb'>{{ $now.format('dd/MM/yyyy HH:mm') }}</td></tr></table>",
+              "type": "string"
+            },
+            {"name": "reply_to", "value": "={{ $json.body.email }}", "type": "string"}
+          ]
+        }
+      },
+      "id": "node-set-register",
+      "name": "Format Register",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [680, 480]
+    },
+    {
+      "parameters": {
+        "fromEmail": "me",
+        "toEmail": "rukphong.p@gmail.com",
+        "subject": "={{ $json.email_subject }}",
+        "emailType": "html",
+        "message": "={{ $json.email_body }}",
+        "options": {
+          "replyTo": "={{ $json.reply_to }}"
+        }
+      },
+      "id": "node-email-contact",
+      "name": "Gmail – Contact",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [920, 240],
+      "credentials": {
+        "gmailOAuth2": {"id": "gmail-cred", "name": "Gmail Account"}
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "me",
+        "toEmail": "rukphong.p@gmail.com",
+        "subject": "={{ $json.email_subject }}",
+        "emailType": "html",
+        "message": "={{ $json.email_body }}",
+        "options": {}
+      },
+      "id": "node-email-register",
+      "name": "Gmail – Register",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [920, 480],
+      "credentials": {
+        "gmailOAuth2": {"id": "gmail-cred", "name": "Gmail Account"}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {"node": "Respond OK",           "type": "main", "index": 0},
+          {"node": "Contact or Register?", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Contact or Register?": {
+      "main": [
+        [{"node": "Format Contact",  "type": "main", "index": 0}],
+        [{"node": "Format Register", "type": "main", "index": 0}]
+      ]
+    },
+    "Format Contact":  {"main": [[{"node": "Gmail – Contact",  "type": "main", "index": 0}]]},
+    "Format Register": {"main": [[{"node": "Gmail – Register", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}
+}

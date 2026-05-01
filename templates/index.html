@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RP Consultant — บันทึกรายจ่าย & งาน</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
+  .tab-btn { transition: all .2s; }
+  .tab-btn.active { border-bottom: 3px solid currentColor; font-weight: 600; }
+  .card { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+  input, select, textarea {
+    width: 100%; padding: 9px 12px; border: 1.5px solid #d1d5db;
+    border-radius: 8px; font-size: 14px; outline: none; transition: border .2s;
+    background: #fafafa;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #6366f1; background: #fff; }
+  label { font-size: 13px; color: #374151; font-weight: 500; margin-bottom: 4px; display: block; }
+  .required::after { content: " *"; color: #ef4444; }
+  .btn-primary {
+    padding: 10px 28px; border-radius: 9px; font-weight: 600; font-size: 15px;
+    cursor: pointer; transition: all .2s; border: none;
+  }
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    padding: 14px 22px; border-radius: 10px; font-size: 14px;
+    font-weight: 600; display: none; box-shadow: 0 4px 16px rgba(0,0,0,.18);
+    animation: slideUp .3s ease;
+  }
+  @keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .priority-high { background: #fee2e2; color: #b91c1c; }
+  .priority-medium { background: #fef9c3; color: #92400e; }
+  .priority-low { background: #dcfce7; color: #166534; }
+  .status-done { background: #d1fae5; color: #065f46; }
+  .status-inprog { background: #dbeafe; color: #1e40af; }
+  .status-pending { background: #f3f4f6; color: #374151; }
+  .status-cancel { background: #fee2e2; color: #991b1b; }
+  .record-row { border-bottom: 1px solid #f1f5f9; padding: 10px 0; }
+  .record-row:last-child { border-bottom: none; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Header -->
+<header class="bg-white shadow-sm sticky top-0 z-10">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg font-bold"
+         style="background: linear-gradient(135deg,#6366f1,#8b5cf6)">R</div>
+    <div>
+      <div class="font-bold text-gray-800 text-base leading-tight">RP Consultant</div>
+      <div class="text-xs text-gray-400">ระบบบันทึกรายจ่าย &amp; งาน</div>
+    </div>
+    <div class="ml-auto flex items-center gap-3">
+      <a href="/rukphong" target="_blank"
+         class="text-xs font-semibold px-3 py-1.5 rounded-lg text-white flex items-center gap-1.5"
+         style="background: linear-gradient(135deg,#1a6fff,#f5a623)">
+        👤 Profile
+      </a>
+      <div class="text-xs text-gray-400" id="clock"></div>
+    </div>
+  </div>
+</header>
+
+<!-- Tabs -->
+<div class="max-w-5xl mx-auto px-4 mt-5">
+  <div class="flex gap-1 bg-white rounded-xl shadow-sm p-1 w-fit">
+    <button onclick="switchTab('expense')" id="tab-expense"
+      class="tab-btn active px-5 py-2 rounded-lg text-sm text-indigo-600">
+      💰 บันทึกรายจ่าย
+    </button>
+    <button onclick="switchTab('task')" id="tab-task"
+      class="tab-btn px-5 py-2 rounded-lg text-sm text-blue-600">
+      📋 บันทึกงาน
+    </button>
+    <button onclick="switchTab('recent')" id="tab-recent"
+      class="tab-btn px-5 py-2 rounded-lg text-sm text-gray-500">
+      📊 รายการล่าสุด
+    </button>
+  </div>
+</div>
+
+<!-- ── EXPENSE FORM ──────────────────────────────────────────────────── -->
+<div id="pane-expense" class="max-w-5xl mx-auto px-4 mt-5">
+  <div class="card p-6">
+    <h2 class="text-lg font-bold text-gray-800 mb-5">💰 บันทึกรายจ่าย</h2>
+    <form id="form-expense" onsubmit="submitExpense(event)">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div>
+          <label class="required">วันที่</label>
+          <input type="date" id="e-date" required>
+        </div>
+        <div>
+          <label class="required">จำนวนเงิน (บาท)</label>
+          <input type="number" id="e-amount" placeholder="เช่น 150 หรือ 1250.50"
+                 min="0" step="0.01" required>
+        </div>
+
+        <div>
+          <label class="required">หมวดหมู่</label>
+          <select id="e-category" required>
+            <option value="">-- เลือกหมวดหมู่ --</option>
+            <optgroup label="ภาษาไทย">
+              <option>อาหาร/เครื่องดื่ม</option>
+              <option>เดินทาง</option>
+              <option>ช้อปปิ้ง</option>
+              <option>สุขภาพ</option>
+              <option>ที่พัก</option>
+              <option>ความบันเทิง</option>
+              <option>การศึกษา</option>
+              <option>อื่นๆ</option>
+            </optgroup>
+            <optgroup label="English">
+              <option>Food/Drinks</option>
+              <option>Transport</option>
+              <option>Shopping</option>
+              <option>Health</option>
+              <option>Accommodation</option>
+              <option>Entertainment</option>
+              <option>Education</option>
+              <option>Other</option>
+            </optgroup>
+          </select>
+        </div>
+        <div>
+          <label>วิธีชำระเงิน</label>
+          <select id="e-payment">
+            <option value="">-- เลือก --</option>
+            <option>เงินสด</option>
+            <option>บัตรเครดิต</option>
+            <option>โอนเงิน</option>
+            <option>QR Code</option>
+            <option>บัตรเดบิต</option>
+            <option>อื่นๆ</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+          <label>หมายเหตุ</label>
+          <textarea id="e-note" rows="2" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></textarea>
+        </div>
+
+        <div>
+          <label>บันทึกโดย</label>
+          <input type="text" id="e-by" placeholder="ชื่อผู้บันทึก">
+        </div>
+      </div>
+
+      <div class="mt-5 flex gap-3">
+        <button type="submit" class="btn-primary text-white"
+                style="background: linear-gradient(135deg,#6366f1,#8b5cf6)">
+          ✅ บันทึกรายจ่าย
+        </button>
+        <button type="button" onclick="resetExpense()"
+                class="btn-primary bg-gray-100 text-gray-600 hover:bg-gray-200">
+          ล้างฟอร์ม
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── TASK FORM ──────────────────────────────────────────────────────── -->
+<div id="pane-task" class="max-w-5xl mx-auto px-4 mt-5 hidden">
+  <div class="card p-6">
+    <h2 class="text-lg font-bold text-gray-800 mb-5">📋 บันทึกงาน</h2>
+    <form id="form-task" onsubmit="submitTask(event)">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div>
+          <label class="required">วันที่เริ่มงาน</label>
+          <input type="date" id="t-date" required>
+        </div>
+        <div>
+          <label>วันครบกำหนด (Due Date)</label>
+          <input type="date" id="t-due">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="required">ชื่องาน / Task</label>
+          <input type="text" id="t-task" placeholder="เช่น PSR130A PPT, Monthly Report" required>
+        </div>
+
+        <div>
+          <label>Client / Project</label>
+          <input type="text" id="t-client" placeholder="เช่น Carsem, SBP, Internal">
+        </div>
+        <div>
+          <label>Department</label>
+          <input type="text" id="t-dept" placeholder="เช่น Engineering, Sales">
+        </div>
+
+        <div>
+          <label class="required">สถานะ</label>
+          <select id="t-status" required>
+            <option value="">-- เลือกสถานะ --</option>
+            <option value="กำลังทำ">🔵 กำลังทำ (In Progress)</option>
+            <option value="เสร็จแล้ว">🟢 เสร็จแล้ว (Done)</option>
+            <option value="รอดำเนินการ">⚪ รอดำเนินการ (Pending)</option>
+            <option value="ยกเลิก">🔴 ยกเลิก (Cancelled)</option>
+          </select>
+        </div>
+        <div>
+          <label>Priority</label>
+          <select id="t-priority">
+            <option value="">-- เลือก --</option>
+            <option value="High">🔴 High</option>
+            <option value="Medium">🟡 Medium</option>
+            <option value="Low">🟢 Low</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+          <label>รายละเอียดงาน</label>
+          <textarea id="t-desc" rows="3"
+            placeholder="อธิบายงานที่ต้องทำ เป้าหมาย หรือ scope ของงาน"></textarea>
+        </div>
+
+        <div class="md:col-span-2">
+          <label>หมายเหตุ / Notes</label>
+          <textarea id="t-note" rows="2"
+            placeholder="ข้อสังเกต ปัญหา หรือ context เพิ่มเติม"></textarea>
+        </div>
+
+        <div>
+          <label>บันทึกโดย</label>
+          <input type="text" id="t-by" placeholder="ชื่อผู้บันทึก">
+        </div>
+      </div>
+
+      <div class="mt-5 flex gap-3">
+        <button type="submit" class="btn-primary text-white"
+                style="background: linear-gradient(135deg,#3b82f6,#6366f1)">
+          ✅ บันทึกงาน
+        </button>
+        <button type="button" onclick="resetTask()"
+                class="btn-primary bg-gray-100 text-gray-600 hover:bg-gray-200">
+          ล้างฟอร์ม
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── RECENT RECORDS ─────────────────────────────────────────────────── -->
+<div id="pane-recent" class="max-w-5xl mx-auto px-4 mt-5 hidden">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+    <!-- Recent Expenses -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-gray-800">💰 รายจ่ายล่าสุด</h2>
+        <button onclick="loadRecent()" class="text-xs text-indigo-500 hover:underline">รีเฟรช</button>
+      </div>
+      <div id="recent-expenses">
+        <div class="text-sm text-gray-400 text-center py-6">กำลังโหลด...</div>
+      </div>
+    </div>
+
+    <!-- Recent Tasks -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-gray-800">📋 งานล่าสุด</h2>
+        <button onclick="loadRecent()" class="text-xs text-blue-500 hover:underline">รีเฟรช</button>
+      </div>
+      <div id="recent-tasks">
+        <div class="text-sm text-gray-400 text-center py-6">กำลังโหลด...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Spacer -->
+<div class="h-16"></div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ── Init ──────────────────────────────────────────────────────────────────────
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('e-date').value = today;
+document.getElementById('t-date').value = today;
+loadSavedName();
+startClock();
+
+function startClock() {
+  const el = document.getElementById('clock');
+  setInterval(() => {
+    el.textContent = new Date().toLocaleString('th-TH', {
+      weekday: 'short', year: 'numeric', month: 'short',
+      day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  }, 1000);
+}
+
+function loadSavedName() {
+  const name = localStorage.getItem('rp_recorded_by') || '';
+  document.getElementById('e-by').value = name;
+  document.getElementById('t-by').value = name;
+}
+
+// Save name on change
+['e-by','t-by'].forEach(id => {
+  document.getElementById(id).addEventListener('change', e => {
+    localStorage.setItem('rp_recorded_by', e.target.value);
+  });
+});
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  ['expense','task','recent'].forEach(t => {
+    document.getElementById('pane-'+t).classList.toggle('hidden', t !== name);
+    const btn = document.getElementById('tab-'+t);
+    btn.classList.toggle('active', t === name);
+    btn.classList.toggle('bg-gray-50', t === name);
+  });
+  if (name === 'recent') loadRecent();
+}
+
+// ── Submit Expense ────────────────────────────────────────────────────────────
+async function submitExpense(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  const payload = {
+    date: document.getElementById('e-date').value,
+    amount: document.getElementById('e-amount').value,
+    category: document.getElementById('e-category').value,
+    payment: document.getElementById('e-payment').value,
+    note: document.getElementById('e-note').value,
+    recorded_by: document.getElementById('e-by').value || 'Web',
+  };
+  try {
+    const res = await fetch('/api/expense', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast('บันทึกรายจ่ายสำเร็จ ✅', '#10b981');
+      resetExpense();
+      if (localStorage.getItem('rp_recorded_by'))
+        document.getElementById('e-by').value = localStorage.getItem('rp_recorded_by');
+    } else {
+      toast('เกิดข้อผิดพลาด: ' + data.error, '#ef4444');
+    }
+  } catch(err) {
+    toast('เชื่อมต่อ server ไม่ได้', '#ef4444');
+  }
+  btn.disabled = false; btn.textContent = '✅ บันทึกรายจ่าย';
+}
+
+// ── Submit Task ───────────────────────────────────────────────────────────────
+async function submitTask(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  const payload = {
+    date: document.getElementById('t-date').value,
+    task: document.getElementById('t-task').value,
+    client: document.getElementById('t-client').value,
+    status: document.getElementById('t-status').value,
+    priority: document.getElementById('t-priority').value,
+    due_date: document.getElementById('t-due').value,
+    description: document.getElementById('t-desc').value,
+    note: document.getElementById('t-note').value,
+    recorded_by: document.getElementById('t-by').value || 'Web',
+  };
+  try {
+    const res = await fetch('/api/task', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast('บันทึกงานสำเร็จ ✅', '#3b82f6');
+      resetTask();
+      if (localStorage.getItem('rp_recorded_by'))
+        document.getElementById('t-by').value = localStorage.getItem('rp_recorded_by');
+    } else {
+      toast('เกิดข้อผิดพลาด: ' + data.error, '#ef4444');
+    }
+  } catch(err) {
+    toast('เชื่อมต่อ server ไม่ได้', '#ef4444');
+  }
+  btn.disabled = false; btn.textContent = '✅ บันทึกงาน';
+}
+
+// ── Recent Records ────────────────────────────────────────────────────────────
+async function loadRecent() {
+  document.getElementById('recent-expenses').innerHTML =
+    '<div class="text-sm text-gray-400 text-center py-6">กำลังโหลด...</div>';
+  document.getElementById('recent-tasks').innerHTML =
+    '<div class="text-sm text-gray-400 text-center py-6">กำลังโหลด...</div>';
+  try {
+    const res  = await fetch('/api/recent');
+    const data = await res.json();
+    renderExpenses(data.expenses || []);
+    renderTasks(data.tasks || []);
+  } catch(e) {
+    document.getElementById('recent-expenses').innerHTML =
+      '<div class="text-xs text-red-400 text-center py-4">โหลดไม่ได้</div>';
+    document.getElementById('recent-tasks').innerHTML =
+      '<div class="text-xs text-red-400 text-center py-4">โหลดไม่ได้</div>';
+  }
+}
+
+function renderExpenses(rows) {
+  const el = document.getElementById('recent-expenses');
+  if (!rows.length) {
+    el.innerHTML = '<div class="text-sm text-gray-400 text-center py-6">ยังไม่มีรายการ</div>';
+    return;
+  }
+  el.innerHTML = rows.map(r => `
+    <div class="record-row">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="font-semibold text-sm text-gray-800">${r.category || '-'}</span>
+          ${r.note ? `<div class="text-xs text-gray-400 mt-0.5">${r.note}</div>` : ''}
+          <div class="text-xs text-gray-400">${r.date || ''}</div>
+        </div>
+        <span class="font-bold text-base text-indigo-600 whitespace-nowrap ml-3">
+          ${parseFloat(r.amount||0).toLocaleString()} ฿
+        </span>
+      </div>
+    </div>`).join('');
+}
+
+const STATUS_CLASS = {
+  'เสร็จแล้ว':'status-done','Done':'status-done',
+  'กำลังทำ':'status-inprog','In Progress':'status-inprog',
+  'รอดำเนินการ':'status-pending','Pending':'status-pending',
+  'ยกเลิก':'status-cancel','Cancelled':'status-cancel',
+};
+const PRIORITY_CLASS = { High:'priority-high', Medium:'priority-medium', Low:'priority-low' };
+
+function renderTasks(rows) {
+  const el = document.getElementById('recent-tasks');
+  if (!rows.length) {
+    el.innerHTML = '<div class="text-sm text-gray-400 text-center py-6">ยังไม่มีรายการ</div>';
+    return;
+  }
+  el.innerHTML = rows.map(r => `
+    <div class="record-row">
+      <div class="flex justify-between items-start gap-2">
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-sm text-gray-800 truncate">${r.task || '-'}</div>
+          <div class="text-xs text-gray-400">${r.date || ''}</div>
+        </div>
+        <span class="badge ${STATUS_CLASS[r.status]||'status-pending'} whitespace-nowrap">
+          ${r.status || '-'}
+        </span>
+      </div>
+    </div>`).join('');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function resetExpense() {
+  document.getElementById('e-amount').value = '';
+  document.getElementById('e-category').value = '';
+  document.getElementById('e-payment').value = '';
+  document.getElementById('e-note').value = '';
+  document.getElementById('e-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('e-amount').focus();
+}
+
+function resetTask() {
+  document.getElementById('t-task').value = '';
+  document.getElementById('t-client').value = '';
+  document.getElementById('t-dept').value = '';
+  document.getElementById('t-status').value = '';
+  document.getElementById('t-priority').value = '';
+  document.getElementById('t-due').value = '';
+  document.getElementById('t-desc').value = '';
+  document.getElementById('t-note').value = '';
+  document.getElementById('t-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('t-task').focus();
+}
+
+function toast(msg, color) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = color;
+  el.style.color = '#fff';
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3500);
+}
+</script>
+</body>
+</html>
