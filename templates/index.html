@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RP Consultant — บันทึกรายจ่าย & งาน</title>
+<title>RP Consultant — Expense &amp; Task Tracker</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
@@ -39,6 +39,10 @@
   .status-cancel { background: #fee2e2; color: #991b1b; }
   .record-row { border-bottom: 1px solid #f1f5f9; padding: 10px 0; }
   .record-row:last-child { border-bottom: none; }
+  /* Language toggle */
+  .lang-btn { transition: all .2s; font-size: 12px; font-weight: 700; padding: 4px 10px;
+    border-radius: 6px; border: 1.5px solid #d1d5db; cursor: pointer; background: white; }
+  .lang-btn.active { background: #6366f1; color: white; border-color: #6366f1; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -50,9 +54,14 @@
          style="background: linear-gradient(135deg,#6366f1,#8b5cf6)">R</div>
     <div>
       <div class="font-bold text-gray-800 text-base leading-tight">RP Consultant</div>
-      <div class="text-xs text-gray-400">ระบบบันทึกรายจ่าย &amp; งาน</div>
+      <div class="text-xs text-gray-400" id="hdr-subtitle">Expense &amp; Task Tracker</div>
     </div>
     <div class="ml-auto flex items-center gap-3">
+      <!-- Language Toggle -->
+      <div class="flex gap-1">
+        <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" id="btn-th" onclick="setLang('th')">TH</button>
+      </div>
       <a href="/rukphong" target="_blank"
          class="text-xs font-semibold px-3 py-1.5 rounded-lg text-white flex items-center gap-1.5"
          style="background: linear-gradient(135deg,#1a6fff,#f5a623)">
@@ -68,15 +77,15 @@
   <div class="flex gap-1 bg-white rounded-xl shadow-sm p-1 w-fit">
     <button onclick="switchTab('expense')" id="tab-expense"
       class="tab-btn active px-5 py-2 rounded-lg text-sm text-indigo-600">
-      💰 บันทึกรายจ่าย
+      💰 <span data-i18n="tab_expense">Expense</span>
     </button>
     <button onclick="switchTab('task')" id="tab-task"
       class="tab-btn px-5 py-2 rounded-lg text-sm text-blue-600">
-      📋 บันทึกงาน
+      📋 <span data-i18n="tab_task">Task</span>
     </button>
     <button onclick="switchTab('recent')" id="tab-recent"
       class="tab-btn px-5 py-2 rounded-lg text-sm text-gray-500">
-      📊 รายการล่าสุด
+      📊 <span data-i18n="tab_recent">Recent</span>
     </button>
   </div>
 </div>
@@ -84,78 +93,66 @@
 <!-- ── EXPENSE FORM ──────────────────────────────────────────────────── -->
 <div id="pane-expense" class="max-w-5xl mx-auto px-4 mt-5">
   <div class="card p-6">
-    <h2 class="text-lg font-bold text-gray-800 mb-5">💰 บันทึกรายจ่าย</h2>
+    <h2 class="text-lg font-bold text-gray-800 mb-5">💰 <span data-i18n="expense_title">Record Expense</span></h2>
     <form id="form-expense" onsubmit="submitExpense(event)">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         <div>
-          <label class="required">วันที่</label>
+          <label class="required" data-i18n="lbl_date">Date</label>
           <input type="date" id="e-date" required>
         </div>
         <div>
-          <label class="required">จำนวนเงิน (บาท)</label>
-          <input type="number" id="e-amount" placeholder="เช่น 150 หรือ 1250.50"
-                 min="0" step="0.01" required>
+          <label class="required" data-i18n="lbl_amount">Amount (THB)</label>
+          <input type="number" id="e-amount" min="0" step="0.01" required
+                 data-i18n-placeholder="ph_amount">
         </div>
 
         <div>
-          <label class="required">หมวดหมู่</label>
+          <label class="required" data-i18n="lbl_category">Category</label>
           <select id="e-category" required>
-            <option value="">-- เลือกหมวดหมู่ --</option>
-            <optgroup label="ภาษาไทย">
-              <option>อาหาร/เครื่องดื่ม</option>
-              <option>เดินทาง</option>
-              <option>ช้อปปิ้ง</option>
-              <option>สุขภาพ</option>
-              <option>ที่พัก</option>
-              <option>ความบันเทิง</option>
-              <option>การศึกษา</option>
-              <option>อื่นๆ</option>
-            </optgroup>
-            <optgroup label="English">
-              <option>Food/Drinks</option>
-              <option>Transport</option>
-              <option>Shopping</option>
-              <option>Health</option>
-              <option>Accommodation</option>
-              <option>Entertainment</option>
-              <option>Education</option>
-              <option>Other</option>
-            </optgroup>
+            <option value="" data-i18n="opt_select_cat">-- Select Category --</option>
+            <option data-en="Food/Drinks" data-th="อาหาร/เครื่องดื่ม">Food/Drinks</option>
+            <option data-en="Transport" data-th="เดินทาง">Transport</option>
+            <option data-en="Shopping" data-th="ช้อปปิ้ง">Shopping</option>
+            <option data-en="Health" data-th="สุขภาพ">Health</option>
+            <option data-en="Accommodation" data-th="ที่พัก">Accommodation</option>
+            <option data-en="Entertainment" data-th="ความบันเทิง">Entertainment</option>
+            <option data-en="Education" data-th="การศึกษา">Education</option>
+            <option data-en="Other" data-th="อื่นๆ">Other</option>
           </select>
         </div>
         <div>
-          <label>วิธีชำระเงิน</label>
+          <label data-i18n="lbl_payment">Payment Method</label>
           <select id="e-payment">
-            <option value="">-- เลือก --</option>
-            <option>เงินสด</option>
-            <option>บัตรเครดิต</option>
-            <option>โอนเงิน</option>
-            <option>QR Code</option>
-            <option>บัตรเดบิต</option>
-            <option>อื่นๆ</option>
+            <option value="" data-i18n="opt_select">-- Select --</option>
+            <option data-en="Cash" data-th="เงินสด">Cash</option>
+            <option data-en="Credit Card" data-th="บัตรเครดิต">Credit Card</option>
+            <option data-en="Transfer" data-th="โอนเงิน">Transfer</option>
+            <option data-en="QR Code" data-th="QR Code">QR Code</option>
+            <option data-en="Debit Card" data-th="บัตรเดบิต">Debit Card</option>
+            <option data-en="Other" data-th="อื่นๆ">Other</option>
           </select>
         </div>
 
         <div class="md:col-span-2">
-          <label>หมายเหตุ</label>
-          <textarea id="e-note" rows="2" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></textarea>
+          <label data-i18n="lbl_note">Note</label>
+          <textarea id="e-note" rows="2" data-i18n-placeholder="ph_note"></textarea>
         </div>
 
         <div>
-          <label>บันทึกโดย</label>
-          <input type="text" id="e-by" placeholder="ชื่อผู้บันทึก">
+          <label data-i18n="lbl_recorded_by">Recorded By</label>
+          <input type="text" id="e-by" data-i18n-placeholder="ph_recorded_by">
         </div>
       </div>
 
       <div class="mt-5 flex gap-3">
-        <button type="submit" class="btn-primary text-white"
+        <button type="submit" id="btn-expense-submit" class="btn-primary text-white"
                 style="background: linear-gradient(135deg,#6366f1,#8b5cf6)">
-          ✅ บันทึกรายจ่าย
+          ✅ <span data-i18n="btn_save_expense">Save Expense</span>
         </button>
         <button type="button" onclick="resetExpense()"
                 class="btn-primary bg-gray-100 text-gray-600 hover:bg-gray-200">
-          ล้างฟอร์ม
+          <span data-i18n="btn_clear">Clear</span>
         </button>
       </div>
     </form>
@@ -165,47 +162,47 @@
 <!-- ── TASK FORM ──────────────────────────────────────────────────────── -->
 <div id="pane-task" class="max-w-5xl mx-auto px-4 mt-5 hidden">
   <div class="card p-6">
-    <h2 class="text-lg font-bold text-gray-800 mb-5">📋 บันทึกงาน</h2>
+    <h2 class="text-lg font-bold text-gray-800 mb-5">📋 <span data-i18n="task_title">Record Task</span></h2>
     <form id="form-task" onsubmit="submitTask(event)">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         <div>
-          <label class="required">วันที่เริ่มงาน</label>
+          <label class="required" data-i18n="lbl_start_date">Start Date</label>
           <input type="date" id="t-date" required>
         </div>
         <div>
-          <label>วันครบกำหนด (Due Date)</label>
+          <label data-i18n="lbl_due_date">Due Date</label>
           <input type="date" id="t-due">
         </div>
 
         <div class="md:col-span-2">
-          <label class="required">ชื่องาน / Task</label>
-          <input type="text" id="t-task" placeholder="เช่น PSR130A PPT, Monthly Report" required>
+          <label class="required" data-i18n="lbl_task_name">Task Name</label>
+          <input type="text" id="t-task" required data-i18n-placeholder="ph_task_name">
         </div>
 
         <div>
-          <label>Client / Project</label>
-          <input type="text" id="t-client" placeholder="เช่น Carsem, SBP, Internal">
+          <label data-i18n="lbl_client">Client / Project</label>
+          <input type="text" id="t-client" data-i18n-placeholder="ph_client">
         </div>
         <div>
-          <label>Department</label>
-          <input type="text" id="t-dept" placeholder="เช่น Engineering, Sales">
+          <label data-i18n="lbl_dept">Department</label>
+          <input type="text" id="t-dept" data-i18n-placeholder="ph_dept">
         </div>
 
         <div>
-          <label class="required">สถานะ</label>
+          <label class="required" data-i18n="lbl_status">Status</label>
           <select id="t-status" required>
-            <option value="">-- เลือกสถานะ --</option>
-            <option value="กำลังทำ">🔵 กำลังทำ (In Progress)</option>
-            <option value="เสร็จแล้ว">🟢 เสร็จแล้ว (Done)</option>
-            <option value="รอดำเนินการ">⚪ รอดำเนินการ (Pending)</option>
-            <option value="ยกเลิก">🔴 ยกเลิก (Cancelled)</option>
+            <option value="" data-i18n="opt_select_status">-- Select Status --</option>
+            <option value="กำลังทำ" data-en="🔵 In Progress" data-th="🔵 กำลังทำ">🔵 In Progress</option>
+            <option value="เสร็จแล้ว" data-en="🟢 Done" data-th="🟢 เสร็จแล้ว">🟢 Done</option>
+            <option value="รอดำเนินการ" data-en="⚪ Pending" data-th="⚪ รอดำเนินการ">⚪ Pending</option>
+            <option value="ยกเลิก" data-en="🔴 Cancelled" data-th="🔴 ยกเลิก">🔴 Cancelled</option>
           </select>
         </div>
         <div>
-          <label>Priority</label>
+          <label data-i18n="lbl_priority">Priority</label>
           <select id="t-priority">
-            <option value="">-- เลือก --</option>
+            <option value="" data-i18n="opt_select">-- Select --</option>
             <option value="High">🔴 High</option>
             <option value="Medium">🟡 Medium</option>
             <option value="Low">🟢 Low</option>
@@ -213,31 +210,29 @@
         </div>
 
         <div class="md:col-span-2">
-          <label>รายละเอียดงาน</label>
-          <textarea id="t-desc" rows="3"
-            placeholder="อธิบายงานที่ต้องทำ เป้าหมาย หรือ scope ของงาน"></textarea>
+          <label data-i18n="lbl_description">Description</label>
+          <textarea id="t-desc" rows="3" data-i18n-placeholder="ph_description"></textarea>
         </div>
 
         <div class="md:col-span-2">
-          <label>หมายเหตุ / Notes</label>
-          <textarea id="t-note" rows="2"
-            placeholder="ข้อสังเกต ปัญหา หรือ context เพิ่มเติม"></textarea>
+          <label data-i18n="lbl_notes">Notes</label>
+          <textarea id="t-note" rows="2" data-i18n-placeholder="ph_notes"></textarea>
         </div>
 
         <div>
-          <label>บันทึกโดย</label>
-          <input type="text" id="t-by" placeholder="ชื่อผู้บันทึก">
+          <label data-i18n="lbl_recorded_by">Recorded By</label>
+          <input type="text" id="t-by" data-i18n-placeholder="ph_recorded_by">
         </div>
       </div>
 
       <div class="mt-5 flex gap-3">
-        <button type="submit" class="btn-primary text-white"
+        <button type="submit" id="btn-task-submit" class="btn-primary text-white"
                 style="background: linear-gradient(135deg,#3b82f6,#6366f1)">
-          ✅ บันทึกงาน
+          ✅ <span data-i18n="btn_save_task">Save Task</span>
         </button>
         <button type="button" onclick="resetTask()"
                 class="btn-primary bg-gray-100 text-gray-600 hover:bg-gray-200">
-          ล้างฟอร์ม
+          <span data-i18n="btn_clear">Clear</span>
         </button>
       </div>
     </form>
@@ -248,49 +243,129 @@
 <div id="pane-recent" class="max-w-5xl mx-auto px-4 mt-5 hidden">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-    <!-- Recent Expenses -->
     <div class="card p-5">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-bold text-gray-800">💰 รายจ่ายล่าสุด</h2>
-        <button onclick="loadRecent()" class="text-xs text-indigo-500 hover:underline">รีเฟรช</button>
+        <h2 class="font-bold text-gray-800">💰 <span data-i18n="recent_expenses">Recent Expenses</span></h2>
+        <button onclick="loadRecent()" class="text-xs text-indigo-500 hover:underline" data-i18n="btn_refresh">Refresh</button>
       </div>
       <div id="recent-expenses">
-        <div class="text-sm text-gray-400 text-center py-6">กำลังโหลด...</div>
+        <div class="text-sm text-gray-400 text-center py-6" data-i18n="loading">Loading...</div>
       </div>
     </div>
 
-    <!-- Recent Tasks -->
     <div class="card p-5">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-bold text-gray-800">📋 งานล่าสุด</h2>
-        <button onclick="loadRecent()" class="text-xs text-blue-500 hover:underline">รีเฟรช</button>
+        <h2 class="font-bold text-gray-800">📋 <span data-i18n="recent_tasks">Recent Tasks</span></h2>
+        <button onclick="loadRecent()" class="text-xs text-blue-500 hover:underline" data-i18n="btn_refresh">Refresh</button>
       </div>
       <div id="recent-tasks">
-        <div class="text-sm text-gray-400 text-center py-6">กำลังโหลด...</div>
+        <div class="text-sm text-gray-400 text-center py-6" data-i18n="loading">Loading...</div>
       </div>
     </div>
 
   </div>
 </div>
 
-<!-- Spacer -->
 <div class="h-16"></div>
-
-<!-- Toast -->
 <div id="toast" class="toast"></div>
 
 <script>
+// ── Translations ──────────────────────────────────────────────────────────────
+const T = {
+  en: {
+    tab_expense: 'Expense', tab_task: 'Task', tab_recent: 'Recent',
+    hdr_subtitle: 'Expense & Task Tracker',
+    expense_title: 'Record Expense', task_title: 'Record Task',
+    lbl_date: 'Date', lbl_amount: 'Amount (THB)', lbl_category: 'Category',
+    lbl_payment: 'Payment Method', lbl_note: 'Note', lbl_recorded_by: 'Recorded By',
+    lbl_start_date: 'Start Date', lbl_due_date: 'Due Date', lbl_task_name: 'Task Name',
+    lbl_client: 'Client / Project', lbl_dept: 'Department', lbl_status: 'Status',
+    lbl_priority: 'Priority', lbl_description: 'Description', lbl_notes: 'Notes',
+    btn_save_expense: 'Save Expense', btn_save_task: 'Save Task', btn_clear: 'Clear',
+    btn_refresh: 'Refresh',
+    opt_select: '-- Select --', opt_select_cat: '-- Select Category --',
+    opt_select_status: '-- Select Status --',
+    ph_amount: 'e.g. 150 or 1250.50',
+    ph_note: 'Additional details (optional)',
+    ph_recorded_by: 'Your name',
+    ph_task_name: 'e.g. PSR130A PPT, Monthly Report',
+    ph_client: 'e.g. Carsem, SBP, Internal',
+    ph_dept: 'e.g. Engineering, Sales',
+    ph_description: 'Describe scope, goal or deliverables',
+    ph_notes: 'Observations, issues or extra context',
+    recent_expenses: 'Recent Expenses', recent_tasks: 'Recent Tasks',
+    loading: 'Loading...', no_data: 'No records yet', load_fail: 'Failed to load',
+    saving: 'Saving...', saved_expense: 'Expense saved ✅', saved_task: 'Task saved ✅',
+    err_server: 'Server error', err_connect: 'Cannot connect to server',
+  },
+  th: {
+    tab_expense: 'บันทึกรายจ่าย', tab_task: 'บันทึกงาน', tab_recent: 'รายการล่าสุด',
+    hdr_subtitle: 'ระบบบันทึกรายจ่าย & งาน',
+    expense_title: 'บันทึกรายจ่าย', task_title: 'บันทึกงาน',
+    lbl_date: 'วันที่', lbl_amount: 'จำนวนเงิน (บาท)', lbl_category: 'หมวดหมู่',
+    lbl_payment: 'วิธีชำระเงิน', lbl_note: 'หมายเหตุ', lbl_recorded_by: 'บันทึกโดย',
+    lbl_start_date: 'วันที่เริ่มงาน', lbl_due_date: 'วันครบกำหนด', lbl_task_name: 'ชื่องาน / Task',
+    lbl_client: 'Client / Project', lbl_dept: 'แผนก', lbl_status: 'สถานะ',
+    lbl_priority: 'ความสำคัญ', lbl_description: 'รายละเอียดงาน', lbl_notes: 'หมายเหตุ / Notes',
+    btn_save_expense: 'บันทึกรายจ่าย', btn_save_task: 'บันทึกงาน', btn_clear: 'ล้างฟอร์ม',
+    btn_refresh: 'รีเฟรช',
+    opt_select: '-- เลือก --', opt_select_cat: '-- เลือกหมวดหมู่ --',
+    opt_select_status: '-- เลือกสถานะ --',
+    ph_amount: 'เช่น 150 หรือ 1250.50',
+    ph_note: 'รายละเอียดเพิ่มเติม (ไม่บังคับ)',
+    ph_recorded_by: 'ชื่อผู้บันทึก',
+    ph_task_name: 'เช่น PSR130A PPT, Monthly Report',
+    ph_client: 'เช่น Carsem, SBP, Internal',
+    ph_dept: 'เช่น Engineering, Sales',
+    ph_description: 'อธิบายงานที่ต้องทำ เป้าหมาย หรือ scope ของงาน',
+    ph_notes: 'ข้อสังเกต ปัญหา หรือ context เพิ่มเติม',
+    recent_expenses: 'รายจ่ายล่าสุด', recent_tasks: 'งานล่าสุด',
+    loading: 'กำลังโหลด...', no_data: 'ยังไม่มีรายการ', load_fail: 'โหลดไม่ได้',
+    saving: 'กำลังบันทึก...', saved_expense: 'บันทึกรายจ่ายสำเร็จ ✅', saved_task: 'บันทึกงานสำเร็จ ✅',
+    err_server: 'เกิดข้อผิดพลาด', err_connect: 'เชื่อมต่อ server ไม่ได้',
+  }
+};
+
+let lang = localStorage.getItem('rp_lang') || 'en';
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('rp_lang', l);
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  document.getElementById('btn-th').classList.toggle('active', l === 'th');
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (T[l][key]) el.textContent = T[l][key];
+  });
+  // Update placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (T[l][key]) el.placeholder = T[l][key];
+  });
+  // Update bilingual options (data-en / data-th)
+  document.querySelectorAll('option[data-en]').forEach(el => {
+    el.textContent = l === 'th' ? el.getAttribute('data-th') : el.getAttribute('data-en');
+  });
+  // Update clock locale
+  startClock();
+  // Update html lang
+  document.documentElement.lang = l;
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 const today = new Date().toISOString().split('T')[0];
 document.getElementById('e-date').value = today;
 document.getElementById('t-date').value = today;
 loadSavedName();
-startClock();
+setLang(lang); // apply saved language
 
 function startClock() {
+  clearInterval(window._clockTimer);
   const el = document.getElementById('clock');
-  setInterval(() => {
-    el.textContent = new Date().toLocaleString('th-TH', {
+  const locale = lang === 'th' ? 'th-TH' : 'en-GB';
+  window._clockTimer = setInterval(() => {
+    el.textContent = new Date().toLocaleString(locale, {
       weekday: 'short', year: 'numeric', month: 'short',
       day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
@@ -303,7 +378,6 @@ function loadSavedName() {
   document.getElementById('t-by').value = name;
 }
 
-// Save name on change
 ['e-by','t-by'].forEach(id => {
   document.getElementById(id).addEventListener('change', e => {
     localStorage.setItem('rp_recorded_by', e.target.value);
@@ -324,8 +398,9 @@ function switchTab(name) {
 // ── Submit Expense ────────────────────────────────────────────────────────────
 async function submitExpense(e) {
   e.preventDefault();
-  const btn = e.target.querySelector('button[type=submit]');
-  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  const btn = document.getElementById('btn-expense-submit');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = T[lang].saving;
   const payload = {
     date: document.getElementById('e-date').value,
     amount: document.getElementById('e-amount').value,
@@ -336,30 +411,31 @@ async function submitExpense(e) {
   };
   try {
     const res = await fetch('/api/expense', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify(payload),
     });
     const data = await res.json();
     if (data.ok) {
-      toast('บันทึกรายจ่ายสำเร็จ ✅', '#10b981');
+      toast(T[lang].saved_expense, '#10b981');
       resetExpense();
       if (localStorage.getItem('rp_recorded_by'))
         document.getElementById('e-by').value = localStorage.getItem('rp_recorded_by');
     } else {
-      toast('เกิดข้อผิดพลาด: ' + data.error, '#ef4444');
+      toast(T[lang].err_server + ': ' + data.error, '#ef4444');
     }
   } catch(err) {
-    toast('เชื่อมต่อ server ไม่ได้', '#ef4444');
+    toast(T[lang].err_connect, '#ef4444');
   }
-  btn.disabled = false; btn.textContent = '✅ บันทึกรายจ่าย';
+  btn.disabled = false;
+  btn.querySelector('span').textContent = T[lang].btn_save_expense;
 }
 
 // ── Submit Task ───────────────────────────────────────────────────────────────
 async function submitTask(e) {
   e.preventDefault();
-  const btn = e.target.querySelector('button[type=submit]');
-  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  const btn = document.getElementById('btn-task-submit');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = T[lang].saving;
   const payload = {
     date: document.getElementById('t-date').value,
     task: document.getElementById('t-task').value,
@@ -373,31 +449,31 @@ async function submitTask(e) {
   };
   try {
     const res = await fetch('/api/task', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify(payload),
     });
     const data = await res.json();
     if (data.ok) {
-      toast('บันทึกงานสำเร็จ ✅', '#3b82f6');
+      toast(T[lang].saved_task, '#3b82f6');
       resetTask();
       if (localStorage.getItem('rp_recorded_by'))
         document.getElementById('t-by').value = localStorage.getItem('rp_recorded_by');
     } else {
-      toast('เกิดข้อผิดพลาด: ' + data.error, '#ef4444');
+      toast(T[lang].err_server + ': ' + data.error, '#ef4444');
     }
   } catch(err) {
-    toast('เชื่อมต่อ server ไม่ได้', '#ef4444');
+    toast(T[lang].err_connect, '#ef4444');
   }
-  btn.disabled = false; btn.textContent = '✅ บันทึกงาน';
+  btn.disabled = false;
+  btn.querySelector('span').textContent = T[lang].btn_save_task;
 }
 
 // ── Recent Records ────────────────────────────────────────────────────────────
 async function loadRecent() {
   document.getElementById('recent-expenses').innerHTML =
-    '<div class="text-sm text-gray-400 text-center py-6">กำลังโหลด...</div>';
+    `<div class="text-sm text-gray-400 text-center py-6">${T[lang].loading}</div>`;
   document.getElementById('recent-tasks').innerHTML =
-    '<div class="text-sm text-gray-400 text-center py-6">กำลังโหลด...</div>';
+    `<div class="text-sm text-gray-400 text-center py-6">${T[lang].loading}</div>`;
   try {
     const res  = await fetch('/api/recent');
     const data = await res.json();
@@ -405,16 +481,16 @@ async function loadRecent() {
     renderTasks(data.tasks || []);
   } catch(e) {
     document.getElementById('recent-expenses').innerHTML =
-      '<div class="text-xs text-red-400 text-center py-4">โหลดไม่ได้</div>';
+      `<div class="text-xs text-red-400 text-center py-4">${T[lang].load_fail}</div>`;
     document.getElementById('recent-tasks').innerHTML =
-      '<div class="text-xs text-red-400 text-center py-4">โหลดไม่ได้</div>';
+      `<div class="text-xs text-red-400 text-center py-4">${T[lang].load_fail}</div>`;
   }
 }
 
 function renderExpenses(rows) {
   const el = document.getElementById('recent-expenses');
   if (!rows.length) {
-    el.innerHTML = '<div class="text-sm text-gray-400 text-center py-6">ยังไม่มีรายการ</div>';
+    el.innerHTML = `<div class="text-sm text-gray-400 text-center py-6">${T[lang].no_data}</div>`;
     return;
   }
   el.innerHTML = rows.map(r => `
@@ -443,7 +519,7 @@ const PRIORITY_CLASS = { High:'priority-high', Medium:'priority-medium', Low:'pr
 function renderTasks(rows) {
   const el = document.getElementById('recent-tasks');
   if (!rows.length) {
-    el.innerHTML = '<div class="text-sm text-gray-400 text-center py-6">ยังไม่มีรายการ</div>';
+    el.innerHTML = `<div class="text-sm text-gray-400 text-center py-6">${T[lang].no_data}</div>`;
     return;
   }
   el.innerHTML = rows.map(r => `
