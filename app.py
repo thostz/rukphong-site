@@ -80,6 +80,11 @@ def rukphong_profile():
     return send_from_directory("rukphong_site", "index.html")
 
 
+@app.route("/investment", methods=["GET"])
+def investment():
+    return send_from_directory(".", "investment.html")
+
+
 # ── Web UI ─────────────────────────────────────────────────────────────────────
 
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID", "")
