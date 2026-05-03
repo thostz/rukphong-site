@@ -238,8 +238,31 @@ const TYPE_COLORS  = {stocks:'#2980b9',bonds:'#27ae60',crypto:'#e67e22',realesta
 let sortField = 'date', sortAsc = false;
 let doughnutChart = null, barChart = null;
 
-function getPortfolios() { return JSON.parse(localStorage.getItem('rukphong_portfolios') || '[]'); }
-function savePortfolios(p) { localStorage.setItem('rukphong_portfolios', JSON.stringify(p)); }
+let _portfolios = [];
+let _invCache = {};   // portfolio_id -> investments[]
+let _divCache = {};   // portfolio_id -> dividends[]
+let _tgtCache = {};   // portfolio_id -> targets{}
+
+function getPortfolios() { return _portfolios; }
+function savePortfolios(p) { _portfolios = p; }
+
+async function _apiLoadAll() {
+  try {
+    const pr = await fetch('/api/portfolios');
+    const pj = await pr.json();
+    _portfolios = pj.ok ? pj.data : [];
+    for (const p of _portfolios) {
+      const [ir, dr, tr] = await Promise.all([
+        fetch('/api/investments?portfolio='+p.id).then(r=>r.json()),
+        fetch('/api/dividends?portfolio='+p.id).then(r=>r.json()),
+        fetch('/api/targets/'+p.id).then(r=>r.json()),
+      ]);
+      _invCache[p.id] = ir.ok ? ir.data.map(x=>({id:x.id,type:x.type||'',symbol:x.symbol||'',name:x.name||'',qty:parseFloat(x.qty)||0,cost:parseFloat(x.cost_price)||0,price:parseFloat(x.current_price)||0,note:x.note||''})) : [];
+      _divCache[p.id] = dr.ok ? dr.data.map(x=>({id:x.id,date:x.date||'',amount:parseFloat(x.amount)||0,note:x.note||'',symbol:x.symbol||'',type:x.type||''})) : [];
+      _tgtCache[p.id] = tr.ok ? tr.data : {};
+    }
+  } catch(e) { console.warn('Investment API load failed', e); }
+}
 function getActiveId() {
     let id = localStorage.getItem('rukphong_active_portfolio');
     const ps = getPortfolios();
@@ -250,12 +273,12 @@ function setActiveId(id) { localStorage.setItem('rukphong_active_portfolio', id)
 function invKey(pid) { return 'rukphong_investments_' + pid; }
 function tgtKey(pid) { return 'rukphong_targets_' + pid; }
 function divKey(pid) { return 'rukphong_dividends_' + pid; }
-function loadInv()  { const id = getActiveId(); return id ? JSON.parse(localStorage.getItem(invKey(id)) || '[]') : []; }
-function saveInv(d) { const id = getActiveId(); if (id) localStorage.setItem(invKey(id), JSON.stringify(d)); }
-function loadTgt()  { const id = getActiveId(); if (!id) return {}; const def = Object.fromEntries(TYPES.map(t=>[t,0])); return Object.assign({}, def, JSON.parse(localStorage.getItem(tgtKey(id)) || '{}')); }
-function saveTgt(t) { const id = getActiveId(); if (id) localStorage.setItem(tgtKey(id), JSON.stringify(t)); }
-function loadDiv()  { const id = getActiveId(); return id ? JSON.parse(localStorage.getItem(divKey(id)) || '[]') : []; }
-function saveDiv(d) { const id = getActiveId(); if (id) localStorage.setItem(divKey(id), JSON.stringify(d)); }
+function loadInv()  { const id = getActiveId(); return id ? (_invCache[id] || []) : []; }
+function saveInv(d) { const id = getActiveId(); if (!id) return; const prev = _invCache[id]||[]; _invCache[id] = d; const prevIds = new Set(prev.map(x=>x.id)); d.forEach(x=>{ if(!prevIds.has(x.id)||JSON.stringify(x)!==JSON.stringify(prev.find(p=>p.id===x.id))) fetch('/api/investments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...x,cost:x.cost,price:x.price,portfolio_id:id})}).catch(()=>{}); }); }
+function loadTgt()  { const id = getActiveId(); if (!id) return Object.fromEntries(TYPES.map(t=>[t,0])); return Object.assign(Object.fromEntries(TYPES.map(t=>[t,0])), _tgtCache[id]||{}); }
+function saveTgt(t) { const id = getActiveId(); if (!id) return; _tgtCache[id] = t; fetch('/api/targets/'+id, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(t)}).catch(()=>{}); }
+function loadDiv()  { const id = getActiveId(); return id ? (_divCache[id] || []) : []; }
+function saveDiv(d) { const id = getActiveId(); if (!id) return; const prev = _divCache[id]||[]; _divCache[id] = d; const prevIds = new Set(prev.map(x=>x.id)); d.forEach(x=>{ if(!prevIds.has(x.id)) fetch('/api/dividends',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...x,portfolio_id:id})}).catch(()=>{}); }); }
 
 function fmtNum(n) { return n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function sym(c) { return {THB:'฿',USD:'$',EUR:'€',JPY:'¥',SGD:'S$'}[c] || c; }
@@ -269,7 +292,7 @@ function renderPortfolioSelect() {
 function addPortfolio() {
     const name = prompt('Portfolio name:'); if (!name?.trim()) return;
     const ps = getPortfolios(), id = Date.now().toString();
-    ps.push({id, name: name.trim()}); savePortfolios(ps); setActiveId(id); refreshAll();
+    ps.push({id, name: name.trim()}); savePortfolios(ps); fetch('/api/portfolios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ps[ps.length-1])}).catch(()=>{}); setActiveId(id); refreshAll();
 }
 function renamePortfolio() {
     const id = getActiveId(); if (!id) return;
@@ -281,7 +304,7 @@ function deletePortfolio() {
     const ps = getPortfolios(); if (ps.length <= 1) { alert('You must have at least one portfolio.'); return; }
     const id = getActiveId(); if (!confirm('Delete this portfolio and all its data?')) return;
     const filtered = ps.filter(p => p.id !== id); savePortfolios(filtered);
-    localStorage.removeItem(invKey(id)); localStorage.removeItem(tgtKey(id)); localStorage.removeItem(divKey(id));
+    delete _invCache[id]; delete _divCache[id]; delete _tgtCache[id]; fetch('/api/portfolios/'+id,{method:'DELETE'}).catch(()=>{});
     setActiveId(filtered[0].id); refreshAll();
 }
 function switchPortfolio() { setActiveId(document.getElementById('portfolioSelect').value); refreshAll(); }
@@ -485,115 +508,7 @@ function refreshAll() { renderPortfolioSelect(); updateSummary(); updateCharts()
 })();
 </script>
 
-<script>
-// ── API Bridge: Investment ───────────────────────────────────────────────────
-async function _apiSyncInvestment() {
-  try {
-    // Sync portfolios
-    const pr = await fetch('/api/portfolios');
-    const pj = await pr.json();
-    if (pj.ok && pj.data && pj.data.length > 0) {
-      const existing = getPortfolios();
-      const existIds = new Set(existing.map(x => x.id));
-      const merged = [...existing];
-      for (const p of pj.data) {
-        if (!existIds.has(p.id)) merged.push({id: p.id, name: p.name});
-      }
-      savePortfolios(merged);
-      
-      // Sync investments + dividends + targets for each portfolio
-      for (const p of pj.data) {
-        const ir = await fetch('/api/investments?portfolio=' + p.id);
-        const ij = await ir.json();
-        if (ij.ok && ij.data) {
-          const lkey = 'rukphong_inv_' + p.id;
-          const local = JSON.parse(localStorage.getItem(lkey) || '[]');
-          const localIds = new Set(local.map(x => x.id));
-          const merged2 = [...local];
-          for (const inv of ij.data) {
-            if (!localIds.has(inv.id)) {
-              merged2.push({id:inv.id, type:inv.type||'', symbol:inv.symbol||'',
-                name:inv.name||'', qty:parseFloat(inv.qty)||0,
-                cost:parseFloat(inv.cost_price)||0, price:parseFloat(inv.current_price)||0,
-                note:inv.note||''});
-            }
-          }
-          localStorage.setItem(lkey, JSON.stringify(merged2));
-        }
 
-        const dr = await fetch('/api/dividends?portfolio=' + p.id);
-        const dj = await dr.json();
-        if (dj.ok && dj.data) {
-          const dkey = 'rukphong_div_' + p.id;
-          const local = JSON.parse(localStorage.getItem(dkey) || '[]');
-          const localIds = new Set(local.map(x => x.id));
-          const merged3 = [...local];
-          for (const div of dj.data) {
-            if (!localIds.has(div.id)) {
-              merged3.push({id:div.id, date:div.date||'', amount:parseFloat(div.amount)||0,
-                note:div.note||'', symbol:div.symbol||'', type:div.type||''});
-            }
-          }
-          localStorage.setItem(dkey, JSON.stringify(merged3));
-        }
-
-        const tr = await fetch('/api/targets/' + p.id);
-        const tj = await tr.json();
-        if (tj.ok && tj.data && Object.keys(tj.data).length > 0) {
-          const tkey = 'rukphong_tgt_' + p.id;
-          if (!localStorage.getItem(tkey)) {
-            localStorage.setItem(tkey, JSON.stringify(tj.data));
-          }
-        }
-      }
-    }
-  } catch(e) { console.warn('API sync failed, using localStorage', e); }
-}
-
-// Patch savePortfolios to also POST to API
-const _origSavePortfolios = savePortfolios;
-savePortfolios = function(list) {
-  _origSavePortfolios(list);
-};
-
-// Patch saveInv to also POST investments
-const _origSaveInv = saveInv;
-saveInv = function(d) {
-  _origSaveInv(d);
-  const pid = getActiveId();
-  if (!pid) return;
-  for (const inv of d) {
-    fetch('/api/investments', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({...inv, cost: inv.cost, price: inv.price, portfolio_id: pid})}).catch(()=>{});
-  }
-};
-
-const _origSaveDiv = saveDiv;
-saveDiv = function(d) {
-  _origSaveDiv(d);
-  const pid = getActiveId();
-  if (!pid) return;
-  for (const div of d) {
-    fetch('/api/dividends', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({...div, portfolio_id: pid})}).catch(()=>{});
-  }
-};
-
-const _origSaveTgt = saveTgt;
-saveTgt = function(t) {
-  _origSaveTgt(t);
-  const pid = getActiveId();
-  if (!pid) return;
-  fetch('/api/targets/' + pid, {method:'PUT', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(t)}).catch(()=>{});
-};
-
-window.addEventListener('DOMContentLoaded', async () => {
-  await _apiSyncInvestment();
-  if (typeof renderAll === 'function') renderAll();
-  else if (typeof render === 'function') render();
-});
-</script>
-
+<script>window.addEventListener("DOMContentLoaded",async()=>{await _apiLoadAll();if(typeof initPortfolioUI==="function")initPortfolioUI();else if(typeof renderAll==="function")renderAll();else if(typeof render==="function")render();});</script>
 </body>
 </html>
