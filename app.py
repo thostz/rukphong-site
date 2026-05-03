@@ -85,6 +85,26 @@ def investment():
     return send_from_directory(".", "investment.html")
 
 
+@app.route("/main", methods=["GET"])
+def main_page():
+    return send_from_directory(".", "main.html")
+
+
+@app.route("/expense", methods=["GET"])
+def expense():
+    return send_from_directory(".", "expense.html")
+
+
+@app.route("/notes", methods=["GET"])
+def notes():
+    return send_from_directory(".", "notes.html")
+
+
+@app.route("/tasks", methods=["GET"])
+def tasks():
+    return send_from_directory(".", "tasks.html")
+
+
 # ── Web UI ─────────────────────────────────────────────────────────────────────
 
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID", "")
