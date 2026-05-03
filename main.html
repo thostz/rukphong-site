@@ -30,7 +30,7 @@
 
         /* ── NAV ── */
         .site-nav {
-            background: rgba(10,15,30,0.92);
+            background: rgba(10,15,30,0.95);
             backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
             position: sticky; top: 0; z-index: 100;
@@ -71,23 +71,22 @@
         .hero-info { flex: 1; min-width: 200px; }
         .hero-info h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; }
         .hero-info h1 span { background: linear-gradient(90deg, var(--blue2), var(--teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-role {
-            margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px;
-        }
+        .hero-role { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
         .role-badge {
-            font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 999px;
-            letter-spacing: 0.3px;
+            font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; letter-spacing: 0.3px;
         }
         .role-badge.pm   { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
         .role-badge.cons { background: rgba(59,130,246,0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
         .role-badge.infor{ background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+        .role-badge.ai   { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
         .hero-meta { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
         .hero-meta span { font-size: 0.82rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+        .hero-meta a { color: var(--blue2); }
 
         /* ── STAT CARDS ── */
         .stats-row {
             max-width: 1100px; margin: -28px auto 0; padding: 0 5%;
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px;
             position: relative; z-index: 10;
         }
         .stat-card {
@@ -118,26 +117,30 @@
             letter-spacing: 1px; color: var(--muted); margin-bottom: 18px;
             display: flex; align-items: center; gap: 8px;
         }
-        .section-card h2::after {
-            content: ''; flex: 1; height: 1px; background: var(--border);
-        }
+        .section-card h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
         /* ── TIMELINE ── */
-        .timeline { display: flex; flex-direction: column; gap: 0; }
-        .tl-item { display: flex; gap: 14px; padding-bottom: 22px; position: relative; }
+        .timeline { display: flex; flex-direction: column; }
+        .tl-item { display: flex; gap: 14px; padding-bottom: 20px; position: relative; }
         .tl-item:last-child { padding-bottom: 0; }
         .tl-left { display: flex; flex-direction: column; align-items: center; width: 36px; flex-shrink: 0; }
         .tl-dot {
-            width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+            width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
             border: 2px solid var(--blue); background: var(--bg);
         }
         .tl-dot.current { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+        .tl-dot.scg { border-color: var(--gold); }
         .tl-line { flex: 1; width: 1px; background: var(--border); margin-top: 4px; }
         .tl-item:last-child .tl-line { display: none; }
         .tl-content { flex: 1; }
-        .tl-title { font-size: 0.92rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+        .tl-title { font-size: 0.9rem; font-weight: 700; color: var(--text); line-height: 1.3; }
         .tl-company { font-size: 0.78rem; color: var(--blue2); font-weight: 600; margin-top: 2px; }
-        .tl-period { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+        .tl-company.gold { color: var(--gold); }
+        .tl-period { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+        .tl-desc { font-size: 0.78rem; color: #94a3b8; margin-top: 5px; line-height: 1.6; }
+        .tl-sub { margin-top: 8px; padding-left: 12px; border-left: 2px solid rgba(245,158,11,0.25); display: flex; flex-direction: column; gap: 6px; }
+        .tl-sub-item .tl-title { font-size: 0.82rem; color: #cbd5e1; }
+        .tl-sub-item .tl-period { font-size: 0.7rem; }
 
         /* ── SKILLS ── */
         .skills-grid { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -148,6 +151,7 @@
         }
         .skill-tag:hover { background: rgba(59,130,246,0.15); border-color: var(--blue); color: var(--blue2); }
         .skill-tag.highlight { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.35); color: var(--blue2); }
+        .skill-tag.ai { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: #34d399; }
 
         /* ── EXPERTISE BARS ── */
         .exp-item { margin-bottom: 14px; }
@@ -156,32 +160,39 @@
         .exp-name { font-size: 0.82rem; font-weight: 600; }
         .exp-pct  { font-size: 0.72rem; color: var(--muted); }
         .exp-bar  { height: 5px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
-        .exp-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+        .exp-fill { height: 100%; border-radius: 99px; }
 
         /* ── CHART ── */
         .chart-wrap { position: relative; height: 200px; }
 
+        /* ── COVERAGE ── */
+        .coverage { display: flex; flex-wrap: wrap; gap: 8px; }
+        .country-tag {
+            font-size: 0.75rem; font-weight: 600; padding: 5px 12px; border-radius: 6px;
+            background: rgba(20,184,166,0.1); border: 1px solid rgba(20,184,166,0.25); color: #2dd4bf;
+        }
+
+        /* ── CERT ── */
+        .cert-list { display: flex; flex-direction: column; gap: 10px; }
+        .cert-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 12px 14px; border-radius: 10px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+        }
+        .cert-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+        .cert-title { font-size: 0.82rem; font-weight: 600; }
+        .cert-sub   { font-size: 0.71rem; color: var(--muted); margin-top: 2px; }
+
         /* ── QUICK LINKS ── */
-        .quick-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+        .quick-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
         .ql-btn {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             gap: 8px; padding: 18px 12px; border-radius: var(--radius);
             border: 1px solid var(--border); background: rgba(255,255,255,0.03);
-            cursor: pointer; transition: all .2s; font-size: 0.82rem; font-weight: 600; color: var(--text);
+            transition: all .2s; font-size: 0.82rem; font-weight: 600; color: var(--text);
         }
         .ql-btn:hover { background: rgba(255,255,255,0.07); transform: translateY(-2px); }
         .ql-btn span { font-size: 1.6rem; }
-
-        /* ── CERT ── */
-        .cert-list { display: flex; flex-direction: column; gap: 12px; }
-        .cert-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 14px; border-radius: 10px;
-            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-        }
-        .cert-icon { font-size: 1.3rem; }
-        .cert-title { font-size: 0.83rem; font-weight: 600; }
-        .cert-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
 
         /* ── CONTACT ── */
         .contact-grid { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -191,9 +202,8 @@
             background: rgba(255,255,255,0.03); border: 1px solid var(--border);
             font-size: 0.82rem; font-weight: 500;
         }
-        .contact-item .ci-icon { font-size: 1.1rem; }
+        .contact-item a { color: var(--blue2); }
 
-        /* ── FOOTER ── */
         footer {
             text-align: center; padding: 24px; font-size: 0.75rem; color: var(--muted);
             border-top: 1px solid var(--border);
@@ -218,14 +228,15 @@
             <h1>Rukphong <span>Pullaoy</span></h1>
             <div class="hero-role">
                 <span class="role-badge pm">Senior Project Manager</span>
-                <span class="role-badge cons">Senior Consultant APAC</span>
+                <span class="role-badge cons">Senior Consultant – WMS</span>
                 <span class="role-badge infor">@ Infor</span>
+                <span class="role-badge ai">GenAI Certified</span>
             </div>
             <div class="hero-meta">
-                <span>📍 Thailand</span>
+                <span>📍 Bangkok Metropolitan Area</span>
                 <span>✉️ rukphonp@gmail.com</span>
-                <span>📞 +66 875014847</span>
-                <span>🌐 EN / TH</span>
+                <span>🔗 <a href="https://www.linkedin.com/in/rukphong" target="_blank">linkedin.com/in/rukphong</a></span>
+                <span>🌐 English (Professional)</span>
             </div>
         </div>
     </div>
@@ -235,28 +246,28 @@
 <div class="stats-row">
     <div class="stat-card">
         <div class="stat-icon">🏆</div>
-        <div class="stat-value" style="color:#f59e0b">24+</div>
+        <div class="stat-value" style="color:#f59e0b">20+</div>
         <div class="stat-label">Years Experience</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon">🚀</div>
-        <div class="stat-value" style="color:#3b82f6">50+</div>
-        <div class="stat-label">Projects Delivered</div>
+        <div class="stat-value" style="color:#3b82f6">ERP &amp; WMS</div>
+        <div class="stat-label">Project Leadership</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon">🌏</div>
-        <div class="stat-value" style="color:#14b8a6">APAC</div>
-        <div class="stat-label">Regional Coverage</div>
+        <div class="stat-value" style="color:#14b8a6">5+</div>
+        <div class="stat-label">Countries APAC</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon">🏭</div>
-        <div class="stat-value" style="color:#10b981">WMS</div>
-        <div class="stat-label">Core Specialization</div>
+        <div class="stat-value" style="color:#10b981">T2V</div>
+        <div class="stat-label">WMS Methodology</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon">📦</div>
-        <div class="stat-value" style="color:#8b5cf6">5</div>
-        <div class="stat-label">Industries Served</div>
+        <div class="stat-icon">🤖</div>
+        <div class="stat-value" style="color:#a78bfa">GenAI</div>
+        <div class="stat-label">Certified Educator</div>
     </div>
 </div>
 
@@ -266,99 +277,152 @@
     <!-- Summary -->
     <div class="section-card full-width">
         <h2>⚡ Professional Summary</h2>
-        <p style="font-size:0.9rem; line-height:1.8; color:#cbd5e1;">
-            Senior Project Manager and Consultant with 24+ years of progressive experience in WMS, TMS, ERP, and
-            supply chain systems across APAC. Recognized for end-to-end project ownership — from requirements and
-            vendor management to go-live and hypercare. Deep expertise in Infor WMS implementations, system integration,
-            and process optimization within logistics and e-commerce verticals. Track record of bridging operational
-            teams with executive stakeholders, driving measurable outcomes through both technical precision and
-            strategic thinking.
+        <p style="font-size:0.9rem; line-height:1.85; color:#cbd5e1;">
+            Senior Project Manager &amp; Senior Consultant with 20+ years of empowering organizations through innovative technology and supply chain excellence.
+            Currently leading <strong style="color:#60a5fa;">Infor CloudSuite Enterprise &amp; WMS projects</strong> across APAC with a focus on strategic delivery and Time to Value (T2V).
+            Deep subject matter expertise in Warehouse Management System implementations, driving process optimization, cost visibility, and cross-regional collaboration
+            across Australia, Korea, Indonesia, Thailand, and Vietnam.
+            Experienced in managing end-to-end project phases — from analysis and design through testing, go-live, and hypercare — while mentoring junior consultants
+            and aligning with client solution strategy. Passionate about integrating <strong style="color:#34d399;">Generative AI</strong> into project management and consulting practice.
         </p>
     </div>
 
     <!-- Career Timeline -->
-    <div class="section-card">
+    <div class="section-card" style="grid-column: 1 / -1;">
         <h2>💼 Career History</h2>
         <div class="timeline">
+
+            <!-- Infor -->
             <div class="tl-item">
                 <div class="tl-left"><div class="tl-dot current"></div><div class="tl-line"></div></div>
                 <div class="tl-content">
-                    <div class="tl-title">Senior Project Manager & Senior Consultant APAC</div>
-                    <div class="tl-company">Infor — Global Professional Services</div>
-                    <div class="tl-period">Mar 2022 – Present</div>
+                    <div class="tl-title">Senior Project Manager – ERP &amp; WMS · Senior Consultant – WMS Implementation</div>
+                    <div class="tl-company">Infor (Global Professional Services)</div>
+                    <div class="tl-period">Mar 2022 – Present · 4 yrs 3 mos</div>
+                    <div class="tl-desc">Lead ERP &amp; WMS projects overseeing scope, budget, and timelines. Primary liaison for Infor Consulting Services. Drive WMS implementations using Industry Process Catalogue to achieve Time to Value. Deliver solutions across Australia, Korea, Indonesia, Thailand, Vietnam. Mentor junior consultants and support client solution strategy.</div>
                 </div>
             </div>
+
+            <!-- Anchanto -->
             <div class="tl-item">
                 <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
                 <div class="tl-content">
                     <div class="tl-title">Product Implementation Manager</div>
-                    <div class="tl-company">Anchanto</div>
-                    <div class="tl-period">Nov 2020 – Feb 2022</div>
+                    <div class="tl-company">Anchanto · Thailand</div>
+                    <div class="tl-period">Nov 2020 – Feb 2022 · 1 yr 4 mos</div>
+                    <div class="tl-desc">Drove training and seamless implementation of Anchanto Software. Engaged clients across all stages of deployment. Partnered with product &amp; sales teams for software demonstrations and ongoing support.</div>
                 </div>
             </div>
+
+            <!-- LF Logistics -->
             <div class="tl-item">
                 <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
                 <div class="tl-content">
                     <div class="tl-title">Assistant IT Manager / Project Management</div>
-                    <div class="tl-company">LF Logistics</div>
-                    <div class="tl-period">May 2018 – Nov 2020</div>
+                    <div class="tl-company">LF Logistics · Bangkok</div>
+                    <div class="tl-period">May 2018 – Nov 2020 · 2 yrs 7 mos</div>
+                    <div class="tl-desc">Managed 8–10 concurrent projects. IT Country Project Lead and Product Owner. Designed WMS/TMS solutions and collaborated with Global IT team for seamless Go-Live outcomes.</div>
                 </div>
             </div>
+
+            <!-- SCG -->
             <div class="tl-item">
-                <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+                <div class="tl-left"><div class="tl-dot scg"></div><div class="tl-line"></div></div>
                 <div class="tl-content">
-                    <div class="tl-title">Head of Support / Senior</div>
-                    <div class="tl-company">SCG Logistic Management Co., Ltd.</div>
+                    <div class="tl-title">Multiple Roles — 15 Years 5 Months</div>
+                    <div class="tl-company gold">SCG Logistic Management Co., Ltd.</div>
                     <div class="tl-period">Dec 2002 – Apr 2018</div>
+                    <div class="tl-sub">
+                        <div class="tl-sub-item">
+                            <div class="tl-title">Indonesia Project Lead – Logistics &amp; Warehouse (Support President)</div>
+                            <div class="tl-period">Oct 2015 – Apr 2018 · Indonesia · Contributed to Deming Grand Prize</div>
+                        </div>
+                        <div class="tl-sub-item">
+                            <div class="tl-title">Head of Support Logistics Planning – TMS Tariff Team</div>
+                            <div class="tl-period">Oct 2015 – Dec 2017 · Bangkok · Report to Operation Director</div>
+                        </div>
+                        <div class="tl-sub-item">
+                            <div class="tl-title">Logistics Analyst &amp; Operation Assistant Manager</div>
+                            <div class="tl-period">Apr 2012 – Sep 2015 · Lead team of 80 members</div>
+                        </div>
+                        <div class="tl-sub-item">
+                            <div class="tl-title">Consultant IT &amp; Logistics Planning Center (China Project)</div>
+                            <div class="tl-period">Apr 2011 – Mar 2012 · Nanning, Guangxi, China</div>
+                        </div>
+                        <div class="tl-sub-item">
+                            <div class="tl-title">Senior Logistics Planner – Bulk Transportation</div>
+                            <div class="tl-period">Apr 2007 – Dec 2011 · Bangkok · JDA TMS 6.2 &amp; SAP CS Super User</div>
+                        </div>
+                        <div class="tl-sub-item">
+                            <div class="tl-title">Field Service &amp; Logistics Planner</div>
+                            <div class="tl-period">Dec 2002 – Mar 2007 · Bulk import-export, domestic logistics</div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- CDG -->
             <div class="tl-item">
                 <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
                 <div class="tl-content">
-                    <div class="tl-title">IT Support</div>
-                    <div class="tl-company">CDG Group</div>
-                    <div class="tl-period">Jun 2001 – Dec 2002</div>
+                    <div class="tl-title">IT Support Specialist</div>
+                    <div class="tl-company">CDG Group Thailand · Royal Thai Police</div>
+                    <div class="tl-period">Jan 2002 – Dec 2002 · 1 yr</div>
+                    <div class="tl-desc">Supported transition from manual to digital "Police" system. Managed user accounts and conducted UAT for Royal Thai Police.</div>
                 </div>
             </div>
+
         </div>
     </div>
 
-    <!-- Right Column -->
-    <div style="display:flex; flex-direction:column; gap:20px;">
-
-        <!-- Core Expertise Bars -->
-        <div class="section-card">
-            <h2>🎯 Core Expertise</h2>
-            <div class="exp-item">
-                <div class="exp-row"><span class="exp-name">WMS / Infor WMS</span><span class="exp-pct">98%</span></div>
-                <div class="exp-bar"><div class="exp-fill" style="width:98%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div>
-            </div>
-            <div class="exp-item">
-                <div class="exp-row"><span class="exp-name">Project Management</span><span class="exp-pct">95%</span></div>
-                <div class="exp-bar"><div class="exp-fill" style="width:95%;background:linear-gradient(90deg,#8b5cf6,#a78bfa)"></div></div>
-            </div>
-            <div class="exp-item">
-                <div class="exp-row"><span class="exp-name">System Integration / API</span><span class="exp-pct">85%</span></div>
-                <div class="exp-bar"><div class="exp-fill" style="width:85%;background:linear-gradient(90deg,#14b8a6,#2dd4bf)"></div></div>
-            </div>
-            <div class="exp-item">
-                <div class="exp-row"><span class="exp-name">Business Analysis</span><span class="exp-pct">90%</span></div>
-                <div class="exp-bar"><div class="exp-fill" style="width:90%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
-            </div>
-            <div class="exp-item">
-                <div class="exp-row"><span class="exp-name">ERP / TMS / E-commerce</span><span class="exp-pct">80%</span></div>
-                <div class="exp-bar"><div class="exp-fill" style="width:80%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div>
-            </div>
+    <!-- Core Expertise -->
+    <div class="section-card">
+        <h2>🎯 Core Expertise</h2>
+        <div class="exp-item">
+            <div class="exp-row"><span class="exp-name">WMS / Infor WMS Implementation</span><span class="exp-pct">98%</span></div>
+            <div class="exp-bar"><div class="exp-fill" style="width:98%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div>
         </div>
+        <div class="exp-item">
+            <div class="exp-row"><span class="exp-name">Project Management (ERP &amp; WMS)</span><span class="exp-pct">96%</span></div>
+            <div class="exp-bar"><div class="exp-fill" style="width:96%;background:linear-gradient(90deg,#8b5cf6,#a78bfa)"></div></div>
+        </div>
+        <div class="exp-item">
+            <div class="exp-row"><span class="exp-name">TMS / Logistics Planning</span><span class="exp-pct">92%</span></div>
+            <div class="exp-bar"><div class="exp-fill" style="width:92%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
+        </div>
+        <div class="exp-item">
+            <div class="exp-row"><span class="exp-name">System Integration / API</span><span class="exp-pct">85%</span></div>
+            <div class="exp-bar"><div class="exp-fill" style="width:85%;background:linear-gradient(90deg,#14b8a6,#2dd4bf)"></div></div>
+        </div>
+        <div class="exp-item">
+            <div class="exp-row"><span class="exp-name">Generative AI for PM &amp; Consulting</span><span class="exp-pct">80%</span></div>
+            <div class="exp-bar"><div class="exp-fill" style="width:80%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div>
+        </div>
+        <div class="exp-item">
+            <div class="exp-row"><span class="exp-name">Business Analysis &amp; Process Optimization</span><span class="exp-pct">90%</span></div>
+            <div class="exp-bar"><div class="exp-fill" style="width:90%;background:linear-gradient(90deg,#ec4899,#f472b6)"></div></div>
+        </div>
+    </div>
 
-        <!-- Industry Chart -->
+    <!-- Right: Chart + Coverage -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
         <div class="section-card">
             <h2>🏭 Industry Focus</h2>
             <div class="chart-wrap">
                 <canvas id="industryChart"></canvas>
             </div>
         </div>
-
+        <div class="section-card">
+            <h2>🌏 APAC Coverage</h2>
+            <div class="coverage">
+                <span class="country-tag">🇹🇭 Thailand</span>
+                <span class="country-tag">🇦🇺 Australia</span>
+                <span class="country-tag">🇰🇷 Korea</span>
+                <span class="country-tag">🇮🇩 Indonesia</span>
+                <span class="country-tag">🇻🇳 Vietnam</span>
+                <span class="country-tag">🇨🇳 China</span>
+            </div>
+        </div>
     </div>
 
     <!-- Skills -->
@@ -366,30 +430,69 @@
         <h2>🛠 Technical Skills</h2>
         <div class="skills-grid">
             <span class="skill-tag highlight">Infor WMS</span>
+            <span class="skill-tag highlight">Infor CloudSuite</span>
             <span class="skill-tag highlight">Project Management</span>
-            <span class="skill-tag highlight">WMS Implementation</span>
-            <span class="skill-tag">SAP</span>
+            <span class="skill-tag ai">GenAI / Generative AI</span>
+            <span class="skill-tag ai">Gemini (Certified Educator)</span>
+            <span class="skill-tag">SAP / SAP CS</span>
+            <span class="skill-tag">JDA TMS 6.2</span>
             <span class="skill-tag">SQL</span>
             <span class="skill-tag">TMS</span>
-            <span class="skill-tag">API Integration</span>
             <span class="skill-tag">ERP</span>
+            <span class="skill-tag">API Integration</span>
             <span class="skill-tag">Tableau</span>
             <span class="skill-tag">Hyperion</span>
-            <span class="skill-tag">Microsoft Office</span>
-            <span class="skill-tag">Exceed WMS</span>
+            <span class="skill-tag">GPS / Track &amp; Trace</span>
             <span class="skill-tag">E-commerce / Marketplace</span>
-            <span class="skill-tag">Fulfillment Ops</span>
+            <span class="skill-tag">Fulfillment Operations</span>
             <span class="skill-tag">Vendor Management</span>
             <span class="skill-tag">Stakeholder Management</span>
-            <span class="skill-tag">Agile / Waterfall</span>
+            <span class="skill-tag">UAT / Go-Live Management</span>
+            <span class="skill-tag">TQM / ISO / KPI</span>
             <span class="skill-tag">Data Analysis</span>
+            <span class="skill-tag">Pascal</span>
         </div>
     </div>
 
-    <!-- Certifications -->
+    <!-- Certifications & Education -->
     <div class="section-card">
         <h2>🏅 Certifications &amp; Education</h2>
         <div class="cert-list">
+            <div class="cert-item">
+                <div class="cert-icon">🤖</div>
+                <div>
+                    <div class="cert-title">Generative AI Overview for Project Managers</div>
+                    <div class="cert-sub">Top Skill · LinkedIn</div>
+                </div>
+            </div>
+            <div class="cert-item">
+                <div class="cert-icon">🎓</div>
+                <div>
+                    <div class="cert-title">Gemini Certified Educator</div>
+                    <div class="cert-sub">Google · Digital Skills: Artificial Intelligence</div>
+                </div>
+            </div>
+            <div class="cert-item">
+                <div class="cert-icon">🏭</div>
+                <div>
+                    <div class="cert-title">Infor Industry Essentials: Food &amp; Beverage – Foundation</div>
+                    <div class="cert-sub">Infor</div>
+                </div>
+            </div>
+            <div class="cert-item">
+                <div class="cert-icon">⚙️</div>
+                <div>
+                    <div class="cert-title">Infor Engage End-to-End Process – Qualified</div>
+                    <div class="cert-sub">Infor</div>
+                </div>
+            </div>
+            <div class="cert-item">
+                <div class="cert-icon">📊</div>
+                <div>
+                    <div class="cert-title">Data Engineering &amp; Data Science Introduction (45 hrs)</div>
+                    <div class="cert-sub">Khon Kaen University · 2020</div>
+                </div>
+            </div>
             <div class="cert-item">
                 <div class="cert-icon">🎓</div>
                 <div>
@@ -397,33 +500,12 @@
                     <div class="cert-sub">Suan Sunandha Rajabhat University · 2003</div>
                 </div>
             </div>
-            <div class="cert-item">
-                <div class="cert-icon">📊</div>
-                <div>
-                    <div class="cert-title">SQL for Data Science</div>
-                    <div class="cert-sub">Datacamp · 2019 – Present</div>
-                </div>
-            </div>
-            <div class="cert-item">
-                <div class="cert-icon">🏭</div>
-                <div>
-                    <div class="cert-title">ACCP WMS Trainer Certified</div>
-                    <div class="cert-sub">LiFung LF Logistics · 2020 – Present</div>
-                </div>
-            </div>
-            <div class="cert-item">
-                <div class="cert-icon">🔬</div>
-                <div>
-                    <div class="cert-title">Data Engineer &amp; Data Science Introduction</div>
-                    <div class="cert-sub">Khon Kaen University · 2020 – Present</div>
-                </div>
-            </div>
         </div>
     </div>
 
     <!-- Quick Links -->
     <div class="section-card full-width">
-        <h2>🔗 Quick Links</h2>
+        <h2>🔗 Quick Access</h2>
         <div class="quick-links">
             <a href="/investment" class="ql-btn"><span>📈</span>Investment</a>
             <a href="/expense"    class="ql-btn"><span>💰</span>Expense</a>
@@ -437,34 +519,30 @@
     <div class="section-card full-width">
         <h2>📬 Contact</h2>
         <div class="contact-grid">
-            <div class="contact-item"><span class="ci-icon">✉️</span>rukphonp@gmail.com</div>
-            <div class="contact-item"><span class="ci-icon">📞</span>+66 875014847</div>
-            <div class="contact-item"><span class="ci-icon">📍</span>Thailand · APAC Region</div>
-            <div class="contact-item"><span class="ci-icon">🌐</span>English · Thai</div>
+            <div class="contact-item">✉️ &nbsp;rukphonp@gmail.com</div>
+            <div class="contact-item">📍 &nbsp;Bangkok Metropolitan Area · APAC</div>
+            <div class="contact-item">🔗 &nbsp;<a href="https://www.linkedin.com/in/rukphong" target="_blank">linkedin.com/in/rukphong</a></div>
+            <div class="contact-item">🌐 &nbsp;English (Professional Working) · Thai</div>
         </div>
     </div>
 
 </div>
 
-<footer>© 2026 Rukphong Pullaoy · Senior Project Manager &amp; Senior Consultant APAC · Infor</footer>
+<footer>© 2026 Rukphong Pullaoy · Senior Project Manager ERP &amp; WMS | Senior Consultant | WMS Implementation Expert · Infor</footer>
 
 <script>
-    // Industry doughnut chart
-    const ctx = document.getElementById('industryChart').getContext('2d');
-    new Chart(ctx, {
+    new Chart(document.getElementById('industryChart').getContext('2d'), {
         type: 'doughnut',
         data: {
-            labels: ['Logistics & 3PL', 'E-commerce', 'Manufacturing', 'Retail', 'Healthcare'],
+            labels: ['Logistics & 3PL', 'E-commerce / Fulfillment', 'Manufacturing / Cement', 'Food & Beverage', 'Retail / Marketplace'],
             datasets: [{
-                data: [40, 25, 15, 12, 8],
-                backgroundColor: ['#3b82f6','#14b8a6','#8b5cf6','#f59e0b','#10b981'],
-                borderWidth: 0,
-                hoverOffset: 6,
+                data: [38, 22, 20, 12, 8],
+                backgroundColor: ['#3b82f6','#14b8a6','#f59e0b','#10b981','#8b5cf6'],
+                borderWidth: 0, hoverOffset: 6,
             }]
         },
         options: {
-            responsive: true, maintainAspectRatio: false,
-            cutout: '68%',
+            responsive: true, maintainAspectRatio: false, cutout: '68%',
             plugins: {
                 legend: {
                     position: 'right',
