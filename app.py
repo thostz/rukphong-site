@@ -105,6 +105,11 @@ def tasks():
     return send_from_directory(".", "tasks.html")
 
 
+@app.route("/tracker", methods=["GET"])
+def tracker():
+    return render_template("tracker.html")
+
+
 # ── Web UI ─────────────────────────────────────────────────────────────────────
 
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID", "")

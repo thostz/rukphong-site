@@ -3,575 +3,134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RP Consultant — Expense &amp; Task Tracker</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>RP Consultant — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
-  .tab-btn { transition: all .2s; }
-  .tab-btn.active { border-bottom: 3px solid currentColor; font-weight: 600; }
-  .card { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
-  input, select, textarea {
-    width: 100%; padding: 9px 12px; border: 1.5px solid #d1d5db;
-    border-radius: 8px; font-size: 14px; outline: none; transition: border .2s;
-    background: #fafafa;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #0a0f1e; }
+
+  /* ── HEADER ── */
+  header {
+    height: 56px;
+    background: rgba(10,15,30,0.97);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center;
+    padding: 0 20px; gap: 16px;
+    position: relative; z-index: 100;
+    flex-shrink: 0;
   }
-  input:focus, select:focus, textarea:focus { border-color: #6366f1; background: #fff; }
-  label { font-size: 13px; color: #374151; font-weight: 500; margin-bottom: 4px; display: block; }
-  .required::after { content: " *"; color: #ef4444; }
-  .btn-primary {
-    padding: 10px 28px; border-radius: 9px; font-weight: 600; font-size: 15px;
-    cursor: pointer; transition: all .2s; border: none;
+
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
   }
-  .toast {
-    position: fixed; bottom: 24px; right: 24px; z-index: 999;
-    padding: 14px 22px; border-radius: 10px; font-size: 14px;
-    font-weight: 600; display: none; box-shadow: 0 4px 16px rgba(0,0,0,.18);
-    animation: slideUp .3s ease;
+  .logo-avatar {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, #3b82f6, #14b8a6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800; color: #fff;
   }
-  @keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
-  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-  .priority-high { background: #fee2e2; color: #b91c1c; }
-  .priority-medium { background: #fef9c3; color: #92400e; }
-  .priority-low { background: #dcfce7; color: #166534; }
-  .status-done { background: #d1fae5; color: #065f46; }
-  .status-inprog { background: #dbeafe; color: #1e40af; }
-  .status-pending { background: #f3f4f6; color: #374151; }
-  .status-cancel { background: #fee2e2; color: #991b1b; }
-  .record-row { border-bottom: 1px solid #f1f5f9; padding: 10px 0; }
-  .record-row:last-child { border-bottom: none; }
-  /* Language toggle */
-  .lang-btn { transition: all .2s; font-size: 12px; font-weight: 700; padding: 4px 10px;
-    border-radius: 6px; border: 1.5px solid #d1d5db; cursor: pointer; background: white; }
-  .lang-btn.active { background: #6366f1; color: white; border-color: #6366f1; }
+  .logo-text { font-size: 0.9rem; font-weight: 700; color: #e2e8f0; }
+  .logo-sub  { font-size: 0.65rem; color: #64748b; font-weight: 500; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; align-items: center; gap: 2px;
+    flex: 1; overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 8px;
+    font-size: 0.8rem; font-weight: 600; color: #64748b;
+    cursor: pointer; white-space: nowrap;
+    border: 1px solid transparent;
+    transition: all .18s; background: none;
+    text-decoration: none;
+  }
+  .tab:hover { color: #e2e8f0; background: rgba(255,255,255,0.06); }
+  .tab.active {
+    color: #60a5fa;
+    background: rgba(59,130,246,0.12);
+    border-color: rgba(59,130,246,0.25);
+  }
+  .tab .tab-icon { font-size: 0.95rem; }
+
+  /* ── HEADER RIGHT ── */
+  .header-right {
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0; margin-left: auto;
+  }
+  #clock { font-size: 0.72rem; color: #475569; font-variant-numeric: tabular-nums; }
+
+  /* ── IFRAME ── */
+  .frame-wrap {
+    height: calc(100vh - 56px);
+    width: 100%;
+  }
+  #main-frame {
+    width: 100%; height: 100%;
+    border: none; display: block;
+    background: #0a0f1e;
+  }
 </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-<!-- Header -->
-<header class="bg-white shadow-sm sticky top-0 z-10">
-  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg font-bold"
-         style="background: linear-gradient(135deg,#6366f1,#8b5cf6)">R</div>
+<header>
+  <div class="logo">
+    <div class="logo-avatar">RP</div>
     <div>
-      <div class="font-bold text-gray-800 text-base leading-tight">RP Consultant</div>
-      <div class="text-xs text-gray-400" id="hdr-subtitle">Expense &amp; Task Tracker</div>
+      <div class="logo-text">RP Consultant</div>
+      <div class="logo-sub">Senior PM &amp; Consultant APAC</div>
     </div>
-    <div class="ml-auto flex items-center gap-3">
-      <!-- Language Toggle -->
-      <div class="flex gap-1">
-        <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
-        <button class="lang-btn" id="btn-th" onclick="setLang('th')">TH</button>
-      </div>
-      <a href="/investment" target="_blank"
-         class="text-xs font-semibold px-3 py-1.5 rounded-lg text-white flex items-center gap-1.5"
-         style="background: linear-gradient(135deg,#16a34a,#15803d)">
-        📈 Investment
-      </a>
-      <a href="/rukphong" target="_blank"
-         class="text-xs font-semibold px-3 py-1.5 rounded-lg text-white flex items-center gap-1.5"
-         style="background: linear-gradient(135deg,#1a6fff,#f5a623)">
-        👤 Profile
-      </a>
-      <div class="text-xs text-gray-400" id="clock"></div>
-    </div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <a class="tab active" data-src="/main"       href="#"><span class="tab-icon">👤</span> Profile</a>
+    <a class="tab"        data-src="/investment"  href="#"><span class="tab-icon">📈</span> Investment</a>
+    <a class="tab"        data-src="/expense"     href="#"><span class="tab-icon">💰</span> Expense</a>
+    <a class="tab"        data-src="/notes"       href="#"><span class="tab-icon">📝</span> Notes</a>
+    <a class="tab"        data-src="/tasks"       href="#"><span class="tab-icon">✅</span> Tasks</a>
+    <a class="tab"        data-src="/tracker"     href="#"><span class="tab-icon">⚙️</span> Tracker</a>
+  </nav>
+
+  <div class="header-right">
+    <span id="clock"></span>
   </div>
 </header>
 
-<!-- Tabs -->
-<div class="max-w-5xl mx-auto px-4 mt-5">
-  <div class="flex gap-1 bg-white rounded-xl shadow-sm p-1 w-fit">
-    <button onclick="switchTab('expense')" id="tab-expense"
-      class="tab-btn active px-5 py-2 rounded-lg text-sm text-indigo-600">
-      💰 <span data-i18n="tab_expense">Expense</span>
-    </button>
-    <button onclick="switchTab('task')" id="tab-task"
-      class="tab-btn px-5 py-2 rounded-lg text-sm text-blue-600">
-      📋 <span data-i18n="tab_task">Task</span>
-    </button>
-    <button onclick="switchTab('recent')" id="tab-recent"
-      class="tab-btn px-5 py-2 rounded-lg text-sm text-gray-500">
-      📊 <span data-i18n="tab_recent">Recent</span>
-    </button>
-  </div>
+<div class="frame-wrap">
+  <iframe id="main-frame" src="/main" title="Content"></iframe>
 </div>
-
-<!-- ── EXPENSE FORM ──────────────────────────────────────────────────── -->
-<div id="pane-expense" class="max-w-5xl mx-auto px-4 mt-5">
-  <div class="card p-6">
-    <h2 class="text-lg font-bold text-gray-800 mb-5">💰 <span data-i18n="expense_title">Record Expense</span></h2>
-    <form id="form-expense" onsubmit="submitExpense(event)">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <div>
-          <label class="required" data-i18n="lbl_date">Date</label>
-          <input type="date" id="e-date" required>
-        </div>
-        <div>
-          <label class="required" data-i18n="lbl_amount">Amount (THB)</label>
-          <input type="number" id="e-amount" min="0" step="0.01" required
-                 data-i18n-placeholder="ph_amount">
-        </div>
-
-        <div>
-          <label class="required" data-i18n="lbl_category">Category</label>
-          <select id="e-category" required>
-            <option value="" data-i18n="opt_select_cat">-- Select Category --</option>
-            <option data-en="Food/Drinks" data-th="อาหาร/เครื่องดื่ม">Food/Drinks</option>
-            <option data-en="Transport" data-th="เดินทาง">Transport</option>
-            <option data-en="Shopping" data-th="ช้อปปิ้ง">Shopping</option>
-            <option data-en="Health" data-th="สุขภาพ">Health</option>
-            <option data-en="Accommodation" data-th="ที่พัก">Accommodation</option>
-            <option data-en="Entertainment" data-th="ความบันเทิง">Entertainment</option>
-            <option data-en="Education" data-th="การศึกษา">Education</option>
-            <option data-en="Other" data-th="อื่นๆ">Other</option>
-          </select>
-        </div>
-        <div>
-          <label data-i18n="lbl_payment">Payment Method</label>
-          <select id="e-payment">
-            <option value="" data-i18n="opt_select">-- Select --</option>
-            <option data-en="Cash" data-th="เงินสด">Cash</option>
-            <option data-en="Credit Card" data-th="บัตรเครดิต">Credit Card</option>
-            <option data-en="Transfer" data-th="โอนเงิน">Transfer</option>
-            <option data-en="QR Code" data-th="QR Code">QR Code</option>
-            <option data-en="Debit Card" data-th="บัตรเดบิต">Debit Card</option>
-            <option data-en="Other" data-th="อื่นๆ">Other</option>
-          </select>
-        </div>
-
-        <div class="md:col-span-2">
-          <label data-i18n="lbl_note">Note</label>
-          <textarea id="e-note" rows="2" data-i18n-placeholder="ph_note"></textarea>
-        </div>
-
-        <div>
-          <label data-i18n="lbl_recorded_by">Recorded By</label>
-          <input type="text" id="e-by" data-i18n-placeholder="ph_recorded_by">
-        </div>
-      </div>
-
-      <div class="mt-5 flex gap-3">
-        <button type="submit" id="btn-expense-submit" class="btn-primary text-white"
-                style="background: linear-gradient(135deg,#6366f1,#8b5cf6)">
-          ✅ <span data-i18n="btn_save_expense">Save Expense</span>
-        </button>
-        <button type="button" onclick="resetExpense()"
-                class="btn-primary bg-gray-100 text-gray-600 hover:bg-gray-200">
-          <span data-i18n="btn_clear">Clear</span>
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- ── TASK FORM ──────────────────────────────────────────────────────── -->
-<div id="pane-task" class="max-w-5xl mx-auto px-4 mt-5 hidden">
-  <div class="card p-6">
-    <h2 class="text-lg font-bold text-gray-800 mb-5">📋 <span data-i18n="task_title">Record Task</span></h2>
-    <form id="form-task" onsubmit="submitTask(event)">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <div>
-          <label class="required" data-i18n="lbl_start_date">Start Date</label>
-          <input type="date" id="t-date" required>
-        </div>
-        <div>
-          <label data-i18n="lbl_due_date">Due Date</label>
-          <input type="date" id="t-due">
-        </div>
-
-        <div class="md:col-span-2">
-          <label class="required" data-i18n="lbl_task_name">Task Name</label>
-          <input type="text" id="t-task" required data-i18n-placeholder="ph_task_name">
-        </div>
-
-        <div>
-          <label data-i18n="lbl_client">Client / Project</label>
-          <input type="text" id="t-client" data-i18n-placeholder="ph_client">
-        </div>
-        <div>
-          <label data-i18n="lbl_dept">Department</label>
-          <input type="text" id="t-dept" data-i18n-placeholder="ph_dept">
-        </div>
-
-        <div>
-          <label class="required" data-i18n="lbl_status">Status</label>
-          <select id="t-status" required>
-            <option value="" data-i18n="opt_select_status">-- Select Status --</option>
-            <option value="กำลังทำ" data-en="🔵 In Progress" data-th="🔵 กำลังทำ">🔵 In Progress</option>
-            <option value="เสร็จแล้ว" data-en="🟢 Done" data-th="🟢 เสร็จแล้ว">🟢 Done</option>
-            <option value="รอดำเนินการ" data-en="⚪ Pending" data-th="⚪ รอดำเนินการ">⚪ Pending</option>
-            <option value="ยกเลิก" data-en="🔴 Cancelled" data-th="🔴 ยกเลิก">🔴 Cancelled</option>
-          </select>
-        </div>
-        <div>
-          <label data-i18n="lbl_priority">Priority</label>
-          <select id="t-priority">
-            <option value="" data-i18n="opt_select">-- Select --</option>
-            <option value="High">🔴 High</option>
-            <option value="Medium">🟡 Medium</option>
-            <option value="Low">🟢 Low</option>
-          </select>
-        </div>
-
-        <div class="md:col-span-2">
-          <label data-i18n="lbl_description">Description</label>
-          <textarea id="t-desc" rows="3" data-i18n-placeholder="ph_description"></textarea>
-        </div>
-
-        <div class="md:col-span-2">
-          <label data-i18n="lbl_notes">Notes</label>
-          <textarea id="t-note" rows="2" data-i18n-placeholder="ph_notes"></textarea>
-        </div>
-
-        <div>
-          <label data-i18n="lbl_recorded_by">Recorded By</label>
-          <input type="text" id="t-by" data-i18n-placeholder="ph_recorded_by">
-        </div>
-      </div>
-
-      <div class="mt-5 flex gap-3">
-        <button type="submit" id="btn-task-submit" class="btn-primary text-white"
-                style="background: linear-gradient(135deg,#3b82f6,#6366f1)">
-          ✅ <span data-i18n="btn_save_task">Save Task</span>
-        </button>
-        <button type="button" onclick="resetTask()"
-                class="btn-primary bg-gray-100 text-gray-600 hover:bg-gray-200">
-          <span data-i18n="btn_clear">Clear</span>
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- ── RECENT RECORDS ─────────────────────────────────────────────────── -->
-<div id="pane-recent" class="max-w-5xl mx-auto px-4 mt-5 hidden">
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-    <div class="card p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-bold text-gray-800">💰 <span data-i18n="recent_expenses">Recent Expenses</span></h2>
-        <button onclick="loadRecent()" class="text-xs text-indigo-500 hover:underline" data-i18n="btn_refresh">Refresh</button>
-      </div>
-      <div id="recent-expenses">
-        <div class="text-sm text-gray-400 text-center py-6" data-i18n="loading">Loading...</div>
-      </div>
-    </div>
-
-    <div class="card p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-bold text-gray-800">📋 <span data-i18n="recent_tasks">Recent Tasks</span></h2>
-        <button onclick="loadRecent()" class="text-xs text-blue-500 hover:underline" data-i18n="btn_refresh">Refresh</button>
-      </div>
-      <div id="recent-tasks">
-        <div class="text-sm text-gray-400 text-center py-6" data-i18n="loading">Loading...</div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<div class="h-16"></div>
-<div id="toast" class="toast"></div>
 
 <script>
-// ── Translations ──────────────────────────────────────────────────────────────
-const T = {
-  en: {
-    tab_expense: 'Expense', tab_task: 'Task', tab_recent: 'Recent',
-    hdr_subtitle: 'Expense & Task Tracker',
-    expense_title: 'Record Expense', task_title: 'Record Task',
-    lbl_date: 'Date', lbl_amount: 'Amount (THB)', lbl_category: 'Category',
-    lbl_payment: 'Payment Method', lbl_note: 'Note', lbl_recorded_by: 'Recorded By',
-    lbl_start_date: 'Start Date', lbl_due_date: 'Due Date', lbl_task_name: 'Task Name',
-    lbl_client: 'Client / Project', lbl_dept: 'Department', lbl_status: 'Status',
-    lbl_priority: 'Priority', lbl_description: 'Description', lbl_notes: 'Notes',
-    btn_save_expense: 'Save Expense', btn_save_task: 'Save Task', btn_clear: 'Clear',
-    btn_refresh: 'Refresh',
-    opt_select: '-- Select --', opt_select_cat: '-- Select Category --',
-    opt_select_status: '-- Select Status --',
-    ph_amount: 'e.g. 150 or 1250.50',
-    ph_note: 'Additional details (optional)',
-    ph_recorded_by: 'Your name',
-    ph_task_name: 'e.g. PSR130A PPT, Monthly Report',
-    ph_client: 'e.g. Carsem, SBP, Internal',
-    ph_dept: 'e.g. Engineering, Sales',
-    ph_description: 'Describe scope, goal or deliverables',
-    ph_notes: 'Observations, issues or extra context',
-    recent_expenses: 'Recent Expenses', recent_tasks: 'Recent Tasks',
-    loading: 'Loading...', no_data: 'No records yet', load_fail: 'Failed to load',
-    saving: 'Saving...', saved_expense: 'Expense saved ✅', saved_task: 'Task saved ✅',
-    err_server: 'Server error', err_connect: 'Cannot connect to server',
-  },
-  th: {
-    tab_expense: 'บันทึกรายจ่าย', tab_task: 'บันทึกงาน', tab_recent: 'รายการล่าสุด',
-    hdr_subtitle: 'ระบบบันทึกรายจ่าย & งาน',
-    expense_title: 'บันทึกรายจ่าย', task_title: 'บันทึกงาน',
-    lbl_date: 'วันที่', lbl_amount: 'จำนวนเงิน (บาท)', lbl_category: 'หมวดหมู่',
-    lbl_payment: 'วิธีชำระเงิน', lbl_note: 'หมายเหตุ', lbl_recorded_by: 'บันทึกโดย',
-    lbl_start_date: 'วันที่เริ่มงาน', lbl_due_date: 'วันครบกำหนด', lbl_task_name: 'ชื่องาน / Task',
-    lbl_client: 'Client / Project', lbl_dept: 'แผนก', lbl_status: 'สถานะ',
-    lbl_priority: 'ความสำคัญ', lbl_description: 'รายละเอียดงาน', lbl_notes: 'หมายเหตุ / Notes',
-    btn_save_expense: 'บันทึกรายจ่าย', btn_save_task: 'บันทึกงาน', btn_clear: 'ล้างฟอร์ม',
-    btn_refresh: 'รีเฟรช',
-    opt_select: '-- เลือก --', opt_select_cat: '-- เลือกหมวดหมู่ --',
-    opt_select_status: '-- เลือกสถานะ --',
-    ph_amount: 'เช่น 150 หรือ 1250.50',
-    ph_note: 'รายละเอียดเพิ่มเติม (ไม่บังคับ)',
-    ph_recorded_by: 'ชื่อผู้บันทึก',
-    ph_task_name: 'เช่น PSR130A PPT, Monthly Report',
-    ph_client: 'เช่น Carsem, SBP, Internal',
-    ph_dept: 'เช่น Engineering, Sales',
-    ph_description: 'อธิบายงานที่ต้องทำ เป้าหมาย หรือ scope ของงาน',
-    ph_notes: 'ข้อสังเกต ปัญหา หรือ context เพิ่มเติม',
-    recent_expenses: 'รายจ่ายล่าสุด', recent_tasks: 'งานล่าสุด',
-    loading: 'กำลังโหลด...', no_data: 'ยังไม่มีรายการ', load_fail: 'โหลดไม่ได้',
-    saving: 'กำลังบันทึก...', saved_expense: 'บันทึกรายจ่ายสำเร็จ ✅', saved_task: 'บันทึกงานสำเร็จ ✅',
-    err_server: 'เกิดข้อผิดพลาด', err_connect: 'เชื่อมต่อ server ไม่ได้',
-  }
-};
-
-let lang = localStorage.getItem('rp_lang') || 'en';
-
-function setLang(l) {
-  lang = l;
-  localStorage.setItem('rp_lang', l);
-  document.getElementById('btn-en').classList.toggle('active', l === 'en');
-  document.getElementById('btn-th').classList.toggle('active', l === 'th');
-  // Update all data-i18n elements
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (T[l][key]) el.textContent = T[l][key];
+  // Tab switching
+  const frame = document.getElementById('main-frame');
+  document.getElementById('tabs').addEventListener('click', e => {
+    const tab = e.target.closest('.tab');
+    if (!tab) return;
+    e.preventDefault();
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    frame.src = tab.dataset.src;
   });
-  // Update placeholders
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.getAttribute('data-i18n-placeholder');
-    if (T[l][key]) el.placeholder = T[l][key];
-  });
-  // Update bilingual options (data-en / data-th)
-  document.querySelectorAll('option[data-en]').forEach(el => {
-    el.textContent = l === 'th' ? el.getAttribute('data-th') : el.getAttribute('data-en');
-  });
-  // Update clock locale
-  startClock();
-  // Update html lang
-  document.documentElement.lang = l;
-}
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-const today = new Date().toISOString().split('T')[0];
-document.getElementById('e-date').value = today;
-document.getElementById('t-date').value = today;
-loadSavedName();
-setLang(lang); // apply saved language
-
-function startClock() {
-  clearInterval(window._clockTimer);
-  const el = document.getElementById('clock');
-  const locale = lang === 'th' ? 'th-TH' : 'en-GB';
-  window._clockTimer = setInterval(() => {
-    el.textContent = new Date().toLocaleString(locale, {
-      weekday: 'short', year: 'numeric', month: 'short',
-      day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-  }, 1000);
-}
-
-function loadSavedName() {
-  const name = localStorage.getItem('rp_recorded_by') || '';
-  document.getElementById('e-by').value = name;
-  document.getElementById('t-by').value = name;
-}
-
-['e-by','t-by'].forEach(id => {
-  document.getElementById(id).addEventListener('change', e => {
-    localStorage.setItem('rp_recorded_by', e.target.value);
-  });
-});
-
-// ── Tabs ──────────────────────────────────────────────────────────────────────
-function switchTab(name) {
-  ['expense','task','recent'].forEach(t => {
-    document.getElementById('pane-'+t).classList.toggle('hidden', t !== name);
-    const btn = document.getElementById('tab-'+t);
-    btn.classList.toggle('active', t === name);
-    btn.classList.toggle('bg-gray-50', t === name);
-  });
-  if (name === 'recent') loadRecent();
-}
-
-// ── Submit Expense ────────────────────────────────────────────────────────────
-async function submitExpense(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btn-expense-submit');
-  btn.disabled = true;
-  btn.querySelector('span').textContent = T[lang].saving;
-  const payload = {
-    date: document.getElementById('e-date').value,
-    amount: document.getElementById('e-amount').value,
-    category: document.getElementById('e-category').value,
-    payment: document.getElementById('e-payment').value,
-    note: document.getElementById('e-note').value,
-    recorded_by: document.getElementById('e-by').value || 'Web',
-  };
-  try {
-    const res = await fetch('/api/expense', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      toast(T[lang].saved_expense, '#10b981');
-      resetExpense();
-      if (localStorage.getItem('rp_recorded_by'))
-        document.getElementById('e-by').value = localStorage.getItem('rp_recorded_by');
-    } else {
-      toast(T[lang].err_server + ': ' + data.error, '#ef4444');
-    }
-  } catch(err) {
-    toast(T[lang].err_connect, '#ef4444');
+  // Clock
+  function tick() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
-  btn.disabled = false;
-  btn.querySelector('span').textContent = T[lang].btn_save_expense;
-}
+  tick(); setInterval(tick, 1000);
 
-// ── Submit Task ───────────────────────────────────────────────────────────────
-async function submitTask(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btn-task-submit');
-  btn.disabled = true;
-  btn.querySelector('span').textContent = T[lang].saving;
-  const payload = {
-    date: document.getElementById('t-date').value,
-    task: document.getElementById('t-task').value,
-    client: document.getElementById('t-client').value,
-    status: document.getElementById('t-status').value,
-    priority: document.getElementById('t-priority').value,
-    due_date: document.getElementById('t-due').value,
-    description: document.getElementById('t-desc').value,
-    note: document.getElementById('t-note').value,
-    recorded_by: document.getElementById('t-by').value || 'Web',
-  };
-  try {
-    const res = await fetch('/api/task', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      toast(T[lang].saved_task, '#3b82f6');
-      resetTask();
-      if (localStorage.getItem('rp_recorded_by'))
-        document.getElementById('t-by').value = localStorage.getItem('rp_recorded_by');
-    } else {
-      toast(T[lang].err_server + ': ' + data.error, '#ef4444');
-    }
-  } catch(err) {
-    toast(T[lang].err_connect, '#ef4444');
+  // Sync active tab from hash on load (optional deep link)
+  const hash = location.hash.replace('#','');
+  if (hash) {
+    const match = document.querySelector(`.tab[data-src="/${hash}"]`);
+    if (match) match.click();
   }
-  btn.disabled = false;
-  btn.querySelector('span').textContent = T[lang].btn_save_task;
-}
-
-// ── Recent Records ────────────────────────────────────────────────────────────
-async function loadRecent() {
-  document.getElementById('recent-expenses').innerHTML =
-    `<div class="text-sm text-gray-400 text-center py-6">${T[lang].loading}</div>`;
-  document.getElementById('recent-tasks').innerHTML =
-    `<div class="text-sm text-gray-400 text-center py-6">${T[lang].loading}</div>`;
-  try {
-    const res  = await fetch('/api/recent');
-    const data = await res.json();
-    renderExpenses(data.expenses || []);
-    renderTasks(data.tasks || []);
-  } catch(e) {
-    document.getElementById('recent-expenses').innerHTML =
-      `<div class="text-xs text-red-400 text-center py-4">${T[lang].load_fail}</div>`;
-    document.getElementById('recent-tasks').innerHTML =
-      `<div class="text-xs text-red-400 text-center py-4">${T[lang].load_fail}</div>`;
-  }
-}
-
-function renderExpenses(rows) {
-  const el = document.getElementById('recent-expenses');
-  if (!rows.length) {
-    el.innerHTML = `<div class="text-sm text-gray-400 text-center py-6">${T[lang].no_data}</div>`;
-    return;
-  }
-  el.innerHTML = rows.map(r => `
-    <div class="record-row">
-      <div class="flex justify-between items-start">
-        <div>
-          <span class="font-semibold text-sm text-gray-800">${r.category || '-'}</span>
-          ${r.note ? `<div class="text-xs text-gray-400 mt-0.5">${r.note}</div>` : ''}
-          <div class="text-xs text-gray-400">${r.date || ''}</div>
-        </div>
-        <span class="font-bold text-base text-indigo-600 whitespace-nowrap ml-3">
-          ${parseFloat(r.amount||0).toLocaleString()} ฿
-        </span>
-      </div>
-    </div>`).join('');
-}
-
-const STATUS_CLASS = {
-  'เสร็จแล้ว':'status-done','Done':'status-done',
-  'กำลังทำ':'status-inprog','In Progress':'status-inprog',
-  'รอดำเนินการ':'status-pending','Pending':'status-pending',
-  'ยกเลิก':'status-cancel','Cancelled':'status-cancel',
-};
-const PRIORITY_CLASS = { High:'priority-high', Medium:'priority-medium', Low:'priority-low' };
-
-function renderTasks(rows) {
-  const el = document.getElementById('recent-tasks');
-  if (!rows.length) {
-    el.innerHTML = `<div class="text-sm text-gray-400 text-center py-6">${T[lang].no_data}</div>`;
-    return;
-  }
-  el.innerHTML = rows.map(r => `
-    <div class="record-row">
-      <div class="flex justify-between items-start gap-2">
-        <div class="flex-1 min-w-0">
-          <div class="font-semibold text-sm text-gray-800 truncate">${r.task || '-'}</div>
-          <div class="text-xs text-gray-400">${r.date || ''}</div>
-        </div>
-        <span class="badge ${STATUS_CLASS[r.status]||'status-pending'} whitespace-nowrap">
-          ${r.status || '-'}
-        </span>
-      </div>
-    </div>`).join('');
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function resetExpense() {
-  document.getElementById('e-amount').value = '';
-  document.getElementById('e-category').value = '';
-  document.getElementById('e-payment').value = '';
-  document.getElementById('e-note').value = '';
-  document.getElementById('e-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('e-amount').focus();
-}
-
-function resetTask() {
-  document.getElementById('t-task').value = '';
-  document.getElementById('t-client').value = '';
-  document.getElementById('t-dept').value = '';
-  document.getElementById('t-status').value = '';
-  document.getElementById('t-priority').value = '';
-  document.getElementById('t-due').value = '';
-  document.getElementById('t-desc').value = '';
-  document.getElementById('t-note').value = '';
-  document.getElementById('t-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('t-task').focus();
-}
-
-function toast(msg, color) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.style.background = color;
-  el.style.color = '#fff';
-  el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 3500);
-}
 </script>
 </body>
 </html>
