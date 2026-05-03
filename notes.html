@@ -219,5 +219,57 @@ function clearForm() {
 document.getElementById('noteDate').value = new Date().toISOString().slice(0,10);
 render();
 </script>
+
+<script>
+// ── API Bridge: Notes ────────────────────────────────────────────────────────
+const _origSave_notes = save;
+save = function(d) { _origSave_notes(d); };
+
+async function _apiSyncNotes() {
+  try {
+    const res = await fetch('/api/notes');
+    const j = await res.json();
+    if (j.ok && j.data && j.data.length > 0) {
+      const local = load();
+      const localIds = new Set(local.map(x => x.id));
+      const merged = [...local];
+      for (const r of j.data) {
+        if (!localIds.has(r.id)) {
+          merged.push({id:r.id, title:r.title||'', content:r.content||'',
+            category:r.category||'', date:r.date||''});
+        }
+      }
+      _origSave_notes(merged);
+    }
+  } catch(e) {}
+}
+
+const _origDeleteNote = typeof deleteNote !== 'undefined' ? deleteNote : null;
+if (_origDeleteNote) {
+  deleteNote = function(id) {
+    fetch('/api/notes/'+id, {method:'DELETE'}).catch(()=>{});
+    _origDeleteNote(id);
+  };
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  await _apiSyncNotes();
+  render();
+});
+
+// Intercept saves by patching the addOrEdit button handler
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button[type="submit"], button.save-btn, #saveBtn, #addBtn');
+  if (!btn) return;
+  setTimeout(() => {
+    const d = load();
+    if (d.length > 0) {
+      fetch('/api/notes', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(d[0])}).catch(()=>{});
+    }
+  }, 150);
+}, true);
+</script>
+
 </body>
 </html>

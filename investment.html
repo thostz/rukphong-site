@@ -484,5 +484,116 @@ function refreshAll() { renderPortfolioSelect(); updateSummary(); updateCharts()
     refreshAll(); sortBy('date');
 })();
 </script>
+
+<script>
+// ── API Bridge: Investment ───────────────────────────────────────────────────
+async function _apiSyncInvestment() {
+  try {
+    // Sync portfolios
+    const pr = await fetch('/api/portfolios');
+    const pj = await pr.json();
+    if (pj.ok && pj.data && pj.data.length > 0) {
+      const existing = getPortfolios();
+      const existIds = new Set(existing.map(x => x.id));
+      const merged = [...existing];
+      for (const p of pj.data) {
+        if (!existIds.has(p.id)) merged.push({id: p.id, name: p.name});
+      }
+      savePortfolios(merged);
+      
+      // Sync investments + dividends + targets for each portfolio
+      for (const p of pj.data) {
+        const ir = await fetch('/api/investments?portfolio=' + p.id);
+        const ij = await ir.json();
+        if (ij.ok && ij.data) {
+          const lkey = 'rukphong_inv_' + p.id;
+          const local = JSON.parse(localStorage.getItem(lkey) || '[]');
+          const localIds = new Set(local.map(x => x.id));
+          const merged2 = [...local];
+          for (const inv of ij.data) {
+            if (!localIds.has(inv.id)) {
+              merged2.push({id:inv.id, type:inv.type||'', symbol:inv.symbol||'',
+                name:inv.name||'', qty:parseFloat(inv.qty)||0,
+                cost:parseFloat(inv.cost_price)||0, price:parseFloat(inv.current_price)||0,
+                note:inv.note||''});
+            }
+          }
+          localStorage.setItem(lkey, JSON.stringify(merged2));
+        }
+
+        const dr = await fetch('/api/dividends?portfolio=' + p.id);
+        const dj = await dr.json();
+        if (dj.ok && dj.data) {
+          const dkey = 'rukphong_div_' + p.id;
+          const local = JSON.parse(localStorage.getItem(dkey) || '[]');
+          const localIds = new Set(local.map(x => x.id));
+          const merged3 = [...local];
+          for (const div of dj.data) {
+            if (!localIds.has(div.id)) {
+              merged3.push({id:div.id, date:div.date||'', amount:parseFloat(div.amount)||0,
+                note:div.note||'', symbol:div.symbol||'', type:div.type||''});
+            }
+          }
+          localStorage.setItem(dkey, JSON.stringify(merged3));
+        }
+
+        const tr = await fetch('/api/targets/' + p.id);
+        const tj = await tr.json();
+        if (tj.ok && tj.data && Object.keys(tj.data).length > 0) {
+          const tkey = 'rukphong_tgt_' + p.id;
+          if (!localStorage.getItem(tkey)) {
+            localStorage.setItem(tkey, JSON.stringify(tj.data));
+          }
+        }
+      }
+    }
+  } catch(e) { console.warn('API sync failed, using localStorage', e); }
+}
+
+// Patch savePortfolios to also POST to API
+const _origSavePortfolios = savePortfolios;
+savePortfolios = function(list) {
+  _origSavePortfolios(list);
+};
+
+// Patch saveInv to also POST investments
+const _origSaveInv = saveInv;
+saveInv = function(d) {
+  _origSaveInv(d);
+  const pid = getActiveId();
+  if (!pid) return;
+  for (const inv of d) {
+    fetch('/api/investments', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({...inv, cost: inv.cost, price: inv.price, portfolio_id: pid})}).catch(()=>{});
+  }
+};
+
+const _origSaveDiv = saveDiv;
+saveDiv = function(d) {
+  _origSaveDiv(d);
+  const pid = getActiveId();
+  if (!pid) return;
+  for (const div of d) {
+    fetch('/api/dividends', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({...div, portfolio_id: pid})}).catch(()=>{});
+  }
+};
+
+const _origSaveTgt = saveTgt;
+saveTgt = function(t) {
+  _origSaveTgt(t);
+  const pid = getActiveId();
+  if (!pid) return;
+  fetch('/api/targets/' + pid, {method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(t)}).catch(()=>{});
+};
+
+window.addEventListener('DOMContentLoaded', async () => {
+  await _apiSyncInvestment();
+  if (typeof renderAll === 'function') renderAll();
+  else if (typeof render === 'function') render();
+});
+</script>
+
 </body>
 </html>

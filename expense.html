@@ -350,5 +350,66 @@ function exportCSV() {
 document.getElementById('expDate').value = new Date().toISOString().slice(0,10);
 updateSummary(); render(); sortBy('date');
 </script>
+
+<script>
+// ── API Bridge: Expense ──────────────────────────────────────────────────────
+const _origSave_exp = save;
+save = function(d) { _origSave_exp(d); };
+
+async function _apiSyncExpenses() {
+  try {
+    const res = await fetch('/api/expenses');
+    const j = await res.json();
+    if (j.ok && j.data && j.data.length > 0) {
+      const local = load();
+      const localIds = new Set(local.map(x => x.id));
+      const merged = [...local];
+      for (const r of j.data) {
+        if (!localIds.has(r.id)) {
+          merged.push({id:r.id, description:r.description||'', category:r.category||'',
+            currency:r.currency||'THB', amount:parseFloat(r.amount)||0,
+            date:r.date||'', notes:r.notes||''});
+        }
+      }
+      _origSave_exp(merged);
+    }
+  } catch(e) {}
+}
+
+const _origAddOrEdit = typeof addOrEdit !== 'undefined' ? addOrEdit : null;
+function _postExpense(record) {
+  fetch('/api/expenses', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(record)}).catch(()=>{});
+}
+function _deleteExpenseAPI(id) {
+  fetch('/api/expenses/'+id, {method:'DELETE'}).catch(()=>{});
+}
+
+// Patch deleteExpense
+const _origDeleteExpense = typeof deleteExpense !== 'undefined' ? deleteExpense : null;
+if (_origDeleteExpense) {
+  deleteExpense = function(id) {
+    _deleteExpenseAPI(id);
+    _origDeleteExpense(id);
+  };
+}
+
+// Patch addOrEdit to also POST
+window.addEventListener('DOMContentLoaded', async () => {
+  await _apiSyncExpenses();
+  updateSummary(); render();
+  const form = document.querySelector('form');
+  if (form) {
+    const origSubmit = form.onsubmit;
+    form.addEventListener('submit', function() {
+      setTimeout(() => {
+        const d = load();
+        if (d.length > 0) _postExpense(d[0]);
+      }, 100);
+    });
+  }
+});
+</script>
+
 </body>
 </html>

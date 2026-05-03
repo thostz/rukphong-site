@@ -18,6 +18,7 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from handlers.message_handler import handle_text
 from services import sheets_service as sheets
 from services import auth_service as auth
+from services import data_service as data
 from services import n8n_service as n8n
 from services import line_push
 from services import email_service as emailsvc
@@ -25,8 +26,9 @@ from services import email_service as emailsvc
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET", "rp-consultant-secret-2026")
 
-# init SQLite users DB on startup
+# init SQLite DB on startup
 auth.init_db()
+data.init_data_tables()
 
 configuration = Configuration(
     access_token=os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
@@ -254,6 +256,166 @@ def api_contacts():
     if not user or user.get("role") != "admin":
         return jsonify({"ok": False, "error": "Admin only"}), 403
     return jsonify({"ok": True, "contacts": auth.list_contacts()})
+
+
+# ── DATA API — Expenses ────────────────────────────────────────────────────────
+
+@app.route("/api/expenses", methods=["GET"])
+def api_get_expenses():
+    return jsonify({"ok": True, "data": data.get_expenses()})
+
+@app.route("/api/expenses", methods=["POST"])
+def api_save_expense():
+    record = request.json or {}
+    result = data.save_expense(record)
+    if SPREADSHEET_ID:
+        try:
+            sheets.append_expense_web(SPREADSHEET_ID,
+                date=record.get("date",""), amount=float(record.get("amount",0)),
+                category=record.get("category",""), payment=record.get("currency",""),
+                note=record.get("notes",""), user_name="Web")
+        except Exception:
+            pass
+    return jsonify({"ok": True, **result})
+
+@app.route("/api/expenses/<eid>", methods=["DELETE"])
+def api_delete_expense(eid):
+    data.delete_expense(eid)
+    return jsonify({"ok": True})
+
+
+# ── DATA API — Notes ───────────────────────────────────────────────────────────
+
+@app.route("/api/notes", methods=["GET"])
+def api_get_notes():
+    return jsonify({"ok": True, "data": data.get_notes()})
+
+@app.route("/api/notes", methods=["POST"])
+def api_save_note():
+    record = request.json or {}
+    result = data.save_note(record)
+    if SPREADSHEET_ID:
+        try:
+            sheets.sync_note(SPREADSHEET_ID, {**record, "id": result["id"]})
+        except Exception:
+            pass
+    return jsonify({"ok": True, **result})
+
+@app.route("/api/notes/<nid>", methods=["DELETE"])
+def api_delete_note(nid):
+    data.delete_note(nid)
+    if SPREADSHEET_ID:
+        try:
+            sheets.delete_note_sheet(SPREADSHEET_ID, nid)
+        except Exception:
+            pass
+    return jsonify({"ok": True})
+
+
+# ── DATA API — Tasks ───────────────────────────────────────────────────────────
+
+@app.route("/api/tasks", methods=["GET"])
+def api_get_tasks():
+    return jsonify({"ok": True, "data": data.get_tasks()})
+
+@app.route("/api/tasks", methods=["POST"])
+def api_save_task():
+    record = request.json or {}
+    result = data.save_task(record)
+    if SPREADSHEET_ID:
+        try:
+            sheets.append_work_web(SPREADSHEET_ID,
+                date=record.get("due",""), task=record.get("title",""),
+                client="", status=record.get("status",""),
+                priority=record.get("priority",""), due_date=record.get("due",""),
+                description="", note=record.get("notes",""), user_name="Web")
+        except Exception:
+            pass
+    return jsonify({"ok": True, **result})
+
+@app.route("/api/tasks/<tid>", methods=["DELETE"])
+def api_delete_task(tid):
+    data.delete_task(tid)
+    return jsonify({"ok": True})
+
+
+# ── DATA API — Investment ──────────────────────────────────────────────────────
+
+@app.route("/api/portfolios", methods=["GET"])
+def api_get_portfolios():
+    return jsonify({"ok": True, "data": data.get_portfolios()})
+
+@app.route("/api/portfolios", methods=["POST"])
+def api_save_portfolio():
+    record = request.json or {}
+    result = data.save_portfolio(record)
+    return jsonify({"ok": True, **result})
+
+@app.route("/api/portfolios/<pid>", methods=["DELETE"])
+def api_delete_portfolio(pid):
+    data.delete_portfolio(pid)
+    return jsonify({"ok": True})
+
+@app.route("/api/investments", methods=["GET"])
+def api_get_investments():
+    pid = request.args.get("portfolio", "")
+    return jsonify({"ok": True, "data": data.get_investments(pid)})
+
+@app.route("/api/investments", methods=["POST"])
+def api_save_investment():
+    record = request.json or {}
+    result = data.save_investment(record)
+    if SPREADSHEET_ID:
+        try:
+            portfolios = data.get_portfolios()
+            pname = next((p["name"] for p in portfolios if p["id"] == record.get("portfolio_id")), "")
+            sheets.sync_investment(SPREADSHEET_ID, {**record, "id": result["id"]}, pname)
+        except Exception:
+            pass
+    return jsonify({"ok": True, **result})
+
+@app.route("/api/investments/<iid>", methods=["DELETE"])
+def api_delete_investment(iid):
+    data.delete_investment(iid)
+    if SPREADSHEET_ID:
+        try:
+            sheets.delete_investment_sheet(SPREADSHEET_ID, iid)
+        except Exception:
+            pass
+    return jsonify({"ok": True})
+
+@app.route("/api/dividends", methods=["GET"])
+def api_get_dividends():
+    pid = request.args.get("portfolio", "")
+    return jsonify({"ok": True, "data": data.get_dividends(pid)})
+
+@app.route("/api/dividends", methods=["POST"])
+def api_save_dividend():
+    record = request.json or {}
+    result = data.save_dividend(record)
+    if SPREADSHEET_ID:
+        try:
+            portfolios = data.get_portfolios()
+            pname = next((p["name"] for p in portfolios if p["id"] == record.get("portfolio_id")), "")
+            sheets.sync_dividend(SPREADSHEET_ID, {**record, "id": result["id"]}, pname)
+        except Exception:
+            pass
+    return jsonify({"ok": True, **result})
+
+@app.route("/api/dividends/<did>", methods=["DELETE"])
+def api_delete_dividend(did):
+    data.delete_dividend(did)
+    return jsonify({"ok": True})
+
+@app.route("/api/targets/<pid>", methods=["GET"])
+def api_get_targets(pid):
+    return jsonify({"ok": True, "data": data.get_targets(pid)})
+
+@app.route("/api/targets/<pid>", methods=["PUT"])
+def api_save_targets(pid):
+    d = request.json or {}
+    data.save_targets(pid, d)
+    return jsonify({"ok": True})
 
 
 if __name__ == "__main__":

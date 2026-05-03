@@ -8,11 +8,17 @@ from googleapiclient.discovery import build
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 CREDENTIALS_FILE = "credentials.json"
 
-EXPENSE_SHEET = "รายจ่าย"
-WORK_SHEET = "งาน"
+EXPENSE_SHEET    = "รายจ่าย"
+WORK_SHEET       = "งาน"
+NOTES_SHEET      = "บันทึก"
+INVESTMENT_SHEET = "การลงทุน"
+DIVIDEND_SHEET   = "เงินปันผล"
 
-EXPENSE_HEADERS = ["วันที่", "จำนวนเงิน (บาท)", "หมวดหมู่", "หมายเหตุ", "บันทึกโดย", "วิธีชำระเงิน"]
-WORK_HEADERS   = ["วันที่", "งาน/Task", "สถานะ", "หมายเหตุ", "บันทึกโดย", "Client/Project", "Priority", "วันครบกำหนด", "รายละเอียด"]
+EXPENSE_HEADERS    = ["วันที่", "จำนวนเงิน (บาท)", "หมวดหมู่", "หมายเหตุ", "บันทึกโดย", "วิธีชำระเงิน"]
+WORK_HEADERS       = ["วันที่", "งาน/Task", "สถานะ", "หมายเหตุ", "บันทึกโดย", "Client/Project", "Priority", "วันครบกำหนด", "รายละเอียด"]
+NOTES_HEADERS      = ["ID", "วันที่", "หัวข้อ", "เนื้อหา", "หมวดหมู่"]
+INVESTMENT_HEADERS = ["ID", "Portfolio", "ประเภท", "Symbol", "ชื่อ", "จำนวน", "ราคาทุน", "ราคาตลาด", "หมายเหตุ", "วันที่"]
+DIVIDEND_HEADERS   = ["ID", "Portfolio", "วันที่", "จำนวนเงิน", "Symbol", "ประเภท", "หมายเหตุ"]
 
 EXPENSE_CATEGORIES = {
     "1": "อาหาร/เครื่องดื่ม",
@@ -240,3 +246,124 @@ def get_expense_summary(spreadsheet_id: str) -> dict:
         "by_category": by_category,
         "count": len(rows),
     }
+
+
+# ── NOTES ─────────────────────────────────────────────────────────────────────
+
+def sync_note(spreadsheet_id: str, record: dict):
+    """Upsert a note row identified by its ID in column A."""
+    service = _get_service()
+    _ensure_sheet_exists(service, spreadsheet_id, NOTES_SHEET, NOTES_HEADERS)
+    rid = str(record.get("id", ""))
+    date = record.get("date", datetime.now().strftime("%Y-%m-%d"))
+    row = [rid, date, record.get("title", ""), record.get("content", ""), record.get("category", "")]
+
+    result = service.spreadsheets().values().get(
+        spreadsheetId=spreadsheet_id, range=f"{NOTES_SHEET}!A:A"
+    ).execute()
+    ids = [r[0] if r else "" for r in result.get("values", [])]
+    if rid in ids:
+        row_num = ids.index(rid) + 1
+        service.spreadsheets().values().update(
+            spreadsheetId=spreadsheet_id,
+            range=f"{NOTES_SHEET}!A{row_num}",
+            valueInputOption="USER_ENTERED",
+            body={"values": [row]},
+        ).execute()
+    else:
+        service.spreadsheets().values().append(
+            spreadsheetId=spreadsheet_id, range=f"{NOTES_SHEET}!A1",
+            valueInputOption="USER_ENTERED", insertDataOption="INSERT_ROWS",
+            body={"values": [row]},
+        ).execute()
+
+
+def delete_note_sheet(spreadsheet_id: str, rid: str):
+    service = _get_service()
+    result = service.spreadsheets().values().get(
+        spreadsheetId=spreadsheet_id, range=f"{NOTES_SHEET}!A:A"
+    ).execute()
+    ids = [r[0] if r else "" for r in result.get("values", [])]
+    if rid not in ids:
+        return
+    row_num = ids.index(rid) + 1
+    meta = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    sheet_id = next(s["properties"]["sheetId"] for s in meta["sheets"]
+                    if s["properties"]["title"] == NOTES_SHEET)
+    service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={"requests": [{
+        "deleteDimension": {"range": {"sheetId": sheet_id, "dimension": "ROWS",
+                                      "startIndex": row_num - 1, "endIndex": row_num}}
+    }]}).execute()
+
+
+def get_all_notes(spreadsheet_id: str) -> list:
+    service = _get_service()
+    _ensure_sheet_exists(service, spreadsheet_id, NOTES_SHEET, NOTES_HEADERS)
+    result = service.spreadsheets().values().get(
+        spreadsheetId=spreadsheet_id, range=f"{NOTES_SHEET}!A2:E"
+    ).execute()
+    rows = result.get("values", [])
+    return [{"id": r[0] if len(r) > 0 else "", "date": r[1] if len(r) > 1 else "",
+             "title": r[2] if len(r) > 2 else "", "content": r[3] if len(r) > 3 else "",
+             "category": r[4] if len(r) > 4 else ""} for r in rows if r]
+
+
+# ── INVESTMENT ────────────────────────────────────────────────────────────────
+
+def sync_investment(spreadsheet_id: str, record: dict, portfolio_name: str = ""):
+    service = _get_service()
+    _ensure_sheet_exists(service, spreadsheet_id, INVESTMENT_SHEET, INVESTMENT_HEADERS)
+    rid = str(record.get("id", ""))
+    row = [rid, portfolio_name, record.get("type", ""), record.get("symbol", ""),
+           record.get("name", ""), record.get("qty", 0), record.get("cost", 0),
+           record.get("price", 0), record.get("note", ""),
+           datetime.now().strftime("%Y-%m-%d")]
+
+    result = service.spreadsheets().values().get(
+        spreadsheetId=spreadsheet_id, range=f"{INVESTMENT_SHEET}!A:A"
+    ).execute()
+    ids = [r[0] if r else "" for r in result.get("values", [])]
+    if rid in ids:
+        row_num = ids.index(rid) + 1
+        service.spreadsheets().values().update(
+            spreadsheetId=spreadsheet_id,
+            range=f"{INVESTMENT_SHEET}!A{row_num}",
+            valueInputOption="USER_ENTERED", body={"values": [row]},
+        ).execute()
+    else:
+        service.spreadsheets().values().append(
+            spreadsheetId=spreadsheet_id, range=f"{INVESTMENT_SHEET}!A1",
+            valueInputOption="USER_ENTERED", insertDataOption="INSERT_ROWS",
+            body={"values": [row]},
+        ).execute()
+
+
+def delete_investment_sheet(spreadsheet_id: str, rid: str):
+    service = _get_service()
+    result = service.spreadsheets().values().get(
+        spreadsheetId=spreadsheet_id, range=f"{INVESTMENT_SHEET}!A:A"
+    ).execute()
+    ids = [r[0] if r else "" for r in result.get("values", [])]
+    if rid not in ids:
+        return
+    row_num = ids.index(rid) + 1
+    meta = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    sheet_id = next(s["properties"]["sheetId"] for s in meta["sheets"]
+                    if s["properties"]["title"] == INVESTMENT_SHEET)
+    service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={"requests": [{
+        "deleteDimension": {"range": {"sheetId": sheet_id, "dimension": "ROWS",
+                                      "startIndex": row_num - 1, "endIndex": row_num}}
+    }]}).execute()
+
+
+def sync_dividend(spreadsheet_id: str, record: dict, portfolio_name: str = ""):
+    service = _get_service()
+    _ensure_sheet_exists(service, spreadsheet_id, DIVIDEND_SHEET, DIVIDEND_HEADERS)
+    rid = str(record.get("id", ""))
+    row = [rid, portfolio_name, record.get("date", ""), record.get("amount", 0),
+           record.get("symbol", ""), record.get("type", ""), record.get("note", "")]
+    service.spreadsheets().values().append(
+        spreadsheetId=spreadsheet_id, range=f"{DIVIDEND_SHEET}!A1",
+        valueInputOption="USER_ENTERED", insertDataOption="INSERT_ROWS",
+        body={"values": [row]},
+    ).execute()

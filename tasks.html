@@ -316,5 +316,56 @@ function clearForm() {
 
 render();
 </script>
+
+<script>
+// ── API Bridge: Tasks ────────────────────────────────────────────────────────
+const _origSave_tasks = save;
+save = function(d) { _origSave_tasks(d); };
+
+async function _apiSyncTasks() {
+  try {
+    const res = await fetch('/api/tasks');
+    const j = await res.json();
+    if (j.ok && j.data && j.data.length > 0) {
+      const local = load();
+      const localIds = new Set(local.map(x => x.id));
+      const merged = [...local];
+      for (const r of j.data) {
+        if (!localIds.has(r.id)) {
+          merged.push({id:r.id, title:r.title||'', priority:r.priority||'',
+            status:r.status||'', due:r.due||'', notes:r.notes||''});
+        }
+      }
+      _origSave_tasks(merged);
+    }
+  } catch(e) {}
+}
+
+const _origDeleteTask = typeof deleteTask !== 'undefined' ? deleteTask : null;
+if (_origDeleteTask) {
+  deleteTask = function(id) {
+    fetch('/api/tasks/'+id, {method:'DELETE'}).catch(()=>{});
+    _origDeleteTask(id);
+  };
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  await _apiSyncTasks();
+  render();
+});
+
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button[type="submit"], button.save-btn, #saveBtn, #addBtn, #saveTaskBtn');
+  if (!btn) return;
+  setTimeout(() => {
+    const d = load();
+    if (d.length > 0) {
+      fetch('/api/tasks', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(d[0])}).catch(()=>{});
+    }
+  }, 150);
+}, true);
+</script>
+
 </body>
 </html>
