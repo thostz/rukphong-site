@@ -7,13 +7,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #0B1426; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #F5F7FA; }
 
   /* ── HEADER ── */
   header {
     height: 58px;
-    background: #0B1426;
-    border-bottom: 1px solid rgba(184,150,62,0.25);
+    background: #FFFFFF;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
     display: flex; align-items: center;
     padding: 0 24px; gap: 20px;
     position: relative; z-index: 100;
@@ -23,22 +24,22 @@
   /* gold top line */
   header::before {
     content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
     background: linear-gradient(90deg, #B8963E, #D4AF5A, #B8963E);
   }
 
   .logo {
     display: flex; align-items: center; gap: 12px; flex-shrink: 0;
-    border-right: 1px solid rgba(184,150,62,0.2); padding-right: 20px;
+    border-right: 1px solid rgba(0,0,0,0.08); padding-right: 20px;
   }
   .logo-avatar {
     width: 34px; height: 34px; border-radius: 6px;
     background: linear-gradient(135deg, #B8963E, #D4AF5A);
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; font-weight: 800; color: #0B1426;
+    font-size: 0.8rem; font-weight: 800; color: #fff;
     flex-shrink: 0;
   }
-  .logo-text { font-size: 0.88rem; font-weight: 700; color: #EEF2FF; letter-spacing: 0.2px; }
+  .logo-text { font-size: 0.88rem; font-weight: 700; color: #1A2340; letter-spacing: 0.2px; }
   .logo-sub  { font-size: 0.62rem; color: #B8963E; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
 
   /* ── TABS ── */
@@ -56,11 +57,11 @@
     border: 1px solid transparent;
     transition: all .18s; background: none; text-decoration: none;
   }
-  .tab:hover { color: #D4AF5A; background: rgba(184,150,62,0.08); }
+  .tab:hover { color: #B8963E; background: rgba(184,150,62,0.07); }
   .tab.active {
-    color: #D4AF5A;
-    background: rgba(184,150,62,0.12);
-    border-color: rgba(184,150,62,0.3);
+    color: #B8963E;
+    background: rgba(184,150,62,0.1);
+    border-color: rgba(184,150,62,0.25);
   }
 
   /* ── RIGHT ── */
@@ -75,13 +76,13 @@
   .header-badge {
     font-size: 0.62rem; font-weight: 700; padding: 3px 9px;
     border-radius: 99px; letter-spacing: 0.4px; text-transform: uppercase;
-    background: rgba(184,150,62,0.15); color: #D4AF5A;
-    border: 1px solid rgba(184,150,62,0.3);
+    background: rgba(184,150,62,0.1); color: #B8963E;
+    border: 1px solid rgba(184,150,62,0.25);
   }
 
   /* ── IFRAME ── */
   .frame-wrap { height: calc(100vh - 58px); width: 100%; }
-  #main-frame { width: 100%; height: 100%; border: none; display: block; background: #0B1426; }
+  #main-frame { width: 100%; height: 100%; border: none; display: block; background: #F5F7FA; }
 </style>
 </head>
 <body>

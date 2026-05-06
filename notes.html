@@ -5,29 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes - Rukphong Pullaoy</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&family=Roboto+Slab:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
-        body { font-family: 'Open Sans', sans-serif; margin: 0; padding: 0; background: #eaeaea; color: #333; }
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #F5F7FA; color: #1A2340; }
 
 
-        .container { width: 90%; max-width: 1100px; margin: 30px auto; padding: 20px; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 10px; }
-        h1 { font-family: 'Roboto Slab', serif; color: #2c3e50; text-align: center; font-size: 2.2em; margin-bottom: 20px; }
+        .container { width: 90%; max-width: 1100px; margin: 30px auto; padding: 24px; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border-radius: 12px; border-top: 3px solid #B8963E; }
+        h1 { font-family: 'Inter', sans-serif; font-weight: 800; color: #1A2340; text-align: center; font-size: 1.8em; margin-bottom: 20px; }
 
-        .section-header { font-family: 'Roboto Slab', serif; color: #2c3e50; font-size: 1.35em; margin: 28px 0 14px 0; border-bottom: 2px solid #ddd; padding-bottom: 8px; }
+        .section-header { font-family: 'Roboto Slab', serif; color: #1A2340; font-size: 1.35em; margin: 28px 0 14px 0; border-bottom: 2px solid #ddd; padding-bottom: 8px; }
 
         .form-section { background: #f8f9fa; border-radius: 8px; padding: 18px; margin-bottom: 20px; }
-        .form-section h2 { font-family: 'Roboto Slab', serif; color: #2980b9; font-size: 1.25em; margin: 0 0 14px 0; border-bottom: 2px solid #ddd; padding-bottom: 7px; }
+        .form-section h2 { font-family: 'Roboto Slab', serif; color: #B8963E; font-size: 1.25em; margin: 0 0 14px 0; border-bottom: 2px solid #ddd; padding-bottom: 7px; }
         .form-group { display: flex; flex-direction: column; margin-bottom: 12px; }
         .form-group label { font-size: 0.84em; font-weight: 600; color: #555; margin-bottom: 4px; }
         .form-group input, .form-group select, .form-group textarea { padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; font-family: 'Open Sans', sans-serif; font-size: 0.93em; color: #333; }
         .form-group textarea { resize: vertical; min-height: 100px; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #2980b9; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #B8963E; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
         .form-actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
 
         .btn { padding: 8px 17px; border: none; border-radius: 5px; cursor: pointer; font-family: 'Open Sans', sans-serif; font-size: 0.92em; font-weight: 600; transition: opacity 0.15s; }
         .btn:hover { opacity: 0.83; }
-        .btn-primary { background: #2980b9; color: #fff; }
+        .btn-primary { background: #B8963E; color: #fff; }
         .btn-danger  { background: #e74c3c; color: #fff; padding: 4px 10px; font-size: 0.82em; }
         .btn-edit    { background: #f39c12; color: #fff; padding: 4px 10px; font-size: 0.82em; }
         .btn-cancel  { background: #95a5a6; color: #fff; }
@@ -40,7 +40,7 @@
         .note-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: box-shadow 0.2s; display: flex; flex-direction: column; }
         .note-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
         .note-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px; }
-        .note-title { font-weight: 600; font-size: 1em; color: #2c3e50; flex: 1; }
+        .note-title { font-weight: 600; font-size: 1em; color: #1A2340; flex: 1; }
         .note-body { font-size: 0.88em; color: #555; line-height: 1.6; flex: 1; white-space: pre-wrap; word-break: break-word; max-height: 120px; overflow: hidden; position: relative; }
         .note-body.expanded { max-height: none; }
         .note-footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
@@ -52,7 +52,7 @@
         .cat-personal { background: #d5f5e3; color: #1d6a3a; }
         .cat-finance  { background: #fdebd0; color: #784212; }
         .cat-health   { background: #f9ebea; color: #7b241c; }
-        .cat-other    { background: #eaecee; color: #2c3e50; }
+        .cat-other    { background: #eaecee; color: #1A2340; }
 
         .empty-state { text-align: center; padding: 40px; color: #95a5a6; font-size: 1em; }
 

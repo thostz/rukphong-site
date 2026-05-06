@@ -6,40 +6,40 @@
     <title>Expense Tracker - Rukphong Pullaoy</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&family=Roboto+Slab:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
-        body { font-family: 'Open Sans', sans-serif; margin: 0; padding: 0; background: #eaeaea; color: #333; }
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #F5F7FA; color: #1A2340; }
 
 
-        .container { width: 90%; max-width: 1100px; margin: 30px auto; padding: 20px; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 10px; }
-        h1 { font-family: 'Roboto Slab', serif; color: #2c3e50; text-align: center; font-size: 2.2em; margin-bottom: 20px; }
+        .container { width: 90%; max-width: 1100px; margin: 30px auto; padding: 24px; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border-radius: 12px; border-top: 3px solid #B8963E; }
+        h1 { font-family: 'Inter', sans-serif; font-weight: 800; color: #1A2340; text-align: center; font-size: 1.8em; margin-bottom: 20px; }
 
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; margin: 20px 0; }
-        .card { background: #f8f9fa; border-radius: 8px; padding: 16px; text-align: center; border-left: 4px solid #2980b9; }
+        .card { background: #f8f9fa; border-radius: 8px; padding: 16px; text-align: center; border-left: 4px solid #B8963E; }
         .card.warn { border-left-color: #e74c3c; }
         .card.ok   { border-left-color: #27ae60; }
         .card .label { font-size: 0.78em; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; }
-        .card .value { font-size: 1.45em; font-weight: 600; color: #2c3e50; margin-top: 6px; }
+        .card .value { font-size: 1.45em; font-weight: 600; color: #1A2340; margin-top: 6px; }
 
         .chart-box { background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 20px 0; }
-        .chart-box h3 { font-family: 'Roboto Slab', serif; color: #2980b9; font-size: 1.05em; margin: 0 0 12px 0; text-align: center; }
+        .chart-box h3 { font-family: 'Roboto Slab', serif; color: #B8963E; font-size: 1.05em; margin: 0 0 12px 0; text-align: center; }
         .chart-box canvas { max-height: 260px; }
 
-        .section-header { font-family: 'Roboto Slab', serif; color: #2c3e50; font-size: 1.35em; margin: 28px 0 14px 0; border-bottom: 2px solid #ddd; padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .section-header { font-family: 'Roboto Slab', serif; color: #1A2340; font-size: 1.35em; margin: 28px 0 14px 0; border-bottom: 2px solid #ddd; padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 
         .form-section { background: #f8f9fa; border-radius: 8px; padding: 18px; margin-bottom: 18px; }
-        .form-section h2 { font-family: 'Roboto Slab', serif; color: #2980b9; font-size: 1.25em; margin: 0 0 14px 0; border-bottom: 2px solid #ddd; padding-bottom: 7px; }
+        .form-section h2 { font-family: 'Roboto Slab', serif; color: #B8963E; font-size: 1.25em; margin: 0 0 14px 0; border-bottom: 2px solid #ddd; padding-bottom: 7px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 11px; }
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 0.84em; font-weight: 600; color: #555; margin-bottom: 4px; }
         .form-group input, .form-group select, .form-group textarea { padding: 7px 10px; border: 1px solid #ccc; border-radius: 5px; font-family: 'Open Sans', sans-serif; font-size: 0.92em; color: #333; }
         .form-group textarea { resize: vertical; min-height: 52px; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #2980b9; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #B8963E; }
         .form-actions { margin-top: 13px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
         .btn { padding: 8px 17px; border: none; border-radius: 5px; cursor: pointer; font-family: 'Open Sans', sans-serif; font-size: 0.92em; font-weight: 600; transition: opacity 0.15s; }
         .btn:hover { opacity: 0.83; }
-        .btn-primary { background: #2980b9; color: #fff; }
+        .btn-primary { background: #B8963E; color: #fff; }
         .btn-success { background: #27ae60; color: #fff; }
         .btn-danger  { background: #e74c3c; color: #fff; padding: 4px 10px; font-size: 0.82em; }
         .btn-edit    { background: #f39c12; color: #fff; padding: 4px 10px; font-size: 0.82em; }
@@ -52,7 +52,7 @@
 
         .table-wrapper { overflow-x: auto; margin-bottom: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-        thead th { background: #2980b9; color: #fff; padding: 9px 11px; text-align: left; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        thead th { background: #B8963E; color: #fff; padding: 9px 11px; text-align: left; font-weight: 600; cursor: pointer; white-space: nowrap; }
         thead th:hover { background: #2471a3; }
         thead th .sa { margin-left: 4px; opacity: 0.6; }
         tbody tr:nth-child(even) { background: #f4f8fb; }
@@ -66,7 +66,7 @@
         .cat-shopping      { background: #e8daef; color: #512e5f; }
         .cat-health        { background: #f9ebea; color: #7b241c; }
         .cat-entertainment { background: #fef9e7; color: #7d6608; border: 1px solid #f9e79f; }
-        .cat-other         { background: #eaecee; color: #2c3e50; }
+        .cat-other         { background: #eaecee; color: #1A2340; }
 
         .empty-state { text-align: center; padding: 32px; color: #95a5a6; font-size: 1em; }
 
@@ -184,7 +184,7 @@
 const KEY = 'rukphong_expenses';
 const CATS = ['food','transport','housing','shopping','health','entertainment','other'];
 const CAT_LABELS = {food:'Food',transport:'Transport',housing:'Housing',shopping:'Shopping',health:'Health',entertainment:'Entertainment',other:'Other'};
-const CAT_COLORS = {food:'#e67e22',transport:'#2980b9',housing:'#27ae60',shopping:'#8e44ad',health:'#e74c3c',entertainment:'#f1c40f',other:'#95a5a6'};
+const CAT_COLORS = {food:'#e67e22',transport:'#B8963E',housing:'#27ae60',shopping:'#8e44ad',health:'#e74c3c',entertainment:'#f1c40f',other:'#95a5a6'};
 
 let sortField = 'date', sortAsc = false;
 let catChart = null;
