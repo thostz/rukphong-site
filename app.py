@@ -77,6 +77,11 @@ def health():
     return {"status": "ok"}, 200
 
 
+@app.route("/theme-preview", methods=["GET"])
+def theme_preview():
+    return send_from_directory(".", "theme-preview.html")
+
+
 @app.route("/rukphong", methods=["GET"])
 def rukphong_profile():
     return send_from_directory("rukphong_site", "index.html")
