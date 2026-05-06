@@ -25,27 +25,6 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
         a { color: inherit; text-decoration: none; }
 
-        /* ── NAV ── */
-        .site-nav {
-            background: rgba(11,20,38,0.97);
-            border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; z-index: 100;
-            display: flex; flex-wrap: wrap; align-items: center;
-            padding: 0 24px;
-        }
-        .site-nav::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, var(--gold), var(--gold2), var(--gold));
-        }
-        .site-nav a {
-            color: var(--muted); font-size: 0.83em; font-weight: 600;
-            padding: 16px 14px; transition: color .2s;
-            display: flex; align-items: center; gap: 6px;
-            border-bottom: 2px solid transparent;
-        }
-        .site-nav a:hover { color: var(--gold2); }
-        .site-nav a.active { color: var(--gold2); border-bottom-color: var(--gold); }
-
         /* ── HERO ── */
         .hero {
             background: linear-gradient(135deg, #0F1C38 0%, #0B1426 55%, #111830 100%);
@@ -229,14 +208,6 @@
     </style>
 </head>
 <body>
-
-<nav class="site-nav" style="position:relative;">
-    <a href="/main" class="active">👤 Profile</a>
-    <a href="/investment">📈 Investment</a>
-    <a href="/expense">💰 Expense</a>
-    <a href="/notes">📝 Notes</a>
-    <a href="/tasks">✅ Tasks</a>
-</nav>
 
 <!-- HERO -->
 <section class="hero">
