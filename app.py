@@ -132,6 +132,11 @@ def dashboard():
     return render_template("dashboard.html")
 
 
+@app.route("/help", methods=["GET"])
+def help_page():
+    return render_template("help.html")
+
+
 @app.route("/api/expense", methods=["POST"])
 def api_add_expense():
     if not SPREADSHEET_ID:

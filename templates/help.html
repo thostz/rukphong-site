@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help — Rukphong</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #F5F7FA; color: #1A2340; min-height: 100vh; padding-bottom: 48px; }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #1A2340 0%, #2A3550 60%, #1E2B44 100%);
+    padding: 32px 5% 60px; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(184,150,62,0.15) 0%, transparent 60%);
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-tag   { font-size: 0.72rem; font-weight: 700; color: #B8963E; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .hero-title { font-size: 1.8rem; font-weight: 800; color: #fff; line-height: 1.2; }
+  .hero-title span { color: #D4AF5A; }
+  .hero-sub   { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-top: 8px; max-width: 520px; }
+
+  /* ── SEARCH ── */
+  .search-wrap { max-width: 1100px; margin: -24px auto 0; padding: 0 5%; position: relative; z-index: 10; }
+  .search-box {
+    background: #fff; border-radius: 10px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.07);
+  }
+  .search-box input {
+    flex: 1; border: none; outline: none; font-family: 'Inter', sans-serif;
+    font-size: 0.88rem; color: #1A2340; background: transparent;
+  }
+  .search-box input::placeholder { color: #8898AA; }
+  .search-icon { font-size: 1rem; color: #B8963E; }
+
+  /* ── LAYOUT ── */
+  .content { max-width: 1100px; margin: 28px auto 0; padding: 0 5%; display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── SECTION CARD ── */
+  .section-card {
+    background: #fff; border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .section-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 18px 22px; border-bottom: 1px solid rgba(0,0,0,0.06);
+    cursor: pointer; user-select: none;
+  }
+  .section-head:hover { background: rgba(184,150,62,0.03); }
+  .section-icon { font-size: 1.3rem; }
+  .section-title { font-size: 0.95rem; font-weight: 700; color: #1A2340; flex: 1; }
+  .section-badge {
+    font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 99px;
+    background: rgba(184,150,62,0.1); color: #8A6E28; border: 1px solid rgba(184,150,62,0.2);
+  }
+  .chevron { font-size: 0.75rem; color: #8898AA; transition: transform .2s; }
+  .section-card.open .chevron { transform: rotate(180deg); }
+  .section-body { padding: 20px 22px; display: none; }
+  .section-card.open .section-body { display: block; }
+
+  /* ── COMMAND TABLE ── */
+  .cmd-grid { display: flex; flex-direction: column; gap: 10px; }
+  .cmd-row {
+    display: grid; grid-template-columns: 200px 1fr auto;
+    gap: 12px; align-items: start;
+    padding: 12px 14px; border-radius: 8px; background: #F8FAFC;
+    border-left: 3px solid #B8963E;
+  }
+  @media (max-width: 600px) { .cmd-row { grid-template-columns: 1fr; } }
+  .cmd-row.green  { border-left-color: #27ae60; }
+  .cmd-row.blue   { border-left-color: #6B7FA3; }
+  .cmd-row.purple { border-left-color: #8b5cf6; }
+  .cmd-row.orange { border-left-color: #f39c12; }
+  .cmd-syntax {
+    font-family: 'Courier New', monospace; font-size: 0.82rem;
+    font-weight: 700; color: #1A2340;
+    background: rgba(184,150,62,0.08); padding: 4px 8px; border-radius: 5px;
+    white-space: nowrap; align-self: start;
+  }
+  .cmd-desc { font-size: 0.8rem; color: #5A6E8C; line-height: 1.6; }
+  .cmd-example {
+    font-family: 'Courier New', monospace; font-size: 0.72rem;
+    color: #27ae60; background: rgba(39,174,96,0.06);
+    padding: 3px 8px; border-radius: 5px; white-space: nowrap; align-self: start;
+  }
+
+  /* ── TIPS ── */
+  .tips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  .tip-card {
+    padding: 14px 16px; border-radius: 8px; background: #F8FAFC;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .tip-icon  { font-size: 1.2rem; margin-bottom: 7px; }
+  .tip-title { font-size: 0.82rem; font-weight: 700; color: #1A2340; margin-bottom: 4px; }
+  .tip-text  { font-size: 0.75rem; color: #5A6E8C; line-height: 1.6; }
+
+  /* ── URL CARD ── */
+  .url-card {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    padding: 12px 16px; border-radius: 8px; background: #F8FAFC;
+    border: 1px solid rgba(0,0,0,0.07); margin-bottom: 10px;
+  }
+  .url-label { font-size: 0.75rem; font-weight: 600; color: #5A6E8C; margin-bottom: 3px; }
+  .url-val   { font-size: 0.82rem; font-weight: 700; color: #B8963E; word-break: break-all; }
+  .copy-btn  {
+    font-size: 0.72rem; font-weight: 600; padding: 4px 12px; border-radius: 6px;
+    background: rgba(184,150,62,0.08); color: #8A6E28; border: 1px solid rgba(184,150,62,0.2);
+    cursor: pointer; white-space: nowrap; transition: all .15s;
+  }
+  .copy-btn:hover  { background: rgba(184,150,62,0.18); }
+  .copy-btn.copied { background: rgba(39,174,96,0.1); color: #27ae60; border-color: rgba(39,174,96,0.2); }
+
+  /* ── STEPS ── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step  { display: flex; gap: 16px; padding-bottom: 20px; }
+  .step:last-child { padding-bottom: 0; }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #B8963E, #D4AF5A);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800; color: #fff;
+  }
+  .step-line { width: 1px; background: rgba(184,150,62,0.2); flex: 1; margin: 6px auto 0; display: block; }
+  .step-left { display: flex; flex-direction: column; align-items: center; width: 28px; }
+  .step:last-child .step-line { display: none; }
+  .step-title { font-size: 0.85rem; font-weight: 700; color: #1A2340; margin-bottom: 4px; }
+  .step-desc  { font-size: 0.78rem; color: #5A6E8C; line-height: 1.6; }
+  .step-code  {
+    display: inline-block; margin-top: 6px;
+    font-family: 'Courier New', monospace; font-size: 0.75rem;
+    background: #F0F4F8; color: #1A2340; padding: 4px 10px;
+    border-radius: 5px; border: 1px solid rgba(0,0,0,0.08);
+  }
+
+  /* ── MODULE TABLE ── */
+  .mod-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .mod-table th { font-size: 0.7rem; font-weight: 700; color: #8898AA; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 12px 10px; text-align: left; border-bottom: 2px solid rgba(0,0,0,0.06); }
+  .mod-table td { padding: 9px 12px; border-bottom: 1px solid rgba(0,0,0,0.04); vertical-align: top; }
+  .mod-table tr:last-child td { border-bottom: none; }
+  .mod-table tr:hover td { background: rgba(184,150,62,0.02); }
+  .mod-tag { font-size: 0.68rem; padding: 2px 7px; border-radius: 99px; font-weight: 600; white-space: nowrap; }
+  .mod-tag.gold   { background: rgba(184,150,62,0.1);  color: #8A6E28; }
+  .mod-tag.green  { background: rgba(39,174,96,0.1);   color: #27ae60; }
+  .mod-tag.blue   { background: rgba(107,127,163,0.1); color: #6B7FA3; }
+  .mod-tag.purple { background: rgba(139,92,246,0.1);  color: #8b5cf6; }
+
+  /* ── NO RESULTS ── */
+  #noResults { text-align: center; padding: 40px; color: #8898AA; font-size: 0.88rem; display: none; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">❓ Help & Documentation</div>
+    <div class="hero-title">How to use <span>your Dashboard</span></div>
+    <div class="hero-sub">คู่มือการใช้งาน Dashboard · คำสั่ง LINE · และการตั้งค่าระบบ</div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="search-wrap">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="ค้นหาคำสั่ง หรือหัวข้อที่ต้องการ..." oninput="filterHelp()">
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- LINE Commands -->
+  <div class="section-card open" data-section="line">
+    <div class="section-head" onclick="toggle(this)">
+      <span class="section-icon">💬</span>
+      <span class="section-title">คำสั่ง LINE Bot</span>
+      <span class="section-badge">8 คำสั่ง</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="cmd-grid">
+
+        <div class="cmd-row" data-tags="จ่าย ใช้ expense รายจ่าย">
+          <span class="cmd-syntax">จ่าย [จำนวน] [หมวด]</span>
+          <span class="cmd-desc">บันทึกรายจ่าย — ระบุจำนวนเงินและหมวดหมู่ เพิ่มเข้า Google Sheet ทันที</span>
+          <span class="cmd-example">จ่าย 150 อาหาร</span>
+        </div>
+
+        <div class="cmd-row" data-tags="ใช้ expense รายจ่าย">
+          <span class="cmd-syntax">ใช้ [จำนวน] [หมวด]</span>
+          <span class="cmd-desc">เหมือน <b>จ่าย</b> — ใช้แทนกันได้</span>
+          <span class="cmd-example">ใช้ 500 ช้อปปิ้ง</span>
+        </div>
+
+        <div class="cmd-row green" data-tags="งาน task todo">
+          <span class="cmd-syntax">งาน [ชื่องาน]</span>
+          <span class="cmd-desc">เพิ่ม Task ใหม่ — Status เริ่มต้นเป็น <b>To Do</b>, Priority: Medium</span>
+          <span class="cmd-example">งาน ประชุม client พรุ่งนี้</span>
+        </div>
+
+        <div class="cmd-row blue" data-tags="โน้ต note memo บันทึก">
+          <span class="cmd-syntax">โน้ต [ข้อความ]</span>
+          <span class="cmd-desc">บันทึก Note — ใช้ 40 ตัวอักษรแรกเป็นหัวข้ออัตโนมัติ</span>
+          <span class="cmd-example">โน้ต ไอเดียโปรเจกต์ WMS ใหม่</span>
+        </div>
+
+        <div class="cmd-row blue" data-tags="memo note บันทึก">
+          <span class="cmd-syntax">memo [ข้อความ]</span>
+          <span class="cmd-desc">เหมือน <b>โน้ต</b> — ใช้ภาษาอังกฤษแทนได้</span>
+          <span class="cmd-example">memo review slides before meeting</span>
+        </div>
+
+        <div class="cmd-row orange" data-tags="ดูรายจ่าย สรุป expense summary">
+          <span class="cmd-syntax">ดูรายจ่าย</span>
+          <span class="cmd-desc">แสดงสรุปรายจ่ายวันนี้ — จำนวนรายการ + ยอดรวม + 5 รายการล่าสุด</span>
+          <span class="cmd-example">ดูรายจ่าย</span>
+        </div>
+
+        <div class="cmd-row orange" data-tags="ดูงาน งานค้าง task pending">
+          <span class="cmd-syntax">ดูงาน</span>
+          <span class="cmd-desc">แสดงงานที่ยังไม่เสร็จ — To Do + In Progress ทั้งหมด (สูงสุด 5 รายการ)</span>
+          <span class="cmd-example">ดูงาน</span>
+        </div>
+
+        <div class="cmd-row purple" data-tags="help ช่วย คำสั่ง menu">
+          <span class="cmd-syntax">help</span>
+          <span class="cmd-desc">แสดงคำสั่งทั้งหมดผ่าน LINE — ใช้ <b>ช่วย</b> หรือ <b>คำสั่ง</b> แทนได้</span>
+          <span class="cmd-example">help</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modules -->
+  <div class="section-card open" data-section="modules">
+    <div class="section-head" onclick="toggle(this)">
+      <span class="section-icon">📦</span>
+      <span class="section-title">โมดูลทั้งหมด</span>
+      <span class="section-badge">5 modules</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="section-body">
+      <table class="mod-table">
+        <thead>
+          <tr>
+            <th>โมดูล</th>
+            <th>ฟีเจอร์</th>
+            <th>ข้อมูล</th>
+            <th>LINE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>🏠 Dashboard</b></td>
+            <td>ภาพรวมทุก module, KPI cards, Activity feed, Monthly chart</td>
+            <td>ดึงจากทุก module อัตโนมัติ</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><b>💰 Expense</b></td>
+            <td>เพิ่ม/แก้ไข/ลบ, กรองตามเดือน/หมวด, กราฟ Doughnut + Bar</td>
+            <td>วันที่, จำนวน, หมวดหมู่, วิธีชำระ, หมายเหตุ</td>
+            <td><span class="mod-tag gold">จ่าย / ใช้</span></td>
+          </tr>
+          <tr>
+            <td><b>✅ Tasks</b></td>
+            <td>Kanban board (To Do / In Progress / Done), Priority badge, Mark Done</td>
+            <td>ชื่องาน, Priority, Status, Due Date, หมายเหตุ</td>
+            <td><span class="mod-tag green">งาน</span></td>
+          </tr>
+          <tr>
+            <td><b>📝 Notes</b></td>
+            <td>Card grid, ค้นหา, กรองตามหมวด</td>
+            <td>หัวข้อ, เนื้อหา, หมวดหมู่, วันที่</td>
+            <td><span class="mod-tag blue">โน้ต / memo</span></td>
+          </tr>
+          <tr>
+            <td><b>📈 Investment</b></td>
+            <td>หลาย Portfolio, Holdings, Dividends, G/L%, Allocation chart</td>
+            <td>Symbol, จำนวน, ราคาทุน, ราคาตลาด, เงินปันผล</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><b>👤 Profile</b></td>
+            <td>ประวัติ, Career timeline, Skills, Certifications, APAC coverage</td>
+            <td>Static content</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LINE Setup -->
+  <div class="section-card" data-section="setup">
+    <div class="section-head" onclick="toggle(this)">
+      <span class="section-icon">⚙️</span>
+      <span class="section-title">ตั้งค่า LINE Bot</span>
+      <span class="section-badge">3 ขั้นตอน</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div>
+          <div>
+            <div class="step-title">ตั้ง LINE_TOKEN ใน Apps Script</div>
+            <div class="step-desc">
+              เปิด <b>script.google.com</b> → เลือก Project → ⚙️ Project Settings → Script Properties<br>
+              เพิ่ม Property:
+              <span class="step-code">LINE_TOKEN = &lt;Channel Access Token&gt;</span><br><br>
+              หา Token ได้ที่: LINE Developers → Channel → Messaging API → <b>Channel access token</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div>
+          <div>
+            <div class="step-title">ตั้ง Webhook URL ใน LINE Developers</div>
+            <div class="step-desc">
+              เปิด <b>developers.line.biz</b> → เลือก Channel → Messaging API → Webhook settings<br>
+              ใส่ URL:
+            </div>
+            <div class="url-card" style="margin-top:10px">
+              <div>
+                <div class="url-label">Apps Script Webhook URL</div>
+                <div class="url-val" id="webhookUrl">https://script.google.com/macros/s/AKfycbzgn1rNxQ9MB-65dxuj-68c_MIbOHtnwBKXI-VSx54YM50fZ8t162r2Isb6UIcrdYXAoA/exec</div>
+              </div>
+              <button class="copy-btn" onclick="copyUrl('webhookUrl', this)">📋 Copy</button>
+            </div>
+            <div class="step-desc">เปิด <b>Use webhook</b> แล้วกด <b>Verify</b> — ต้องได้ ✅ Success</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div>
+          <div>
+            <div class="step-title">ปิด Auto-reply (แนะนำ)</div>
+            <div class="step-desc">
+              เปิด <b>manager.line.biz</b> → เลือก Account → Chat settings<br>
+              ปิด <b>Auto-reply messages</b> และ <b>Greeting messages</b><br>
+              เพื่อป้องกัน Bot ตอบซ้ำเมื่อรับ Webhook
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Expense Categories -->
+  <div class="section-card" data-section="categories">
+    <div class="section-head" onclick="toggle(this)">
+      <span class="section-icon">💰</span>
+      <span class="section-title">หมวดหมู่รายจ่าย</span>
+      <span class="section-badge">8 หมวด</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="tips-grid">
+        <div class="tip-card"><div class="tip-icon">🍜</div><div class="tip-title">อาหาร/เครื่องดื่ม</div><div class="tip-text">ข้าว กาแฟ น้ำ ของกิน</div></div>
+        <div class="tip-card"><div class="tip-icon">🚗</div><div class="tip-title">เดินทาง</div><div class="tip-text">Grab, MRT, น้ำมัน, ที่จอด</div></div>
+        <div class="tip-card"><div class="tip-icon">🛍</div><div class="tip-title">ช้อปปิ้ง</div><div class="tip-text">เสื้อผ้า, ของใช้, Amazon</div></div>
+        <div class="tip-card"><div class="tip-icon">💊</div><div class="tip-title">สุขภาพ</div><div class="tip-text">หมอ, ยา, ออกกำลังกาย</div></div>
+        <div class="tip-card"><div class="tip-icon">🏠</div><div class="tip-title">ที่พัก</div><div class="tip-text">ค่าเช่า, ค่าน้ำ, ค่าไฟ</div></div>
+        <div class="tip-card"><div class="tip-icon">🎮</div><div class="tip-title">ความบันเทิง</div><div class="tip-text">หนัง, เกม, Streaming</div></div>
+        <div class="tip-card"><div class="tip-icon">📚</div><div class="tip-title">การศึกษา</div><div class="tip-text">คอร์ส, หนังสือ, Udemy</div></div>
+        <div class="tip-card"><div class="tip-icon">📦</div><div class="tip-title">อื่นๆ</div><div class="tip-text">รายจ่ายที่ไม่เข้าหมวดอื่น</div></div>
+      </div>
+      <div style="margin-top:14px;padding:12px 14px;background:#F8FAFC;border-radius:8px;font-size:0.78rem;color:#5A6E8C;border-left:3px solid #B8963E;">
+        💡 <b>Tip:</b> พิมพ์ผ่าน LINE ได้เลย เช่น <code style="background:rgba(184,150,62,0.1);padding:1px 5px;border-radius:3px">จ่าย 50 กาแฟ</code> — ระบบจะใช้ "กาแฟ" เป็นหมวดหมู่อัตโนมัติ
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips & Tricks -->
+  <div class="section-card" data-section="tips">
+    <div class="section-head" onclick="toggle(this)">
+      <span class="section-icon">💡</span>
+      <span class="section-title">Tips & Tricks</span>
+      <span class="section-badge">6 tips</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="tips-grid">
+        <div class="tip-card">
+          <div class="tip-icon">⚡</div>
+          <div class="tip-title">บันทึกรายจ่ายเร็ว</div>
+          <div class="tip-text">พิมพ์ใน LINE ได้ทันที ไม่ต้องเปิด Browser เช่น <b>จ่าย 89 ข้าว</b></div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">📊</div>
+          <div class="tip-title">ดู Dashboard ได้ทุกที่</div>
+          <div class="tip-text">เปิดผ่านมือถือได้ที่ thostz.github.io/rukphong-site — Responsive ทุก screen</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">🔄</div>
+          <div class="tip-title">ข้อมูล Sync อัตโนมัติ</div>
+          <div class="tip-text">บันทึกผ่าน LINE หรือ Web — ขึ้นใน Google Sheet และ Dashboard ทันที</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">🗓</div>
+          <div class="tip-title">กรองข้อมูลตามเดือน</div>
+          <div class="tip-text">ทุกหน้ามี filter ตามเดือน — ดู Expense, Task, Note ย้อนหลังได้</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">✏️</div>
+          <div class="tip-title">แก้ไขข้อมูลได้</div>
+          <div class="tip-text">กดปุ่ม ✏️ ในทุก module เพื่อแก้ไขรายการ — หรือลบด้วย 🗑</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">📱</div>
+          <div class="tip-title">Shortcut LINE</div>
+          <div class="tip-text">บันทึก Keyword ใน LINE Keyboard เพื่อพิมพ์คำสั่งได้เร็วขึ้น</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Reference -->
+  <div class="section-card open" data-section="quickref">
+    <div class="section-head" onclick="toggle(this)">
+      <span class="section-icon">📋</span>
+      <span class="section-title">Quick Reference Card</span>
+      <span class="section-badge">สรุปด่วน</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="section-body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
+
+        <div style="background:#1A2340;border-radius:10px;padding:18px;color:#fff;">
+          <div style="font-size:0.7rem;font-weight:700;color:#B8963E;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">💬 LINE Commands</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:0.8rem;font-family:'Courier New',monospace;">
+            <span><span style="color:#D4AF5A">จ่าย</span> 150 อาหาร</span>
+            <span><span style="color:#D4AF5A">ใช้</span> 500 ช้อปปิ้ง</span>
+            <span><span style="color:#34d399">งาน</span> ชื่องาน...</span>
+            <span><span style="color:#93c5fd">โน้ต</span> ข้อความ...</span>
+            <span><span style="color:#93c5fd">memo</span> text...</span>
+            <span><span style="color:#fbbf24">ดูรายจ่าย</span></span>
+            <span><span style="color:#fbbf24">ดูงาน</span></span>
+            <span><span style="color:#c4b5fd">help</span></span>
+          </div>
+        </div>
+
+        <div style="background:#F8FAFC;border-radius:10px;padding:18px;border:1px solid rgba(0,0,0,0.06);">
+          <div style="font-size:0.7rem;font-weight:700;color:#B8963E;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🔗 Links</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:0.78rem;">
+            <div>
+              <div style="color:#8898AA;font-size:0.68rem;font-weight:600;margin-bottom:2px">GitHub Pages</div>
+              <a href="https://thostz.github.io/rukphong-site/" target="_blank" style="color:#B8963E;font-weight:600">thostz.github.io/rukphong-site</a>
+            </div>
+            <div>
+              <div style="color:#8898AA;font-size:0.68rem;font-weight:600;margin-bottom:2px">Render Site</div>
+              <a href="https://rukphong-site.onrender.com" target="_blank" style="color:#B8963E;font-weight:600">rukphong-site.onrender.com</a>
+            </div>
+            <div>
+              <div style="color:#8898AA;font-size:0.68rem;font-weight:600;margin-bottom:2px">LINE Developers</div>
+              <a href="https://developers.line.biz" target="_blank" style="color:#B8963E;font-weight:600">developers.line.biz</a>
+            </div>
+            <div>
+              <div style="color:#8898AA;font-size:0.68rem;font-weight:600;margin-bottom:2px">Apps Script</div>
+              <a href="https://script.google.com" target="_blank" style="color:#B8963E;font-weight:600">script.google.com</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="noResults">🔍 ไม่พบผลลัพธ์ — ลองค้นหาคำอื่น</div>
+</div>
+
+<script>
+// ── Toggle accordion ─────────────────────────────────────
+function toggle(head) {
+  head.closest('.section-card').classList.toggle('open');
+}
+
+// ── Copy URL ─────────────────────────────────────────────
+function copyUrl(id, btn) {
+  const text = document.getElementById(id).textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── Search / Filter ───────────────────────────────────────
+function filterHelp() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.section-card');
+  let anyVisible = false;
+
+  cards.forEach(card => {
+    if (!q) {
+      card.style.display = '';
+      anyVisible = true;
+      return;
+    }
+    const text = card.textContent.toLowerCase();
+    const tags = [...card.querySelectorAll('[data-tags]')].map(el => el.dataset.tags).join(' ').toLowerCase();
+    const match = text.includes(q) || tags.includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) anyVisible = true;
+  });
+
+  document.getElementById('noResults').style.display = anyVisible ? 'none' : 'block';
+}
+</script>
+</body>
+</html>
