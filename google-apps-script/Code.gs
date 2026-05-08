@@ -124,43 +124,44 @@ function doGet(e) {
 // ── HTTP: POST ────────────────────────────────────────────────
 
 function doPost(e) {
+  // Always return 200 immediately — LINE webhook verify requires fast response
+  const OK = ContentService.createTextOutput('{"ok":true}')
+               .setMimeType(ContentService.MimeType.JSON);
+
   try {
+    if (!e || !e.postData || !e.postData.contents) return OK;
     const body = JSON.parse(e.postData.contents);
 
-    // LINE Webhook
+    // ── LINE Webhook ──────────────────────────────────
     if (body.events !== undefined) {
-      processLine(body.events);
-      return ContentService.createTextOutput(JSON.stringify({ ok: true }))
-        .setMimeType(ContentService.MimeType.JSON);
+      if (body.events.length === 0) return OK;   // verify ping — return instantly
+      try { processLine(body.events); } catch(ex) { Logger.log('LINE err: '+ex); }
+      return OK;
     }
 
-    // API Write
+    // ── Dashboard API Write ───────────────────────────
     const { action, record } = body;
     let result = { ok: false, error: 'Unknown action: ' + action };
 
     switch (action) {
-      // Expense
-      case 'saveExpense':   result = saveExpense(record);   break;
-      case 'deleteExpense': deleteById('expense', record.id); result = { ok: true }; break;
-      // Task
-      case 'saveTask':      result = saveTask(record);     break;
-      case 'deleteTask':    deleteById('task', record.id); result = { ok: true };   break;
-      // Note
-      case 'saveNote':      result = saveNote(record);     break;
-      case 'deleteNote':    deleteById('note', record.id); result = { ok: true };   break;
-      // Portfolio
-      case 'savePortfolio':   result = savePortfolio(record);   break;
-      case 'deletePortfolio': deletePortfolioAll(record.id); result = { ok: true }; break;
-      // Investment
-      case 'saveInvestment':   result = saveInvestment(record);   break;
-      case 'deleteInvestment': deleteById('investment', record.id); result = { ok: true }; break;
-      // Dividend
-      case 'saveDividend':   result = saveDividend(record);   break;
-      case 'deleteDividend': deleteById('dividend', record.id); result = { ok: true }; break;
+      case 'saveExpense':      result = saveExpense(record);                         break;
+      case 'deleteExpense':    deleteById('expense', record.id);   result = {ok:true}; break;
+      case 'saveTask':         result = saveTask(record);                            break;
+      case 'deleteTask':       deleteById('task', record.id);      result = {ok:true}; break;
+      case 'saveNote':         result = saveNote(record);                            break;
+      case 'deleteNote':       deleteById('note', record.id);      result = {ok:true}; break;
+      case 'savePortfolio':    result = savePortfolio(record);                       break;
+      case 'deletePortfolio':  deletePortfolioAll(record.id);      result = {ok:true}; break;
+      case 'saveInvestment':   result = saveInvestment(record);                      break;
+      case 'deleteInvestment': deleteById('investment', record.id); result = {ok:true}; break;
+      case 'saveDividend':     result = saveDividend(record);                        break;
+      case 'deleteDividend':   deleteById('dividend', record.id);  result = {ok:true}; break;
     }
     return jsonResp(result);
+
   } catch (err) {
-    return jsonResp({ ok: false, error: err.toString() });
+    Logger.log('doPost err: ' + err);
+    return OK;  // always 200 even on error
   }
 }
 
