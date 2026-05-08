@@ -121,6 +121,16 @@ function doGet(e) {
   }
 }
 
+// ── Warmup (set as 5-min trigger to prevent cold starts) ─────
+
+function warmup() {
+  // Touch PropertiesService to keep script warm
+  PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  Logger.log('warmup ok ' + new Date().toISOString());
+}
+
+// ── HTTP: GET (also used as health check) ─────────────────────
+
 // ── HTTP: POST ────────────────────────────────────────────────
 
 function doPost(e) {
