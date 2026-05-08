@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tasks — Rukphong</title>
+<script src="config.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #F5F7FA; color: #1A2340; }
+
+  .container { width: 90%; max-width: 1100px; margin: 28px auto; padding: 24px; background: #fff; border-radius: 12px; border-top: 3px solid #B8963E; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  h1 { font-weight: 800; color: #1A2340; font-size: 1.6em; margin-bottom: 20px; text-align: center; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: #F8FAFC; border-radius: 8px; padding: 14px; text-align: center; border-left: 4px solid #B8963E; }
+  .card.todo   { border-left-color: #6B7FA3; }
+  .card.inprog { border-left-color: #f39c12; background: #FFFBF0; }
+  .card.done   { border-left-color: #27ae60; background: #F0FFF4; }
+  .card .label { font-size: 0.72em; color: #5A6E8C; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .card .value { font-size: 1.5em; font-weight: 800; color: #1A2340; margin-top: 4px; }
+
+  .section-header { font-weight: 700; color: #1A2340; font-size: 1.1em; margin: 24px 0 12px; border-bottom: 2px solid rgba(184,150,62,0.2); padding-bottom: 8px; }
+  .form-section { background: #F8FAFC; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width:600px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  label { font-size: 0.8em; font-weight: 600; color: #5A6E8C; }
+  input, select, textarea {
+    padding: 8px 10px; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px;
+    font-family: 'Inter', sans-serif; font-size: 0.88em; color: #1A2340; background: #fff;
+  }
+  input:focus, select:focus { outline: none; border-color: #B8963E; }
+
+  .btn { padding: 8px 18px; border-radius: 7px; font-size: 0.82em; font-weight: 700; border: none; cursor: pointer; transition: opacity .15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: #B8963E; color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 0.75em; }
+
+  .kanban { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  @media (max-width:700px) { .kanban { grid-template-columns: 1fr; } }
+  .col { background: #F8FAFC; border-radius: 10px; padding: 14px; min-height: 200px; }
+  .col-title { font-size: 0.78em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid; }
+  .col.todo   .col-title { color: #6B7FA3; border-color: #6B7FA3; }
+  .col.inprog .col-title { color: #f39c12; border-color: #f39c12; }
+  .col.done   .col-title { color: #27ae60; border-color: #27ae60; }
+
+  .task-card { background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 3px solid #B8963E; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .task-card.high   { border-left-color: #e74c3c; }
+  .task-card.medium { border-left-color: #f39c12; }
+  .task-card.low    { border-left-color: #27ae60; }
+  .task-title { font-weight: 600; font-size: 0.88em; color: #1A2340; margin-bottom: 6px; }
+  .task-meta  { font-size: 0.72em; color: #5A6E8C; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .pri-badge  { font-size: 0.68em; padding: 1px 6px; border-radius: 99px; font-weight: 700; }
+  .pri-badge.high   { background: #FFF0F0; color: #e74c3c; }
+  .pri-badge.medium { background: #FFF8E0; color: #d68910; }
+  .pri-badge.low    { background: #F0FFF4; color: #27ae60; }
+  .task-actions { margin-top: 8px; display: flex; gap: 6px; }
+
+  .spinner { text-align: center; padding: 32px; color: #B8963E; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>✅ Task Manager</h1>
+
+  <div class="summary-grid">
+    <div class="card todo">  <div class="label">To Do</div>     <div class="value" id="cntTodo">—</div></div>
+    <div class="card inprog"><div class="label">In Progress</div><div class="value" id="cntInprog">—</div></div>
+    <div class="card done">  <div class="label">Done</div>       <div class="value" id="cntDone">—</div></div>
+    <div class="card">       <div class="label">Total</div>      <div class="value" id="cntTotal">—</div></div>
+  </div>
+
+  <div class="section-header">Add Task</div>
+  <div class="form-section">
+    <input type="hidden" id="editId">
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Title *</label>
+        <input type="text" id="fTitle" placeholder="Task title">
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="fPriority">
+          <option value="high">🔴 High</option>
+          <option value="medium" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="fStatus">
+          <option value="todo">To Do</option>
+          <option value="inprog">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Due Date</label>
+        <input type="date" id="fDue">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <input type="text" id="fNotes" placeholder="optional">
+      </div>
+    </div>
+    <div style="margin-top:14px; display:flex; gap:8px;">
+      <button class="btn btn-primary" onclick="saveTask()">💾 Save</button>
+      <button class="btn btn-sm" style="background:#F5F7FA;color:#5A6E8C;border:1px solid rgba(0,0,0,0.1)" onclick="clearForm()">Clear</button>
+    </div>
+  </div>
+
+  <div class="section-header">Board</div>
+  <div id="loadingMsg" class="spinner">⏳ Loading...</div>
+  <div class="kanban" id="kanban" style="display:none">
+    <div class="col todo">
+      <div class="col-title">📋 To Do <span id="todoCnt"></span></div>
+      <div id="colTodo"></div>
+    </div>
+    <div class="col inprog">
+      <div class="col-title">⚡ In Progress <span id="inprogCnt"></span></div>
+      <div id="colInprog"></div>
+    </div>
+    <div class="col done">
+      <div class="col-title">✅ Done <span id="doneCnt"></span></div>
+      <div id="colDone"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let _data = [];
+
+async function load() {
+  document.getElementById('loadingMsg').style.display = 'block';
+  document.getElementById('kanban').style.display = 'none';
+  const j = await gsGet('tasks');
+  if (j.ok) _data = j.data || [];
+  render();
+  document.getElementById('loadingMsg').style.display = 'none';
+  document.getElementById('kanban').style.display = 'grid';
+}
+
+function render() {
+  const todo   = _data.filter(t => t.status === 'todo');
+  const inprog = _data.filter(t => t.status === 'inprog');
+  const done   = _data.filter(t => t.status === 'done');
+
+  document.getElementById('cntTodo').textContent   = todo.length;
+  document.getElementById('cntInprog').textContent = inprog.length;
+  document.getElementById('cntDone').textContent   = done.length;
+  document.getElementById('cntTotal').textContent  = _data.length;
+
+  renderCol('colTodo',   todo,   'todoCnt');
+  renderCol('colInprog', inprog, 'inprogCnt');
+  renderCol('colDone',   done,   'doneCnt');
+}
+
+function renderCol(colId, tasks, cntId) {
+  document.getElementById(cntId).textContent = `(${tasks.length})`;
+  const col = document.getElementById(colId);
+  col.innerHTML = '';
+  tasks.sort((a,b) => {
+    const po = {high:0,medium:1,low:2};
+    return (po[a.priority]||1) - (po[b.priority]||1);
+  }).forEach(t => {
+    col.insertAdjacentHTML('beforeend', `
+      <div class="task-card ${t.priority}">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta">
+          <span class="pri-badge ${t.priority}">${t.priority}</span>
+          ${t.due ? `<span>📅 ${t.due}</span>` : ''}
+          ${t.notes ? `<span>💬 ${t.notes}</span>` : ''}
+        </div>
+        <div class="task-actions">
+          <button class="btn btn-sm" style="background:#F5F7FA;border:1px solid rgba(0,0,0,0.1);color:#1A2340" onclick="editRow('${t.id}')">✏️</button>
+          ${t.status !== 'done' ? `<button class="btn btn-sm" style="background:#F0FFF4;color:#27ae60;border:1px solid rgba(39,174,96,0.2)" onclick="markDone('${t.id}')">✅ Done</button>` : ''}
+          <button class="btn btn-sm" style="background:#FFF0F0;color:#e74c3c;border:1px solid rgba(231,76,60,0.2)" onclick="deleteRow('${t.id}')">🗑</button>
+        </div>
+      </div>`);
+  });
+}
+
+async function saveTask() {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) { alert('กรุณากรอกชื่องาน'); return; }
+  const record = {
+    id:       document.getElementById('editId').value || String(Date.now()),
+    date:     new Date().toISOString().slice(0,10),
+    title,
+    priority: document.getElementById('fPriority').value,
+    status:   document.getElementById('fStatus').value,
+    due:      document.getElementById('fDue').value,
+    notes:    document.getElementById('fNotes').value,
+  };
+  await gsPost('saveTask', record);
+  clearForm();
+  await load();
+}
+
+function editRow(id) {
+  const r = _data.find(t => t.id === id);
+  if (!r) return;
+  document.getElementById('editId').value    = r.id;
+  document.getElementById('fTitle').value    = r.title;
+  document.getElementById('fPriority').value = r.priority;
+  document.getElementById('fStatus').value   = r.status;
+  document.getElementById('fDue').value      = r.due;
+  document.getElementById('fNotes').value    = r.notes;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function markDone(id) {
+  const r = _data.find(t => t.id === id);
+  if (!r) return;
+  await gsPost('saveTask', { ...r, status: 'done' });
+  await load();
+}
+
+async function deleteRow(id) {
+  if (!confirm('ลบงานนี้?')) return;
+  await gsPost('deleteTask', { id });
+  await load();
+}
+
+function clearForm() {
+  ['editId','fTitle','fDue','fNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fPriority').value = 'medium';
+  document.getElementById('fStatus').value = 'todo';
+}
+
+load();
+</script>
+</body>
+</html>

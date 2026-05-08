@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notes — Rukphong</title>
+<script src="config.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #F5F7FA; color: #1A2340; }
+
+  .container { width: 90%; max-width: 1100px; margin: 28px auto; padding: 24px; background: #fff; border-radius: 12px; border-top: 3px solid #B8963E; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  h1 { font-weight: 800; color: #1A2340; font-size: 1.6em; margin-bottom: 20px; text-align: center; }
+
+  .section-header { font-weight: 700; color: #1A2340; font-size: 1.1em; margin: 24px 0 12px; border-bottom: 2px solid rgba(184,150,62,0.2); padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .form-section { background: #F8FAFC; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width:600px) { .form-row { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  label { font-size: 0.8em; font-weight: 600; color: #5A6E8C; }
+  input, select, textarea {
+    padding: 8px 10px; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px;
+    font-family: 'Inter', sans-serif; font-size: 0.88em; color: #1A2340; background: #fff;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #B8963E; }
+  textarea { resize: vertical; min-height: 90px; }
+
+  .btn { padding: 8px 18px; border-radius: 7px; font-size: 0.82em; font-weight: 700; border: none; cursor: pointer; transition: opacity .15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: #B8963E; color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 0.75em; }
+
+  .search-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search-bar input { flex: 1; min-width: 160px; }
+  .search-bar select { max-width: 160px; }
+
+  .notes-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 14px; }
+  .note-card {
+    background: #fff; border-radius: 10px; padding: 16px;
+    border: 1px solid rgba(0,0,0,0.07); border-top: 3px solid #B8963E;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: box-shadow .2s;
+  }
+  .note-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+  .note-title { font-weight: 700; font-size: 0.92em; color: #1A2340; margin-bottom: 8px; }
+  .note-content { font-size: 0.83em; color: #5A6E8C; line-height: 1.6; margin-bottom: 10px; white-space: pre-wrap; max-height: 100px; overflow: hidden; text-overflow: ellipsis; }
+  .note-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+  .note-meta { font-size: 0.72em; color: #8898AA; }
+  .cat-pill { font-size: 0.68em; padding: 2px 8px; border-radius: 99px; background: rgba(184,150,62,0.1); color: #8A6E28; font-weight: 600; }
+  .note-actions { display: flex; gap: 5px; }
+
+  #noData { text-align: center; color: #5A6E8C; padding: 32px; font-size: 0.9em; }
+  .spinner { text-align: center; padding: 32px; color: #B8963E; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📝 Notes</h1>
+
+  <div class="section-header">Add Note</div>
+  <div class="form-section">
+    <input type="hidden" id="editId">
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Title *</label>
+        <input type="text" id="fTitle" placeholder="Note title">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="fCategory">
+          <option value="">— none —</option>
+          <option>Work</option><option>Personal</option>
+          <option>Ideas</option><option>Meeting</option>
+          <option>Finance</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="fDate">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Content</label>
+        <textarea id="fContent" placeholder="Write your note here..."></textarea>
+      </div>
+    </div>
+    <div style="margin-top:14px; display:flex; gap:8px;">
+      <button class="btn btn-primary" onclick="saveNote()">💾 Save</button>
+      <button class="btn btn-sm" style="background:#F5F7FA;color:#5A6E8C;border:1px solid rgba(0,0,0,0.1)" onclick="clearForm()">Clear</button>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span>My Notes (<span id="noteCount">0</span>)</span>
+    <div class="search-bar" style="margin:0">
+      <input type="text" id="fSearch" placeholder="🔍 Search..." oninput="render()">
+      <select id="fFilterCat" onchange="render()">
+        <option value="">All</option>
+        <option>Work</option><option>Personal</option>
+        <option>Ideas</option><option>Meeting</option>
+        <option>Finance</option><option>Other</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="loadingMsg" class="spinner">⏳ Loading...</div>
+  <div class="notes-grid" id="notesGrid"></div>
+  <div id="noData" style="display:none">No notes yet</div>
+</div>
+
+<script>
+let _data = [];
+
+async function load() {
+  document.getElementById('loadingMsg').style.display = 'block';
+  const j = await gsGet('notes');
+  if (j.ok) _data = j.data || [];
+  render();
+  document.getElementById('loadingMsg').style.display = 'none';
+}
+
+function render() {
+  const search = document.getElementById('fSearch').value.toLowerCase();
+  const cat    = document.getElementById('fFilterCat').value;
+  let rows = [..._data].sort((a,b) => b.date.localeCompare(a.date));
+  if (search) rows = rows.filter(r => r.title.toLowerCase().includes(search) || r.content.toLowerCase().includes(search));
+  if (cat)    rows = rows.filter(r => r.category === cat);
+
+  document.getElementById('noteCount').textContent = rows.length;
+  const grid = document.getElementById('notesGrid');
+  grid.innerHTML = '';
+  if (!rows.length) {
+    document.getElementById('noData').style.display = 'block';
+    return;
+  }
+  document.getElementById('noData').style.display = 'none';
+  rows.forEach(r => {
+    grid.insertAdjacentHTML('beforeend', `
+      <div class="note-card">
+        <div class="note-title">${r.title}</div>
+        <div class="note-content">${r.content}</div>
+        <div class="note-footer">
+          <div class="note-meta">
+            ${r.category ? `<span class="cat-pill">${r.category}</span> ` : ''}
+            ${r.date}
+          </div>
+          <div class="note-actions">
+            <button class="btn btn-sm" style="background:#F5F7FA;border:1px solid rgba(0,0,0,0.1);color:#1A2340" onclick="editRow('${r.id}')">✏️</button>
+            <button class="btn btn-sm" style="background:#FFF0F0;color:#e74c3c;border:1px solid rgba(231,76,60,0.2)" onclick="deleteRow('${r.id}')">🗑</button>
+          </div>
+        </div>
+      </div>`);
+  });
+}
+
+async function saveNote() {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) { alert('กรุณากรอกหัวข้อ'); return; }
+  const record = {
+    id:       document.getElementById('editId').value || String(Date.now()),
+    date:     document.getElementById('fDate').value || new Date().toISOString().slice(0,10),
+    title,
+    content:  document.getElementById('fContent').value,
+    category: document.getElementById('fCategory').value,
+  };
+  await gsPost('saveNote', record);
+  clearForm();
+  await load();
+}
+
+function editRow(id) {
+  const r = _data.find(n => n.id === id);
+  if (!r) return;
+  document.getElementById('editId').value    = r.id;
+  document.getElementById('fTitle').value    = r.title;
+  document.getElementById('fDate').value     = r.date;
+  document.getElementById('fContent').value  = r.content;
+  document.getElementById('fCategory').value = r.category;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function deleteRow(id) {
+  if (!confirm('ลบโน้ตนี้?')) return;
+  await gsPost('deleteNote', { id });
+  await load();
+}
+
+function clearForm() {
+  ['editId','fTitle','fContent'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('fCategory').value = '';
+}
+
+document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+load();
+</script>
+</body>
+</html>

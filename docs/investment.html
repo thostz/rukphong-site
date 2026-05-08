@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment — Rukphong</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #F5F7FA; color: #1A2340; }
+
+  .container { width: 90%; max-width: 1200px; margin: 28px auto; padding: 24px; background: #fff; border-radius: 12px; border-top: 3px solid #B8963E; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  h1 { font-weight: 800; color: #1A2340; font-size: 1.6em; margin-bottom: 16px; text-align: center; }
+
+  .portfolio-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: #F8FAFC; border: 1px solid rgba(184,150,62,0.2); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; }
+  .portfolio-bar label { font-weight: 600; color: #1A2340; font-size: 0.9em; }
+  .portfolio-bar select { padding: 6px 10px; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.9em; min-width: 160px; color: #1A2340; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(155px,1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: #F8FAFC; border-radius: 8px; padding: 16px; text-align: center; border-left: 4px solid #B8963E; }
+  .card.gain   { border-left-color: #27ae60; background: #F0FFF4; }
+  .card.loss   { border-left-color: #e74c3c; background: #FFF5F5; }
+  .card.income { border-left-color: #8e44ad; background: #FDF5FF; }
+  .card .label { font-size: 0.72em; color: #5A6E8C; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .card .value { font-size: 1.35em; font-weight: 700; color: #1A2340; margin-top: 6px; }
+  .card.gain .value  { color: #27ae60; }
+  .card.loss .value  { color: #e74c3c; }
+  .card.income .value { color: #8e44ad; }
+
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width:700px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-box { background: #F8FAFC; border-radius: 8px; padding: 16px; }
+  .chart-box h3 { font-size: 0.82em; font-weight: 700; color: #B8963E; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .chart-box canvas { max-height: 200px; }
+
+  .section-header { font-weight: 700; color: #1A2340; font-size: 1em; margin: 20px 0 10px; border-bottom: 2px solid rgba(184,150,62,0.2); padding-bottom: 7px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .form-section { background: #F8FAFC; border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+  .form-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  @media (max-width:700px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  label { font-size: 0.78em; font-weight: 600; color: #5A6E8C; }
+  input, select { padding: 7px 9px; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.85em; color: #1A2340; background: #fff; }
+  input:focus, select:focus { outline: none; border-color: #B8963E; }
+
+  .btn { padding: 7px 16px; border-radius: 7px; font-size: 0.8em; font-weight: 700; border: none; cursor: pointer; transition: opacity .15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: #B8963E; color: #fff; }
+  .btn-sm { padding: 3px 9px; font-size: 0.72em; }
+
+  .tabs-sub { display: flex; gap: 4px; margin-bottom: 16px; }
+  .tab-sub { padding: 6px 14px; border-radius: 6px; font-size: 0.8em; font-weight: 600; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; color: #6B7FA3; background: #F8FAFC; transition: all .15s; }
+  .tab-sub.active { color: #B8963E; background: rgba(184,150,62,0.1); border-color: rgba(184,150,62,0.25); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+  th { background: #F5F7FA; color: #5A6E8C; font-weight: 700; font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.5px; padding: 9px 10px; text-align: left; border-bottom: 2px solid rgba(0,0,0,0.06); }
+  td { padding: 8px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
+  tr:hover td { background: rgba(184,150,62,0.03); }
+  .gain-text { color: #27ae60; font-weight: 700; }
+  .loss-text { color: #e74c3c; font-weight: 700; }
+  .gold-text  { color: #B8963E; font-weight: 700; }
+  .sym-badge { font-size: 0.75em; padding: 2px 7px; border-radius: 99px; background: rgba(26,35,64,0.08); color: #1A2340; font-weight: 600; }
+
+  .spinner { text-align: center; padding: 32px; color: #B8963E; font-size: 0.9em; }
+  #noPortfolio { text-align: center; padding: 40px; color: #5A6E8C; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📈 Investment Tracker</h1>
+
+  <div class="portfolio-bar">
+    <label>Portfolio:</label>
+    <select id="portfolioSelect" onchange="switchPortfolio()"></select>
+    <button class="btn btn-primary btn-sm" onclick="addPortfolio()">+ New Portfolio</button>
+    <button class="btn btn-sm" style="background:#FFF0F0;color:#e74c3c;border:1px solid rgba(231,76,60,0.2)" onclick="deletePortfolio()">🗑 Delete</button>
+  </div>
+
+  <div id="loadingMsg" class="spinner">⏳ Loading...</div>
+  <div id="mainContent" style="display:none">
+    <div class="summary-grid">
+      <div class="card">       <div class="label">Total Cost</div>  <div class="value" id="sumCost">—</div></div>
+      <div class="card">       <div class="label">Market Value</div><div class="value" id="sumValue">—</div></div>
+      <div class="card gain">  <div class="label">Gain/Loss</div>   <div class="value" id="sumGain">—</div></div>
+      <div class="card income"><div class="label">Dividends</div>   <div class="value" id="sumDiv">—</div></div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-box"><h3>Allocation by Value</h3><canvas id="allocChart"></canvas></div>
+      <div class="chart-box"><h3>Gain/Loss by Asset</h3><canvas id="glChart"></canvas></div>
+    </div>
+
+    <div class="tabs-sub">
+      <div class="tab-sub active" onclick="showTab('holdings')">Holdings</div>
+      <div class="tab-sub" onclick="showTab('dividends')">Dividends</div>
+      <div class="tab-sub" onclick="showTab('addInv')">+ Add Investment</div>
+      <div class="tab-sub" onclick="showTab('addDiv')">+ Add Dividend</div>
+    </div>
+
+    <!-- Holdings -->
+    <div id="tabHoldings">
+      <table>
+        <thead><tr><th>Symbol</th><th>Name</th><th>Type</th><th>Qty</th><th>Cost</th><th>Price</th><th>Value</th><th>G/L</th><th>G/L%</th><th></th></tr></thead>
+        <tbody id="holdBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Dividends -->
+    <div id="tabDividends" style="display:none">
+      <table>
+        <thead><tr><th>Date</th><th>Symbol</th><th>Type</th><th>Amount</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="divBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Add Investment Form -->
+    <div id="tabAddInv" style="display:none">
+      <div class="form-section">
+        <input type="hidden" id="invEditId">
+        <div class="form-grid">
+          <div class="form-group"><label>Type</label>
+            <select id="iType"><option>หุ้น</option><option>กองทุน</option><option>ETF</option><option>คริปโต</option><option>อื่นๆ</option></select>
+          </div>
+          <div class="form-group"><label>Symbol</label><input id="iSymbol" placeholder="e.g. PTT, GOOGL"></div>
+          <div class="form-group"><label>Name</label><input id="iName" placeholder="Full name"></div>
+          <div class="form-group"><label>Quantity</label><input id="iQty" type="number" min="0" step="any" placeholder="0"></div>
+          <div class="form-group"><label>Cost Price</label><input id="iCost" type="number" min="0" step="any" placeholder="0.00"></div>
+          <div class="form-group"><label>Current Price</label><input id="iPrice" type="number" min="0" step="any" placeholder="0.00"></div>
+          <div class="form-group"><label>Note</label><input id="iNote" placeholder="optional"></div>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button class="btn btn-primary" onclick="saveInvestment()">💾 Save</button>
+          <button class="btn btn-sm" style="background:#F5F7FA;color:#5A6E8C;border:1px solid rgba(0,0,0,0.1)" onclick="clearInvForm()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Dividend Form -->
+    <div id="tabAddDiv" style="display:none">
+      <div class="form-section">
+        <div class="form-grid">
+          <div class="form-group"><label>Date</label><input type="date" id="dDate"></div>
+          <div class="form-group"><label>Symbol</label><input id="dSymbol" placeholder="e.g. PTT"></div>
+          <div class="form-group"><label>Amount (฿)</label><input id="dAmount" type="number" min="0" step="any" placeholder="0.00"></div>
+          <div class="form-group"><label>Type</label>
+            <select id="dType"><option>เงินปันผล</option><option>ดอกเบี้ย</option><option>อื่นๆ</option></select>
+          </div>
+          <div class="form-group"><label>Note</label><input id="dNote" placeholder="optional"></div>
+        </div>
+        <div style="margin-top:12px;">
+          <button class="btn btn-primary" onclick="saveDividend()">💾 Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="noPortfolio" style="display:none">
+    <p>No portfolio yet.</p>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="addPortfolio()">+ Create Portfolio</button>
+  </div>
+</div>
+
+<script>
+let _portfolios = [], _investments = [], _dividends = [];
+let _currentPid = '';
+let allocChart, glChart;
+
+// ── Load ──────────────────────────────────────────────────────
+async function loadAll() {
+  document.getElementById('loadingMsg').style.display = 'block';
+  document.getElementById('mainContent').style.display = 'none';
+  document.getElementById('noPortfolio').style.display = 'none';
+
+  const pj = await gsGet('portfolios');
+  _portfolios = pj.ok ? (pj.data || []) : [];
+  renderPortfolioSelect();
+
+  if (!_portfolios.length) {
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('noPortfolio').style.display = 'block';
+    return;
+  }
+  if (!_currentPid || !_portfolios.find(p => p.id === _currentPid)) {
+    _currentPid = _portfolios[0].id;
+  }
+  document.getElementById('portfolioSelect').value = _currentPid;
+  await loadPortfolioData();
+  document.getElementById('loadingMsg').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+}
+
+async function loadPortfolioData() {
+  const [ij, dj] = await Promise.all([
+    gsGet('investments', { portfolio: _currentPid }),
+    gsGet('dividends',   { portfolio: _currentPid }),
+  ]);
+  _investments = ij.ok ? (ij.data || []) : [];
+  _dividends   = dj.ok ? (dj.data || []) : [];
+  updateSummary();
+  renderHoldings();
+  renderDividends();
+  drawCharts();
+}
+
+function renderPortfolioSelect() {
+  const sel = document.getElementById('portfolioSelect');
+  sel.innerHTML = _portfolios.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+function switchPortfolio() {
+  _currentPid = document.getElementById('portfolioSelect').value;
+  loadPortfolioData();
+}
+
+// ── Summary ───────────────────────────────────────────────────
+function updateSummary() {
+  const fmt = v => '฿' + Number(v).toLocaleString('th-TH', {minimumFractionDigits:2,maximumFractionDigits:2});
+  const totalCost  = _investments.reduce((s,i) => s + Number(i.qty) * Number(i.cost_price), 0);
+  const totalValue = _investments.reduce((s,i) => s + Number(i.qty) * Number(i.current_price), 0);
+  const gain       = totalValue - totalCost;
+  const totalDiv   = _dividends.reduce((s,d) => s + Number(d.amount), 0);
+  document.getElementById('sumCost').textContent  = fmt(totalCost);
+  document.getElementById('sumValue').textContent = fmt(totalValue);
+  const gainEl = document.getElementById('sumGain');
+  gainEl.textContent = (gain >= 0 ? '+' : '') + fmt(gain);
+  gainEl.className = 'value ' + (gain >= 0 ? 'gain-text' : 'loss-text');
+  document.getElementById('sumDiv').textContent = fmt(totalDiv);
+}
+
+function renderHoldings() {
+  const tbody = document.getElementById('holdBody');
+  tbody.innerHTML = '';
+  if (!_investments.length) {
+    tbody.insertAdjacentHTML('beforeend', '<tr><td colspan="10" style="text-align:center;color:#5A6E8C;padding:24px">No holdings</td></tr>');
+    return;
+  }
+  _investments.forEach(i => {
+    const cost  = Number(i.qty) * Number(i.cost_price);
+    const value = Number(i.qty) * Number(i.current_price);
+    const gl    = value - cost;
+    const glPct = cost > 0 ? (gl / cost * 100) : 0;
+    const glClass = gl >= 0 ? 'gain-text' : 'loss-text';
+    const fmt2 = v => Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td><span class="sym-badge">${i.symbol}</span></td>
+        <td>${i.name}</td>
+        <td>${i.type}</td>
+        <td>${fmt2(i.qty)}</td>
+        <td>฿${fmt2(i.cost_price)}</td>
+        <td>฿${fmt2(i.current_price)}</td>
+        <td class="gold-text">฿${fmt2(value)}</td>
+        <td class="${glClass}">${gl>=0?'+':''}฿${fmt2(gl)}</td>
+        <td class="${glClass}">${gl>=0?'+':''}${glPct.toFixed(2)}%</td>
+        <td>
+          <button class="btn btn-sm" style="background:#F5F7FA;border:1px solid rgba(0,0,0,0.1);color:#1A2340;margin-right:3px" onclick="editInv('${i.id}')">✏️</button>
+          <button class="btn btn-sm" style="background:#FFF0F0;color:#e74c3c;border:1px solid rgba(231,76,60,0.2)" onclick="deleteInv('${i.id}')">🗑</button>
+        </td>
+      </tr>`);
+  });
+}
+
+function renderDividends() {
+  const tbody = document.getElementById('divBody');
+  tbody.innerHTML = '';
+  if (!_dividends.length) {
+    tbody.insertAdjacentHTML('beforeend', '<tr><td colspan="6" style="text-align:center;color:#5A6E8C;padding:24px">No dividends</td></tr>');
+    return;
+  }
+  [..._dividends].sort((a,b)=>b.date.localeCompare(a.date)).forEach(d => {
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${d.date}</td>
+        <td><span class="sym-badge">${d.symbol}</span></td>
+        <td>${d.type}</td>
+        <td class="gold-text">฿${Number(d.amount).toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+        <td>${d.note}</td>
+        <td><button class="btn btn-sm" style="background:#FFF0F0;color:#e74c3c;border:1px solid rgba(231,76,60,0.2)" onclick="deleteDiv('${d.id}')">🗑</button></td>
+      </tr>`);
+  });
+}
+
+// ── Charts ────────────────────────────────────────────────────
+function drawCharts() {
+  const goldPalette = ['#B8963E','#D4AF5A','#8A6E28','#E8C97A','#6B5020','#F2DFA0'];
+  if (allocChart) allocChart.destroy();
+  allocChart = new Chart(document.getElementById('allocChart'), {
+    type: 'doughnut',
+    data: {
+      labels: _investments.map(i => i.symbol || i.name),
+      datasets: [{ data: _investments.map(i => Number(i.qty)*Number(i.current_price)), backgroundColor: goldPalette }]
+    },
+    options: { plugins: { legend: { position: 'bottom', labels: { font:{size:11}, boxWidth:12 } } } }
+  });
+  if (glChart) glChart.destroy();
+  glChart = new Chart(document.getElementById('glChart'), {
+    type: 'bar',
+    data: {
+      labels: _investments.map(i => i.symbol || i.name),
+      datasets: [{
+        label: 'G/L (฿)',
+        data: _investments.map(i => (Number(i.qty)*Number(i.current_price)) - (Number(i.qty)*Number(i.cost_price))),
+        backgroundColor: _investments.map(i => {
+          const gl = (Number(i.qty)*Number(i.current_price)) - (Number(i.qty)*Number(i.cost_price));
+          return gl >= 0 ? '#27ae60' : '#e74c3c';
+        }),
+        borderRadius: 5,
+      }]
+    },
+    options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+  });
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+function showTab(name) {
+  ['holdings','dividends','addInv','addDiv'].forEach(t => {
+    document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t===name?'block':'none';
+  });
+  document.querySelectorAll('.tab-sub').forEach((el,i) => {
+    el.classList.toggle('active', ['holdings','dividends','addInv','addDiv'][i] === name);
+  });
+}
+
+// ── Portfolio CRUD ────────────────────────────────────────────
+async function addPortfolio() {
+  const name = prompt('Portfolio name:');
+  if (!name) return;
+  const res = await gsPost('savePortfolio', { name });
+  if (res.ok) { _currentPid = res.id; await loadAll(); }
+}
+
+async function deletePortfolio() {
+  const p = _portfolios.find(p => p.id === _currentPid);
+  if (!p) return;
+  if (!confirm(`ลบ portfolio "${p.name}" และข้อมูลทั้งหมด?`)) return;
+  await gsPost('deletePortfolio', { id: _currentPid });
+  _currentPid = '';
+  await loadAll();
+}
+
+// ── Investment CRUD ───────────────────────────────────────────
+async function saveInvestment() {
+  const symbol = document.getElementById('iSymbol').value.trim();
+  if (!symbol) { alert('กรุณากรอก Symbol'); return; }
+  const record = {
+    id:            document.getElementById('invEditId').value || String(Date.now()),
+    portfolio_id:  _currentPid,
+    type:          document.getElementById('iType').value,
+    symbol,
+    name:          document.getElementById('iName').value,
+    qty:           document.getElementById('iQty').value,
+    cost_price:    document.getElementById('iCost').value,
+    current_price: document.getElementById('iPrice').value,
+    note:          document.getElementById('iNote').value,
+  };
+  await gsPost('saveInvestment', record);
+  clearInvForm();
+  showTab('holdings');
+  await loadPortfolioData();
+}
+
+function editInv(id) {
+  const r = _investments.find(i => i.id === id);
+  if (!r) return;
+  document.getElementById('invEditId').value = r.id;
+  document.getElementById('iType').value   = r.type;
+  document.getElementById('iSymbol').value = r.symbol;
+  document.getElementById('iName').value   = r.name;
+  document.getElementById('iQty').value    = r.qty;
+  document.getElementById('iCost').value   = r.cost_price;
+  document.getElementById('iPrice').value  = r.current_price;
+  document.getElementById('iNote').value   = r.note;
+  showTab('addInv');
+}
+
+async function deleteInv(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  await gsPost('deleteInvestment', { id });
+  await loadPortfolioData();
+}
+
+function clearInvForm() {
+  ['invEditId','iSymbol','iName','iQty','iCost','iPrice','iNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('iType').value = 'หุ้น';
+}
+
+// ── Dividend CRUD ─────────────────────────────────────────────
+async function saveDividend() {
+  const amount = document.getElementById('dAmount').value;
+  if (!amount) { alert('กรุณากรอกจำนวนเงิน'); return; }
+  const record = {
+    id:           String(Date.now()),
+    portfolio_id: _currentPid,
+    date:         document.getElementById('dDate').value || new Date().toISOString().slice(0,10),
+    amount,
+    symbol:       document.getElementById('dSymbol').value,
+    type:         document.getElementById('dType').value,
+    note:         document.getElementById('dNote').value,
+  };
+  await gsPost('saveDividend', record);
+  ['dSymbol','dAmount','dNote'].forEach(id => document.getElementById(id).value='');
+  showTab('dividends');
+  await loadPortfolioData();
+}
+
+async function deleteDiv(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  await gsPost('deleteDividend', { id });
+  await loadPortfolioData();
+}
+
+// ── Init ──────────────────────────────────────────────────────
+document.getElementById('dDate').value = new Date().toISOString().slice(0,10);
+loadAll();
+</script>
+</body>
+</html>

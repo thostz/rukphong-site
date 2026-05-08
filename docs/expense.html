@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense — Rukphong</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #F5F7FA; color: #1A2340; }
+
+  .container { width: 90%; max-width: 1100px; margin: 28px auto; padding: 24px; background: #fff; border-radius: 12px; border-top: 3px solid #B8963E; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  h1 { font-weight: 800; color: #1A2340; font-size: 1.6em; margin-bottom: 20px; text-align: center; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px,1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: #FFF8EC; border-radius: 8px; padding: 16px; text-align: center; border-left: 4px solid #B8963E; }
+  .card.warn { border-left-color: #e74c3c; background: #FFF5F5; }
+  .card.ok   { border-left-color: #27ae60; background: #F0FFF4; }
+  .card .label { font-size: 0.75em; color: #5A6E8C; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .card .value { font-size: 1.4em; font-weight: 700; color: #1A2340; margin-top: 6px; }
+
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  @media (max-width:700px) { .chart-row { grid-template-columns: 1fr; } }
+  .chart-box { background: #F8FAFC; border-radius: 8px; padding: 16px; }
+  .chart-box h3 { font-size: 0.88em; font-weight: 700; color: #B8963E; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .chart-box canvas { max-height: 220px; }
+
+  .section-header { font-weight: 700; color: #1A2340; font-size: 1.1em; margin: 24px 0 12px; border-bottom: 2px solid rgba(184,150,62,0.2); padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  .form-section { background: #F8FAFC; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width:600px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  label { font-size: 0.8em; font-weight: 600; color: #5A6E8C; }
+  input, select, textarea {
+    padding: 8px 10px; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px;
+    font-family: 'Inter', sans-serif; font-size: 0.88em; color: #1A2340;
+    background: #fff; transition: border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #B8963E; }
+
+  .btn { padding: 8px 18px; border-radius: 7px; font-size: 0.82em; font-weight: 700; border: none; cursor: pointer; transition: opacity .15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: #B8963E; color: #fff; }
+  .btn-danger  { background: #e74c3c; color: #fff; padding: 4px 10px; font-size: 0.75em; }
+  .btn-sm { padding: 5px 12px; font-size: 0.78em; }
+
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .filter-bar input, .filter-bar select { max-width: 160px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+  th { background: #F5F7FA; color: #5A6E8C; font-weight: 700; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: left; border-bottom: 2px solid rgba(0,0,0,0.06); }
+  td { padding: 9px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
+  tr:hover td { background: rgba(184,150,62,0.04); }
+  .amount-cell { font-weight: 700; color: #B8963E; }
+  .cat-badge { font-size: 0.72em; padding: 2px 8px; border-radius: 99px; background: rgba(184,150,62,0.1); color: #8A6E28; font-weight: 600; }
+
+  #noData { text-align: center; color: #5A6E8C; padding: 32px; font-size: 0.9em; }
+  .spinner { text-align: center; padding: 32px; color: #B8963E; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>💰 Expense Tracker</h1>
+
+  <div class="summary-grid">
+    <div class="card"><div class="label">Today</div><div class="value" id="sumToday">—</div></div>
+    <div class="card"><div class="label">This Month</div><div class="value" id="sumMonth">—</div></div>
+    <div class="card"><div class="label">This Year</div><div class="value" id="sumYear">—</div></div>
+    <div class="card"><div class="label">All Time</div><div class="value" id="sumAll">—</div></div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-box"><h3>By Category</h3><canvas id="catChart"></canvas></div>
+    <div class="chart-box"><h3>Monthly Trend</h3><canvas id="monthChart"></canvas></div>
+  </div>
+
+  <div class="section-header">
+    <span>Add Expense</span>
+  </div>
+  <div class="form-section">
+    <input type="hidden" id="editId">
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="fDate"></div>
+      <div class="form-group"><label>Amount (฿)</label><input type="number" id="fAmount" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="fCategory">
+          <option value="">— select —</option>
+          <option>อาหาร/เครื่องดื่ม</option><option>เดินทาง</option>
+          <option>ช้อปปิ้ง</option><option>สุขภาพ</option>
+          <option>ที่พัก</option><option>ความบันเทิง</option>
+          <option>การศึกษา</option><option>อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Payment</label>
+        <select id="fPayment">
+          <option value="">— select —</option>
+          <option>เงินสด</option><option>บัตรเครดิต</option>
+          <option>โอน</option><option>Wallet</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Notes</label><input type="text" id="fNotes" placeholder="optional">
+      </div>
+    </div>
+    <div style="margin-top:14px; display:flex; gap:8px;">
+      <button class="btn btn-primary" onclick="saveExpense()">💾 Save</button>
+      <button class="btn btn-sm" style="background:#F5F7FA;color:#5A6E8C;border:1px solid rgba(0,0,0,0.1)" onclick="clearForm()">Clear</button>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span>Records</span>
+    <div class="filter-bar">
+      <input type="month" id="fFilterMonth" onchange="render()">
+      <select id="fFilterCat" onchange="render()">
+        <option value="">All Categories</option>
+        <option>อาหาร/เครื่องดื่ม</option><option>เดินทาง</option>
+        <option>ช้อปปิ้ง</option><option>สุขภาพ</option>
+        <option>ที่พัก</option><option>ความบันเทิง</option>
+        <option>การศึกษา</option><option>อื่นๆ</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="tableWrap">
+    <div class="spinner" id="loadingMsg">⏳ Loading...</div>
+    <table id="expTable" style="display:none">
+      <thead><tr><th>Date</th><th>Category</th><th>Amount</th><th>Payment</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="expBody"></tbody>
+    </table>
+    <div id="noData" style="display:none">No records yet</div>
+  </div>
+</div>
+
+<script>
+let _data = [];
+
+// ── Load ──────────────────────────────────────────────────────
+async function load() {
+  document.getElementById('loadingMsg').style.display = 'block';
+  document.getElementById('expTable').style.display = 'none';
+  document.getElementById('noData').style.display = 'none';
+  const j = await gsGet('expenses');
+  if (j.ok) _data = j.data || [];
+  updateSummary();
+  render();
+  drawCharts();
+  document.getElementById('loadingMsg').style.display = 'none';
+}
+
+// ── Summary ───────────────────────────────────────────────────
+function updateSummary() {
+  const now = new Date();
+  const todayStr  = now.toISOString().slice(0,10);
+  const monthStr  = now.toISOString().slice(0,7);
+  const yearStr   = String(now.getFullYear());
+  const fmt = v => '฿' + Number(v).toLocaleString('th-TH', {minimumFractionDigits:2,maximumFractionDigits:2});
+  const sum = arr => arr.reduce((s,e) => s + Number(e.amount), 0);
+  document.getElementById('sumToday').textContent = fmt(sum(_data.filter(e => e.date === todayStr)));
+  document.getElementById('sumMonth').textContent = fmt(sum(_data.filter(e => e.date.startsWith(monthStr))));
+  document.getElementById('sumYear').textContent  = fmt(sum(_data.filter(e => e.date.startsWith(yearStr))));
+  document.getElementById('sumAll').textContent   = fmt(sum(_data));
+}
+
+// ── Render table ──────────────────────────────────────────────
+function render() {
+  const filterMonth = document.getElementById('fFilterMonth').value;
+  const filterCat   = document.getElementById('fFilterCat').value;
+  let rows = [..._data].sort((a,b) => b.date.localeCompare(a.date));
+  if (filterMonth) rows = rows.filter(r => r.date.startsWith(filterMonth));
+  if (filterCat)   rows = rows.filter(r => r.category === filterCat);
+  const tbody = document.getElementById('expBody');
+  tbody.innerHTML = '';
+  if (!rows.length) {
+    document.getElementById('expTable').style.display = 'none';
+    document.getElementById('noData').style.display = 'block';
+    return;
+  }
+  document.getElementById('expTable').style.display = 'table';
+  document.getElementById('noData').style.display = 'none';
+  rows.forEach(r => {
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${r.date}</td>
+        <td><span class="cat-badge">${r.category}</span></td>
+        <td class="amount-cell">฿${Number(r.amount).toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+        <td>${r.payment}</td>
+        <td>${r.notes}</td>
+        <td>
+          <button class="btn btn-sm" style="background:#F5F7FA;color:#1A2340;border:1px solid rgba(0,0,0,0.1);margin-right:4px" onclick="editRow('${r.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRow('${r.id}')">🗑</button>
+        </td>
+      </tr>`);
+  });
+}
+
+// ── Charts ────────────────────────────────────────────────────
+let catChartInst, monthChartInst;
+function drawCharts() {
+  // By category
+  const catMap = {};
+  _data.forEach(e => { catMap[e.category] = (catMap[e.category]||0) + Number(e.amount); });
+  const catLabels = Object.keys(catMap);
+  const catVals   = catLabels.map(k => catMap[k]);
+  const goldPalette = ['#B8963E','#D4AF5A','#8A6E28','#E8C97A','#6B5020','#F2DFA0','#4A3810','#FAEBC0'];
+  if (catChartInst) catChartInst.destroy();
+  catChartInst = new Chart(document.getElementById('catChart'), {
+    type: 'doughnut',
+    data: { labels: catLabels, datasets: [{ data: catVals, backgroundColor: goldPalette }] },
+    options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } } } }
+  });
+  // Monthly trend
+  const mMap = {};
+  _data.forEach(e => { const m = e.date.slice(0,7); mMap[m] = (mMap[m]||0) + Number(e.amount); });
+  const mKeys = Object.keys(mMap).sort().slice(-6);
+  if (monthChartInst) monthChartInst.destroy();
+  monthChartInst = new Chart(document.getElementById('monthChart'), {
+    type: 'bar',
+    data: { labels: mKeys, datasets: [{ label: 'Amount', data: mKeys.map(k=>mMap[k]), backgroundColor: '#B8963E', borderRadius: 6 }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+}
+
+// ── Save ──────────────────────────────────────────────────────
+async function saveExpense() {
+  const amount = parseFloat(document.getElementById('fAmount').value);
+  if (!amount || amount <= 0) { alert('กรุณากรอกจำนวนเงิน'); return; }
+  const cat = document.getElementById('fCategory').value;
+  if (!cat) { alert('กรุณาเลือกหมวดหมู่'); return; }
+  const record = {
+    id:       document.getElementById('editId').value || String(Date.now()),
+    date:     document.getElementById('fDate').value || new Date().toISOString().slice(0,10),
+    amount,
+    category: cat,
+    payment:  document.getElementById('fPayment').value,
+    notes:    document.getElementById('fNotes').value,
+  };
+  await gsPost('saveExpense', record);
+  clearForm();
+  await load();
+}
+
+function editRow(id) {
+  const r = _data.find(e => e.id === id);
+  if (!r) return;
+  document.getElementById('editId').value   = r.id;
+  document.getElementById('fDate').value    = r.date;
+  document.getElementById('fAmount').value  = r.amount;
+  document.getElementById('fCategory').value= r.category;
+  document.getElementById('fPayment').value = r.payment;
+  document.getElementById('fNotes').value   = r.notes;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function deleteRow(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  await gsPost('deleteExpense', { id });
+  await load();
+}
+
+function clearForm() {
+  ['editId','fAmount','fNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('fCategory').value = '';
+  document.getElementById('fPayment').value = '';
+}
+
+// ── Init ──────────────────────────────────────────────────────
+document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+load();
+</script>
+</body>
+</html>
