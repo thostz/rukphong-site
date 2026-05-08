@@ -2,6 +2,10 @@
 
 import os
 import re
+import json
+import time
+import threading
+import requests
 from linebot.v3.messaging import TextMessage
 
 from handlers.conversation import (
@@ -12,8 +16,18 @@ from handlers.conversation import (
 from handlers.lang import detect_and_set, get_lang, set_lang, t
 import handlers.line_messages as lm
 from services import sheets_service as sheets
+from services import data_service as data_svc
 
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID", "")
+GS_SCRIPT_URL  = os.getenv("GS_SCRIPT_URL", "")   # Apps Script URL (GitHub Pages)
+
+# Status mapping: LINE label → data model key
+_STATUS_MAP = {
+    "กำลังทำ": "inprog", "in progress": "inprog",
+    "เสร็จแล้ว": "done",  "done": "done",
+    "รอดำเนินการ": "todo", "pending": "todo",
+    "ยกเลิก": "todo",     "cancelled": "todo",
+}
 
 # ── คำสั่ง "ล่าสุด / latest" ต้องเช็คก่อน startswith ─────────────────────────
 RECENT_EXPENSE_CMDS = {"รายจ่ายล่าสุด", "latest expense", "recent expense"}
@@ -135,17 +149,75 @@ def _marker_msgs(marker: str, data: dict | None, display_name: str, lang: str) -
 
 
 def _save(data: dict, display_name: str):
-    if not SPREADSHEET_ID:
+    """Save to ① Old Google Sheet  ② PostgreSQL  ③ Apps Script Sheet — all in parallel."""
+    record_id = str(int(time.time() * 1000))
+    today_str  = __import__('datetime').date.today().isoformat()
+
+    if data["type"] == "expense":
+        record = {
+            "id":       record_id,
+            "date":     today_str,
+            "amount":   data["amount"],
+            "category": data["category"],
+            "payment":  "",
+            "notes":    data["note"],
+        }
+        # ① Old Google Sheet
+        if SPREADSHEET_ID:
+            try:
+                sheets.append_expense(SPREADSHEET_ID, data["amount"],
+                                      data["category"], data["note"], display_name)
+            except Exception as e:
+                print(f"[Sheets.expense] {e}")
+        # ② PostgreSQL
+        try:
+            data_svc.save_expense(record)
+        except Exception as e:
+            print(f"[DB.expense] {e}")
+        # ③ Apps Script
+        _post_gs_async("saveExpense", record)
+
+    elif data["type"] == "work":
+        status_key = _STATUS_MAP.get(data["status"].lower(), "todo")
+        record = {
+            "id":       record_id,
+            "date":     today_str,
+            "title":    data["task"],
+            "priority": "medium",
+            "status":   status_key,
+            "due":      "",
+            "notes":    data["note"],
+        }
+        # ① Old Google Sheet
+        if SPREADSHEET_ID:
+            try:
+                sheets.append_work(SPREADSHEET_ID, data["task"],
+                                   data["status"], data["note"], display_name)
+            except Exception as e:
+                print(f"[Sheets.work] {e}")
+        # ② PostgreSQL
+        try:
+            data_svc.save_task(record)
+        except Exception as e:
+            print(f"[DB.task] {e}")
+        # ③ Apps Script
+        _post_gs_async("saveTask", record)
+
+
+def _post_gs_async(action: str, record: dict):
+    """Fire-and-forget POST to Apps Script (non-blocking)."""
+    if not GS_SCRIPT_URL:
         return
-    try:
-        if data["type"] == "expense":
-            sheets.append_expense(SPREADSHEET_ID, data["amount"],
-                                  data["category"], data["note"], display_name)
-        elif data["type"] == "work":
-            sheets.append_work(SPREADSHEET_ID, data["task"],
-                               data["status"], data["note"], display_name)
-    except Exception as e:
-        print(f"[Sheets Error] {e}")
+    def _post():
+        try:
+            requests.post(
+                GS_SCRIPT_URL,
+                data=json.dumps({"action": action, "record": record}),
+                timeout=10,
+            )
+        except Exception as e:
+            print(f"[GS.{action}] {e}")
+    threading.Thread(target=_post, daemon=True).start()
 
 
 def _recent_expenses(lang: str) -> object:
