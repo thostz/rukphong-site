@@ -127,6 +127,11 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    return render_template("dashboard.html")
+
+
 @app.route("/api/expense", methods=["POST"])
 def api_add_expense():
     if not SPREADSHEET_ID:

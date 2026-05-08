@@ -97,11 +97,12 @@
   </div>
 
   <nav class="tabs" id="tabs">
-    <a class="tab active" data-src="/main"      href="#"><span>👤</span> Profile</a>
-    <a class="tab"        data-src="/investment" href="#"><span>📈</span> Investment</a>
-    <a class="tab"        data-src="/expense"    href="#"><span>💰</span> Expense</a>
-    <a class="tab"        data-src="/notes"      href="#"><span>📝</span> Notes</a>
-    <a class="tab"        data-src="/tasks"      href="#"><span>✅</span> Tasks</a>
+    <a class="tab active" data-src="/dashboard"  href="#"><span>🏠</span> Dashboard</a>
+    <a class="tab"        data-src="/main"        href="#"><span>👤</span> Profile</a>
+    <a class="tab"        data-src="/investment"  href="#"><span>📈</span> Investment</a>
+    <a class="tab"        data-src="/expense"     href="#"><span>💰</span> Expense</a>
+    <a class="tab"        data-src="/notes"       href="#"><span>📝</span> Notes</a>
+    <a class="tab"        data-src="/tasks"       href="#"><span>✅</span> Tasks</a>
   </nav>
 
   <div class="header-right">
@@ -111,18 +112,29 @@
 </header>
 
 <div class="frame-wrap">
-  <iframe id="main-frame" src="/main" title="Content"></iframe>
+  <iframe id="main-frame" src="/dashboard" title="Content"></iframe>
 </div>
 
 <script>
   const frame = document.getElementById('main-frame');
+
+  function switchTab(src) {
+    const tab = document.querySelector(`.tab[data-src="${src}"]`);
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (tab) tab.classList.add('active');
+    frame.src = src;
+  }
+
   document.getElementById('tabs').addEventListener('click', e => {
     const tab = e.target.closest('.tab');
     if (!tab) return;
     e.preventDefault();
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    frame.src = tab.dataset.src;
+    switchTab(tab.dataset.src);
+  });
+
+  // Allow child iframes (dashboard) to trigger tab navigation
+  window.addEventListener('message', e => {
+    if (e.data && e.data.action === 'switchTab') switchTab(e.data.src);
   });
 
   function tick() {
