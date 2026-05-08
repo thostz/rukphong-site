@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Rukphong</title>
+<script src="config.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #F5F7FA; color: #1A2340; min-height: 100vh; padding-bottom: 40px; }
+
+  /* ── HERO ─────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, #1A2340 0%, #2A3550 60%, #1E2B44 100%);
+    padding: 28px 5% 56px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(184,150,62,0.15) 0%, transparent 60%);
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .hero-greet { font-size: 0.75rem; font-weight: 600; color: #B8963E; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .hero-title { font-size: 1.7rem; font-weight: 800; color: #fff; line-height: 1.2; }
+  .hero-title span { color: #D4AF5A; }
+  .hero-sub { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 6px; }
+  .hero-date { font-size: 0.75rem; color: rgba(255,255,255,0.35); text-align: right; }
+
+  /* ── SUMMARY CARDS ────────────────────────────────── */
+  .kpi-row {
+    max-width: 1100px; margin: -32px auto 0; padding: 0 5%;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;
+    position: relative; z-index: 10;
+  }
+  .kpi-card {
+    background: #fff; border-radius: 12px; padding: 20px 18px;
+    border: 1px solid rgba(0,0,0,0.07); border-top: 3px solid #B8963E;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    display: flex; flex-direction: column; gap: 4px;
+    cursor: pointer; transition: transform .2s, box-shadow .2s;
+    text-decoration: none; color: inherit;
+  }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
+  .kpi-card.green  { border-top-color: #27ae60; }
+  .kpi-card.blue   { border-top-color: #6B7FA3; }
+  .kpi-card.purple { border-top-color: #8b5cf6; }
+  .kpi-icon  { font-size: 1.4rem; margin-bottom: 4px; }
+  .kpi-value { font-size: 1.6rem; font-weight: 800; color: #B8963E; line-height: 1; }
+  .kpi-card.green  .kpi-value { color: #27ae60; }
+  .kpi-card.blue   .kpi-value { color: #6B7FA3; }
+  .kpi-card.purple .kpi-value { color: #8b5cf6; }
+  .kpi-label { font-size: 0.7rem; font-weight: 600; color: #8898AA; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .kpi-sub   { font-size: 0.72rem; color: #B8963E; font-weight: 500; margin-top: 2px; }
+
+  /* ── GRID LAYOUT ──────────────────────────────────── */
+  .main-grid {
+    max-width: 1100px; margin: 28px auto 0; padding: 0 5%;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  }
+  @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
+  .full-width { grid-column: 1 / -1; }
+
+  /* ── SECTION CARD ─────────────────────────────────── */
+  .section-card {
+    background: #fff; border-radius: 12px; padding: 20px;
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .card-title { font-size: 0.88rem; font-weight: 700; color: #1A2340; display: flex; align-items: center; gap: 7px; }
+  .view-all {
+    font-size: 0.72rem; font-weight: 600; color: #B8963E;
+    cursor: pointer; border: 1px solid rgba(184,150,62,0.3);
+    padding: 3px 10px; border-radius: 99px; background: rgba(184,150,62,0.05);
+    transition: all .15s; white-space: nowrap;
+  }
+  .view-all:hover { background: rgba(184,150,62,0.12); }
+
+  /* ── EXPENSE ITEMS ────────────────────────────────── */
+  .exp-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.04); }
+  .exp-item:last-child { border-bottom: none; }
+  .exp-item-left { display: flex; flex-direction: column; gap: 2px; }
+  .exp-item-cat  { font-size: 0.68rem; padding: 1px 7px; border-radius: 99px; background: rgba(184,150,62,0.1); color: #8A6E28; font-weight: 600; display: inline-block; }
+  .exp-item-note { font-size: 0.75rem; color: #5A6E8C; margin-top: 2px; }
+  .exp-item-date { font-size: 0.68rem; color: #8898AA; }
+  .exp-amount    { font-size: 0.88rem; font-weight: 700; color: #B8963E; }
+
+  /* ── TASK MINI ────────────────────────────────────── */
+  .task-mini { display: flex; flex-direction: column; gap: 7px; }
+  .task-mini-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 7px; background: #F8FAFC; border-left: 3px solid #B8963E; }
+  .task-mini-item.high   { border-left-color: #e74c3c; }
+  .task-mini-item.medium { border-left-color: #f39c12; }
+  .task-mini-item.low    { border-left-color: #27ae60; }
+  .task-mini-title { font-size: 0.8rem; font-weight: 600; color: #1A2340; flex: 1; }
+  .task-mini-badge { font-size: 0.65rem; padding: 1px 6px; border-radius: 99px; font-weight: 700; }
+  .task-mini-badge.todo   { background: #EEF2F7; color: #6B7FA3; }
+  .task-mini-badge.inprog { background: #FFF8E0; color: #d68910; }
+  .task-status-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .status-pill { flex: 1; text-align: center; padding: 10px 6px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; }
+  .status-pill.todo   { background: #EEF2F7; color: #6B7FA3; }
+  .status-pill.inprog { background: #FFF8E0; color: #d68910; }
+  .status-pill.done   { background: #F0FFF4; color: #27ae60; }
+  .status-pill .num   { font-size: 1.3rem; display: block; font-weight: 800; line-height: 1.2; }
+
+  /* ── NOTES MINI ───────────────────────────────────── */
+  .notes-mini { display: flex; flex-direction: column; gap: 8px; }
+  .note-mini-item { padding: 10px 12px; border-radius: 8px; background: #F8FAFC; border-left: 3px solid #B8963E; }
+  .note-mini-title { font-size: 0.82rem; font-weight: 700; color: #1A2340; margin-bottom: 3px; }
+  .note-mini-content { font-size: 0.74rem; color: #5A6E8C; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .note-mini-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; }
+  .note-mini-cat { font-size: 0.65rem; padding: 1px 7px; border-radius: 99px; background: rgba(184,150,62,0.1); color: #8A6E28; font-weight: 600; }
+  .note-mini-date { font-size: 0.65rem; color: #8898AA; }
+
+  /* ── INVESTMENT MINI ──────────────────────────────── */
+  .inv-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .inv-table th { font-size: 0.68rem; font-weight: 700; color: #8898AA; text-transform: uppercase; letter-spacing: 0.4px; padding: 0 8px 8px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .inv-table td { padding: 7px 8px; border-bottom: 1px solid rgba(0,0,0,0.04); vertical-align: middle; }
+  .inv-table tr:last-child td { border-bottom: none; }
+  .inv-ticker { font-weight: 700; color: #1A2340; }
+  .inv-val    { font-weight: 600; color: #B8963E; }
+  .gl-pos { color: #27ae60; font-weight: 600; }
+  .gl-neg { color: #e74c3c; font-weight: 600; }
+
+  /* ── EMPTY / LOADING ──────────────────────────────── */
+  .empty { text-align: center; padding: 24px 0; color: #8898AA; font-size: 0.82rem; }
+  .loading { text-align: center; padding: 20px 0; color: #B8963E; font-size: 0.82rem; }
+
+  /* ── EXPENSE CHART ────────────────────────────────── */
+  .chart-wrap { height: 170px; position: relative; }
+
+  /* ── ACTIVITY FEED ────────────────────────────────── */
+  .feed { display: flex; flex-direction: column; gap: 0; }
+  .feed-item { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(0,0,0,0.04); }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; margin-top: 1px; }
+  .feed-icon.exp  { background: rgba(184,150,62,0.1); }
+  .feed-icon.task { background: rgba(39,174,96,0.1); }
+  .feed-icon.note { background: rgba(107,127,163,0.1); }
+  .feed-icon.inv  { background: rgba(139,92,246,0.1); }
+  .feed-body { flex: 1; min-width: 0; }
+  .feed-title { font-size: 0.78rem; font-weight: 600; color: #1A2340; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feed-meta  { font-size: 0.68rem; color: #8898AA; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-greet" id="greeting">Good morning</div>
+      <div class="hero-title">Welcome back, <span>Rukphong</span> 👋</div>
+      <div class="hero-sub">Here's your personal overview for today</div>
+    </div>
+    <div class="hero-date" id="heroDate"></div>
+  </div>
+</div>
+
+<!-- KPI CARDS -->
+<div class="kpi-row" id="kpiRow">
+  <div class="kpi-card" onclick="nav('expense.html')">
+    <div class="kpi-icon">💰</div>
+    <div class="kpi-value" id="kpiExpMonth">—</div>
+    <div class="kpi-label">Expense This Month</div>
+    <div class="kpi-sub" id="kpiExpToday">Today: —</div>
+  </div>
+  <div class="kpi-card green" onclick="nav('tasks.html')">
+    <div class="kpi-icon">✅</div>
+    <div class="kpi-value" id="kpiTaskTodo">—</div>
+    <div class="kpi-label">Tasks To Do</div>
+    <div class="kpi-sub" id="kpiTaskInprog">In Progress: —</div>
+  </div>
+  <div class="kpi-card blue" onclick="nav('notes.html')">
+    <div class="kpi-icon">📝</div>
+    <div class="kpi-value" id="kpiNotes">—</div>
+    <div class="kpi-label">Total Notes</div>
+    <div class="kpi-sub" id="kpiNotesMonth">This month: —</div>
+  </div>
+  <div class="kpi-card purple" onclick="nav('investment.html')">
+    <div class="kpi-icon">📈</div>
+    <div class="kpi-value" id="kpiInvVal">—</div>
+    <div class="kpi-label">Portfolio Value</div>
+    <div class="kpi-sub" id="kpiInvGL">G/L: —</div>
+  </div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="main-grid">
+
+  <!-- Recent Expenses -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-title">💰 Recent Expenses</div>
+      <div class="view-all" onclick="nav('expense.html')">View All →</div>
+    </div>
+    <div id="expList"><div class="loading">⏳ Loading...</div></div>
+  </div>
+
+  <!-- Tasks -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-title">✅ Task Board</div>
+      <div class="view-all" onclick="nav('tasks.html')">View All →</div>
+    </div>
+    <div class="task-status-row">
+      <div class="status-pill todo">  <span class="num" id="tTodo">—</span>To Do</div>
+      <div class="status-pill inprog"><span class="num" id="tInprog">—</span>In Progress</div>
+      <div class="status-pill done">  <span class="num" id="tDone">—</span>Done</div>
+    </div>
+    <div id="taskList"><div class="loading">⏳ Loading...</div></div>
+  </div>
+
+  <!-- Notes -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-title">📝 Recent Notes</div>
+      <div class="view-all" onclick="nav('notes.html')">View All →</div>
+    </div>
+    <div id="noteList"><div class="loading">⏳ Loading...</div></div>
+  </div>
+
+  <!-- Investment -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-title">📈 Investment Holdings</div>
+      <div class="view-all" onclick="nav('investment.html')">View All →</div>
+    </div>
+    <div id="invList"><div class="loading">⏳ Loading...</div></div>
+  </div>
+
+  <!-- Expense Monthly Chart -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-title">📊 Monthly Spend</div>
+      <div class="view-all" onclick="nav('expense.html')">Details →</div>
+    </div>
+    <div class="chart-wrap"><canvas id="monthChart"></canvas></div>
+  </div>
+
+  <!-- Recent Activity Feed -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-title">🕐 Recent Activity</div>
+    </div>
+    <div class="feed" id="feedList"><div class="loading">⏳ Loading...</div></div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ── Navigation ─────────────────────────────────────────────
+function nav(src) {
+  window.parent.postMessage({ action: 'switchTab', src }, '*');
+}
+
+// ── Greeting + Date ────────────────────────────────────────
+(function() {
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning ☀️' : h < 17 ? 'Good afternoon 🌤' : 'Good evening 🌙';
+  document.getElementById('greeting').textContent = g;
+  document.getElementById('heroDate').innerHTML =
+    new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+    + '<br>' + new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+})();
+
+// ── Formatters ─────────────────────────────────────────────
+const fmtTHB = v => '฿' + Number(v||0).toLocaleString('th-TH', {minimumFractionDigits:0, maximumFractionDigits:0});
+const fmtTHB2 = v => '฿' + Number(v||0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+const today = new Date().toISOString().slice(0,10);
+const thisMonth = today.slice(0,7);
+const thisYear  = today.slice(0,4);
+
+// ── Load All ───────────────────────────────────────────────
+async function loadAll() {
+  const [expRes, taskRes, noteRes, portRes, invRes] = await Promise.all([
+    gsGet('expenses'),
+    gsGet('tasks'),
+    gsGet('notes'),
+    gsGet('portfolios'),
+    gsGet('investments'),
+  ]);
+
+  renderExpenses(expRes.ok ? expRes.data || [] : []);
+  renderTasks(taskRes.ok ? taskRes.data || [] : []);
+  renderNotes(noteRes.ok ? noteRes.data || [] : []);
+  renderInvestments(portRes.ok ? portRes.data || [] : [], invRes.ok ? invRes.data || [] : []);
+  renderActivity(
+    expRes.ok ? expRes.data || [] : [],
+    taskRes.ok ? taskRes.data || [] : [],
+    noteRes.ok ? noteRes.data || [] : []
+  );
+}
+
+// ── Expenses ───────────────────────────────────────────────
+function renderExpenses(data) {
+  const sumOf = arr => arr.reduce((s,e) => s + Number(e.amount||0), 0);
+  const expMonth = data.filter(e => e.date && e.date.startsWith(thisMonth));
+  const expToday = data.filter(e => e.date === today);
+
+  document.getElementById('kpiExpMonth').textContent = fmtTHB(sumOf(expMonth));
+  document.getElementById('kpiExpToday').textContent = 'Today: ' + fmtTHB2(sumOf(expToday));
+
+  // Recent 5
+  const recent = [...data].sort((a,b) => (b.date||'').localeCompare(a.date||'')).slice(0,5);
+  const el = document.getElementById('expList');
+  if (!recent.length) { el.innerHTML = '<div class="empty">No expenses yet</div>'; return; }
+  el.innerHTML = recent.map(r => `
+    <div class="exp-item">
+      <div class="exp-item-left">
+        <span class="exp-item-cat">${r.category||'—'}</span>
+        <span class="exp-item-note">${r.notes || r.payment || ''}</span>
+      </div>
+      <div style="text-align:right">
+        <div class="exp-amount">${fmtTHB2(r.amount)}</div>
+        <div class="exp-item-date">${r.date||''}</div>
+      </div>
+    </div>`).join('');
+
+  // Monthly chart
+  const mMap = {};
+  data.forEach(e => { const m = e.date ? e.date.slice(0,7) : ''; if(m) mMap[m] = (mMap[m]||0) + Number(e.amount||0); });
+  const mKeys = Object.keys(mMap).sort().slice(-6);
+  new Chart(document.getElementById('monthChart'), {
+    type: 'bar',
+    data: {
+      labels: mKeys.map(m => { const [y,mo] = m.split('-'); return new Date(y,mo-1).toLocaleDateString('en',{month:'short',year:'2-digit'}); }),
+      datasets: [{ label:'฿', data: mKeys.map(k=>mMap[k]), backgroundColor:'#B8963E', borderRadius:6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { font: { size:10 }, callback: v => '฿'+Number(v).toLocaleString() } }, x: { ticks: { font: { size:10 } } } }
+    }
+  });
+}
+
+// ── Tasks ──────────────────────────────────────────────────
+function renderTasks(data) {
+  const todo   = data.filter(t => t.status === 'todo');
+  const inprog = data.filter(t => t.status === 'inprog');
+  const done   = data.filter(t => t.status === 'done');
+
+  document.getElementById('kpiTaskTodo').textContent   = todo.length;
+  document.getElementById('kpiTaskInprog').textContent = 'In Progress: ' + inprog.length;
+  document.getElementById('tTodo').textContent   = todo.length;
+  document.getElementById('tInprog').textContent = inprog.length;
+  document.getElementById('tDone').textContent   = done.length;
+
+  // Show up to 5 active tasks (todo + inprog), sorted by priority
+  const po = {high:0, medium:1, low:2};
+  const active = [...todo, ...inprog].sort((a,b) => (po[a.priority]||1)-(po[b.priority]||1)).slice(0,5);
+  const el = document.getElementById('taskList');
+  if (!active.length) { el.innerHTML = '<div class="empty">No pending tasks 🎉</div>'; return; }
+  el.innerHTML = `<div class="task-mini">${active.map(t => `
+    <div class="task-mini-item ${t.priority||''}">
+      <div class="task-mini-title">${t.title}</div>
+      <span class="task-mini-badge ${t.status}">${t.status==='inprog'?'In Prog':'To Do'}</span>
+    </div>`).join('')}</div>`;
+}
+
+// ── Notes ──────────────────────────────────────────────────
+function renderNotes(data) {
+  const monthNotes = data.filter(n => n.date && n.date.startsWith(thisMonth));
+  document.getElementById('kpiNotes').textContent = data.length;
+  document.getElementById('kpiNotesMonth').textContent = 'This month: ' + monthNotes.length;
+
+  const recent = [...data].sort((a,b) => (b.date||'').localeCompare(a.date||'')).slice(0,3);
+  const el = document.getElementById('noteList');
+  if (!recent.length) { el.innerHTML = '<div class="empty">No notes yet</div>'; return; }
+  el.innerHTML = `<div class="notes-mini">${recent.map(n => `
+    <div class="note-mini-item">
+      <div class="note-mini-title">${n.title||'—'}</div>
+      <div class="note-mini-content">${n.content||''}</div>
+      <div class="note-mini-footer">
+        ${n.category ? `<span class="note-mini-cat">${n.category}</span>` : '<span></span>'}
+        <span class="note-mini-date">${n.date||''}</span>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+// ── Investments ────────────────────────────────────────────
+function renderInvestments(portfolios, investments) {
+  if (!investments.length) {
+    document.getElementById('kpiInvVal').textContent = '—';
+    document.getElementById('kpiInvGL').textContent  = 'G/L: —';
+    document.getElementById('invList').innerHTML = '<div class="empty">No holdings yet</div>';
+    return;
+  }
+
+  // Group by ticker, sum up
+  const byTicker = {};
+  investments.forEach(inv => {
+    const key = inv.ticker || inv.symbol || '—';
+    if (!byTicker[key]) byTicker[key] = { ticker: key, cost: 0, value: 0, qty: 0 };
+    byTicker[key].cost  += Number(inv.cost_price||0) * Number(inv.quantity||0);
+    byTicker[key].value += Number(inv.current_price||inv.cost_price||0) * Number(inv.quantity||0);
+    byTicker[key].qty   += Number(inv.quantity||0);
+  });
+
+  const rows = Object.values(byTicker);
+  const totalCost  = rows.reduce((s,r) => s+r.cost,  0);
+  const totalValue = rows.reduce((s,r) => s+r.value, 0);
+  const totalGL    = totalValue - totalCost;
+  const glPct      = totalCost ? (totalGL/totalCost*100).toFixed(1) : 0;
+
+  document.getElementById('kpiInvVal').textContent = fmtTHB(totalValue);
+  const glSign = totalGL >= 0 ? '+' : '';
+  document.getElementById('kpiInvGL').textContent  = `G/L: ${glSign}${fmtTHB(totalGL)} (${glSign}${glPct}%)`;
+
+  const top5 = rows.sort((a,b)=>b.value-a.value).slice(0,5);
+  document.getElementById('invList').innerHTML = `
+    <table class="inv-table">
+      <thead><tr><th>Ticker</th><th>Value</th><th>G/L</th></tr></thead>
+      <tbody>${top5.map(r => {
+        const gl = r.value - r.cost;
+        const glPct = r.cost ? (gl/r.cost*100).toFixed(1) : 0;
+        const cls = gl >= 0 ? 'gl-pos' : 'gl-neg';
+        const sign = gl >= 0 ? '+' : '';
+        return `<tr>
+          <td class="inv-ticker">${r.ticker}</td>
+          <td class="inv-val">${fmtTHB(r.value)}</td>
+          <td class="${cls}">${sign}${glPct}%</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+}
+
+// ── Activity Feed ──────────────────────────────────────────
+function renderActivity(expenses, tasks, notes) {
+  const items = [
+    ...expenses.map(e => ({ type:'exp',  date: e.date||'', label: e.category||'Expense',      sub: fmtTHB2(e.amount), icon:'💰' })),
+    ...tasks.map(t =>    ({ type:'task', date: t.date||'', label: t.title||'Task',             sub: t.status,          icon:'✅' })),
+    ...notes.map(n =>    ({ type:'note', date: n.date||'', label: n.title||'Note',             sub: n.category||'',    icon:'📝' })),
+  ].sort((a,b) => b.date.localeCompare(a.date)).slice(0,8);
+
+  const el = document.getElementById('feedList');
+  if (!items.length) { el.innerHTML = '<div class="empty">No recent activity</div>'; return; }
+  el.innerHTML = items.map(i => `
+    <div class="feed-item">
+      <div class="feed-icon ${i.type}">${i.icon}</div>
+      <div class="feed-body">
+        <div class="feed-title">${i.label}</div>
+        <div class="feed-meta">${i.sub ? i.sub + ' · ' : ''}${i.date}</div>
+      </div>
+    </div>`).join('');
+}
+
+loadAll();
+</script>
+</body>
+</html>

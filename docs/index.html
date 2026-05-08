@@ -71,8 +71,9 @@
   </div>
 
   <nav class="tabs" id="tabs">
+    <a class="tab active" data-src="dashboard.html"  href="#">🏠 Dashboard</a>
     <a class="tab"        data-src="profile.html"    href="#">👤 Profile</a>
-    <a class="tab active" data-src="expense.html"    href="#">💰 Expense</a>
+    <a class="tab"        data-src="expense.html"    href="#">💰 Expense</a>
     <a class="tab"        data-src="tasks.html"      href="#">✅ Tasks</a>
     <a class="tab"        data-src="notes.html"      href="#">📝 Notes</a>
     <a class="tab"        data-src="investment.html" href="#">📈 Investment</a>
@@ -85,19 +86,31 @@
 </header>
 
 <div class="frame-wrap">
-  <iframe id="main-frame" src="expense.html" title="Content"></iframe>
+  <iframe id="main-frame" src="dashboard.html" title="Content"></iframe>
 </div>
 
 <script>
   const frame = document.getElementById('main-frame');
+
+  function switchTab(src) {
+    const tab = document.querySelector(`.tab[data-src="${src}"]`);
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (tab) tab.classList.add('active');
+    frame.src = src;
+  }
+
   document.getElementById('tabs').addEventListener('click', e => {
     const tab = e.target.closest('.tab');
     if (!tab) return;
     e.preventDefault();
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    frame.src = tab.dataset.src;
+    switchTab(tab.dataset.src);
   });
+
+  // Allow child iframes (dashboard) to trigger tab navigation
+  window.addEventListener('message', e => {
+    if (e.data && e.data.action === 'switchTab') switchTab(e.data.src);
+  });
+
   function tick() {
     document.getElementById('clock').textContent =
       new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
