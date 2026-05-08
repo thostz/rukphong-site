@@ -3,7 +3,7 @@
 //  Update GS_URL after deploying your Google Apps Script
 // ─────────────────────────────────────────────────────────────
 
-const GS_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbzgn1rNxQ9MB-65dxuj-68c_MIbOHtnwBKXI-VSx54YM50fZ8t162r2Isb6UIcrdYXAoA/exec';
 
 // ── API Helpers ───────────────────────────────────────────────
 
