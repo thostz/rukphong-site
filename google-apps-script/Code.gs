@@ -285,14 +285,148 @@ function processLine(events) {
   if (!token) return;
 
   for (const ev of events) {
-    if (ev.type !== 'message' || ev.message.type !== 'text') continue;
+    if (ev.type !== 'message') continue;
 
-    const text      = ev.message.text.trim();
-    const replyTok  = ev.replyToken;
-    const reply     = buildReply(text);
+    const replyTok = ev.replyToken;
+    let reply = '';
+
+    if (ev.message.type === 'text') {
+      reply = buildReply(ev.message.text.trim()) || '';
+    }
+    else if (ev.message.type === 'image') {
+      // 📸 Slip OCR flow
+      reply = processSlipImage(ev.message.id, token);
+    }
 
     if (reply && replyTok) replyToLine(token, replyTok, reply);
   }
+}
+
+// ── SLIP OCR ──────────────────────────────────────────────────
+
+function processSlipImage(messageId, token) {
+  try {
+    // 1. Download image from LINE
+    const blob = downloadLineImage(messageId, token);
+    if (!blob) return '❌ ไม่สามารถดาวน์โหลดรูปได้';
+
+    // 2. OCR via Google Drive (ฟรี ไม่ต้องใช้ Vision API)
+    replyInProgress(token, messageId); // optional: ไม่ได้ใช้ แต่เตือนไว้
+    const text = ocrWithDrive(blob);
+    if (!text || text.trim().length < 3) {
+      return '❌ อ่านข้อความจากรูปไม่ได้\nลองส่งรูปที่ชัดขึ้น หรือพิมพ์ "จ่าย [จำนวน] [หมวด]" แทน';
+    }
+
+    // 3. Parse amount
+    const amount = parseSlipAmount(text);
+    if (!amount) {
+      return `📄 อ่านข้อความได้แต่ไม่พบจำนวนเงิน\n\n"${text.slice(0, 150)}"\n\nกรุณาพิมพ์:\nจ่าย [จำนวน] [หมวด]`;
+    }
+
+    // 4. Detect category & merchant
+    const category = detectSlipCategory(text);
+    const merchant = detectMerchant(text);
+    const notes    = merchant ? `Slip: ${merchant}` : 'จาก Slip';
+
+    // 5. Save expense
+    saveExpense({ amount, category, notes });
+
+    const fmt = Number(amount).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+    return `✅ บันทึกจาก Slip อัตโนมัติ\n` +
+           `💰 ฿${fmt}\n` +
+           `📂 ${category}` +
+           (merchant ? `\n🏪 ${merchant}` : '') +
+           `\n\nถ้าหมวดไม่ถูก พิมพ์:\nจ่าย ${Math.round(amount)} [หมวด]`;
+
+  } catch (e) {
+    Logger.log('Slip OCR error: ' + e);
+    return '❌ เกิดข้อผิดพลาด: ' + e.message;
+  }
+}
+
+function replyInProgress() {} // placeholder
+
+function downloadLineImage(messageId, token) {
+  const url = `https://api-data.line.me/v2/bot/message/${messageId}/content`;
+  const res = UrlFetchApp.fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+    muteHttpExceptions: true,
+  });
+  if (res.getResponseCode() !== 200) return null;
+  return res.getBlob().setName('slip.jpg');
+}
+
+function ocrWithDrive(blob) {
+  // Upload to Drive with OCR → Google converts to Google Doc → extract text
+  let fileId = null;
+  try {
+    const file = Drive.Files.insert(
+      { title: 'slip_ocr_' + Date.now(), mimeType: 'application/vnd.google-apps.document' },
+      blob,
+      { convert: true, ocr: true, ocrLanguage: 'th' }
+    );
+    fileId = file.id;
+    const doc  = DocumentApp.openById(fileId);
+    const text = doc.getBody().getText();
+    return text;
+  } finally {
+    if (fileId) {
+      try { Drive.Files.remove(fileId); } catch(e) {}
+    }
+  }
+}
+
+function parseSlipAmount(text) {
+  const patterns = [
+    /จำนวนเงิน\s*:?\s*([\d,]+\.?\d*)\s*บาท/i,
+    /ยอดเงิน\s*:?\s*([\d,]+\.?\d*)/i,
+    /ยอดโอน\s*:?\s*([\d,]+\.?\d*)/i,
+    /amount\s*:?\s*([\d,]+\.?\d*)/i,
+    /total\s*:?\s*([\d,]+\.?\d*)/i,
+    /รวม\s*:?\s*([\d,]+\.?\d*)\s*บาท/i,
+    /฿\s*([\d,]+\.?\d*)/,
+    /([\d,]+\.\d{2})\s*บาท/,
+    /([\d,]+\.\d{2})\s*THB/i,
+    /\bTHB\s*([\d,]+\.?\d*)/i,
+  ];
+  const candidates = [];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) {
+      const v = parseFloat(m[1].replace(/,/g, ''));
+      if (v > 0 && v < 10000000) candidates.push(v);
+    }
+  }
+  if (!candidates.length) return null;
+  // Return the most prominent amount (largest candidate, likely the total)
+  return Math.max(...candidates);
+}
+
+function detectSlipCategory(text) {
+  const t = text.toLowerCase();
+  if (/ร้านอาหาร|food|restaurant|mcdonald|kfc|pizza|burger|coffee|cafe|กาแฟ|ชา|ข้าว|หมู|ไก่|ปลา|ก๋วยเตี๋ยว|ส้มตำ|sushi|buffet|bakery/.test(t)) return 'อาหาร/เครื่องดื่ม';
+  if (/grab|bolt|taxi|mrt|bts|รถไฟ|รถเมล์|parking|จอดรถ|น้ำมัน|ptt|bangchak|esso/.test(t)) return 'เดินทาง';
+  if (/7-eleven|seven|lotus|big c|makro|tops|villa|supermarket|department|fashion|clothing|เสื้อ|กางเกง|รองเท้า/.test(t)) return 'ช้อปปิ้ง';
+  if (/โรงพยาบาล|hospital|clinic|pharmacy|เภสัช|drugstore|ยา|นวด|spa/.test(t)) return 'สุขภาพ';
+  if (/hotel|ที่พัก|resort|airbnb|agoda|booking/.test(t)) return 'ที่พัก';
+  if (/netflix|spotify|youtube|steam|game|cinema|sf|major|imax|concert/.test(t)) return 'ความบันเทิง';
+  if (/course|udemy|book|หนังสือ|เรียน|tutor|school|university/.test(t)) return 'การศึกษา';
+  return 'อื่นๆ';
+}
+
+function detectMerchant(text) {
+  // ลองหาชื่อร้านจาก pattern ทั่วไป
+  const patterns = [
+    /ร้าน[:\s]*([^\n]{2,30})/,
+    /merchant[:\s]*([^\n]{2,30})/i,
+    /จาก[:\s]*([^\n]{2,20})/,
+    /to[:\s]*([^\n]{2,30})/i,
+  ];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) return m[1].trim().slice(0, 30);
+  }
+  return null;
 }
 
 function buildReply(text) {
