@@ -154,6 +154,7 @@ function doPost(e) {
     let result = { ok: false, error: 'Unknown action: ' + action };
 
     switch (action) {
+      case 'smartClassify':    result = smartClassifyApi(record.text || '');         break;
       case 'saveExpense':      result = saveExpense(record);                         break;
       case 'deleteExpense':    deleteById('expense', record.id);   result = {ok:true}; break;
       case 'saveTask':         result = saveTask(record);                            break;
@@ -291,7 +292,13 @@ function processLine(events) {
     let reply = '';
 
     if (ev.message.type === 'text') {
-      reply = buildReply(ev.message.text.trim()) || '';
+      const txt = ev.message.text.trim();
+      // Long text (>120 chars) or starts with keyword → AI classify
+      if (txt.length > 120 || /^(?:วิเคราะห์|analyze|ประชุม|meeting|สรุป|todo list|action)/i.test(txt)) {
+        reply = smartClassify(txt);
+      } else {
+        reply = buildReply(txt) || '';
+      }
     }
     else if (ev.message.type === 'image') {
       // 📸 Slip OCR flow
@@ -567,6 +574,160 @@ function buildReply(text) {
 
   return null; // ไม่มีคำสั่งที่ตรงกัน — ไม่ตอบ
 }
+
+// ── SMART TEXT CLASSIFICATION (Gemini API) ────────────────────
+//
+//  Script Properties required:
+//    GEMINI_API_KEY  → Get free key at https://aistudio.google.com/app/apikey
+//
+//  Called from:
+//    ① LINE bot  — long text (>120 chars) or keyword trigger → returns reply string
+//    ② Web UI    — doPost {action:'smartClassify', record:{text}} → returns JSON
+
+function _callGemini(text) {
+  const apiKey = P.getProperty('GEMINI_API_KEY');
+  if (!apiKey) return null;   // no key → fallback
+
+  const prompt =
+    `วิเคราะห์ข้อความต่อไปนี้และจัดหมวดหมู่เป็น JSON เท่านั้น ห้ามอธิบายเพิ่มเติม:\n\n` +
+    `"${text.slice(0, 3000)}"\n\n` +
+    `ตอบในรูปแบบ JSON เท่านั้น:\n` +
+    `{\n` +
+    `  "tasks": [{"title":"...","priority":"high|medium|low","due":"YYYY-MM-DD หรือ blank"}],\n` +
+    `  "expenses": [{"amount":0,"category":"อาหาร/เครื่องดื่ม|เดินทาง|ช้อปปิ้ง|สุขภาพ|ที่พัก|ความบันเทิง|การศึกษา|อื่นๆ","notes":"..."}],\n` +
+    `  "notes": [{"title":"...","content":"...","category":"..."}]\n` +
+    `}\n\n` +
+    `กฎสำคัญ:\n` +
+    `- tasks = action items, สิ่งที่ต้องทำ, deliverables, follow-up\n` +
+    `- expenses = รายจ่ายที่มีตัวเลขชัดเจน (ถ้าไม่มีตัวเลขอย่าใส่)\n` +
+    `- notes = สรุปการประชุม, ข้อมูลสำคัญ, context, decisions\n` +
+    `- ถ้าไม่มีประเภทใด ให้ใส่ [] ว่าง\n` +
+    `- priority high = ด่วน/สำคัญมาก, low = ไม่เร่งด่วน, medium = ปกติ`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  try {
+    const res = UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 1024 },
+      }),
+      muteHttpExceptions: true,
+    });
+
+    if (res.getResponseCode() !== 200) {
+      Logger.log('Gemini HTTP error ' + res.getResponseCode() + ': ' + res.getContentText());
+      return null;
+    }
+
+    const resp  = JSON.parse(res.getContentText());
+    const raw   = resp?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const match = raw.match(/\{[\s\S]*\}/);   // extract JSON block
+    if (!match) { Logger.log('Gemini no JSON in response: ' + raw); return null; }
+    return JSON.parse(match[0]);
+  } catch (e) {
+    Logger.log('_callGemini error: ' + e);
+    return null;
+  }
+}
+
+function _saveClassified(classified) {
+  const tasks    = Array.isArray(classified.tasks)    ? classified.tasks    : [];
+  const expenses = Array.isArray(classified.expenses) ? classified.expenses : [];
+  const notes    = Array.isArray(classified.notes)    ? classified.notes    : [];
+
+  let savedTasks = 0, savedExpenses = 0, savedNotes = 0;
+
+  tasks.forEach(tk => {
+    if (!tk.title) return;
+    saveTask({ title: tk.title, priority: tk.priority || 'medium', due: tk.due || '', notes: '' });
+    savedTasks++;
+  });
+
+  expenses.forEach(ex => {
+    const amt = Number(ex.amount);
+    if (!amt || amt <= 0) return;
+    saveExpense({ amount: amt, category: ex.category || 'อื่นๆ', notes: ex.notes || '' });
+    savedExpenses++;
+  });
+
+  notes.forEach(n => {
+    if (!n.content && !n.title) return;
+    saveNote({ title: n.title || n.content.slice(0, 60), content: n.content || '', category: n.category || 'นำเข้า' });
+    savedNotes++;
+  });
+
+  return { tasks, expenses, notes, savedTasks, savedExpenses, savedNotes };
+}
+
+/** Called from LINE bot — returns text reply string. */
+function smartClassify(text) {
+  const classified = _callGemini(text);
+
+  if (!classified) {
+    // No Gemini key or API error → save whole text as note
+    const title = text.slice(0, 60) + (text.length > 60 ? '…' : '');
+    saveNote({ title, content: text, category: 'นำเข้า' });
+    const hasKey = !!P.getProperty('GEMINI_API_KEY');
+    return `📝 บันทึกเป็นโน้ตแล้ว\n"${title}"` +
+           (hasKey ? '' : '\n\n(ตั้งค่า GEMINI_API_KEY เพื่อจำแนกอัตโนมัติ)');
+  }
+
+  const r = _saveClassified(classified);
+
+  if (!r.savedTasks && !r.savedExpenses && !r.savedNotes) {
+    const title = text.slice(0, 60) + (text.length > 60 ? '…' : '');
+    saveNote({ title, content: text, category: 'นำเข้า' });
+    return `📝 บันทึกเป็นโน้ต\n"${title}"`;
+  }
+
+  let reply = '🤖 วิเคราะห์เสร็จแล้ว!\n';
+  if (r.savedTasks) {
+    reply += `\n✅ งาน ${r.savedTasks} รายการ:\n` +
+      r.tasks.slice(0, 5).map(t => `  • ${t.title}${t.priority === 'high' ? ' 🔴' : ''}`).join('\n');
+  }
+  if (r.savedExpenses) {
+    reply += `\n\n💰 รายจ่าย ${r.savedExpenses} รายการ:\n` +
+      r.expenses.slice(0, 3).map(e =>
+        `  • ฿${Number(e.amount).toLocaleString('th-TH')} — ${e.category}`
+      ).join('\n');
+  }
+  if (r.savedNotes) {
+    reply += `\n\n📝 โน้ต ${r.savedNotes} รายการ:\n` +
+      r.notes.slice(0, 3).map(n => `  • ${n.title || '…'}`).join('\n');
+  }
+  return reply;
+}
+
+/** Called from web UI via doPost {action:'smartClassify', record:{text}} — returns JSON. */
+function smartClassifyApi(text) {
+  if (!text || !text.trim()) return { ok: false, error: 'No text provided' };
+
+  const classified = _callGemini(text);
+
+  if (!classified) {
+    // No key → just save as note and return
+    const title = text.slice(0, 60) + (text.length > 60 ? '…' : '');
+    const saved = saveNote({ title, content: text, category: 'นำเข้า' });
+    return { ok: true, savedTasks: 0, savedExpenses: 0, savedNotes: 1,
+             tasks: [], expenses: [], notes: [{ title, content: text }],
+             warning: 'GEMINI_API_KEY not set — saved as note' };
+  }
+
+  const r = _saveClassified(classified);
+  return {
+    ok: true,
+    savedTasks:    r.savedTasks,
+    savedExpenses: r.savedExpenses,
+    savedNotes:    r.savedNotes,
+    tasks:         r.tasks,
+    expenses:      r.expenses,
+    notes:         r.notes,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 
 function replyToLine(token, replyToken, text) {
   UrlFetchApp.fetch('https://api.line.me/v2/bot/message/reply', {

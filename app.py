@@ -13,9 +13,10 @@ from linebot.v3.messaging import (
     ReplyMessageRequest,
     TextMessage,
 )
-from linebot.v3.webhooks import MessageEvent, TextMessageContent
+from linebot.v3.webhooks import MessageEvent, TextMessageContent, ImageMessageContent
 
 from handlers.message_handler import handle_text
+from handlers import slip_handler
 from services import sheets_service as sheets
 from services import auth_service as auth
 from services import data_service as data
@@ -68,6 +69,23 @@ def on_message(event: MessageEvent):
             ReplyMessageRequest(
                 reply_token=event.reply_token,
                 messages=messages,
+            )
+        )
+
+
+@handler.add(MessageEvent, message=ImageMessageContent)
+def on_image(event: MessageEvent):
+    """Handle image messages — Slip OCR → auto-save expense."""
+    user_id    = event.source.user_id
+    message_id = event.message.id
+
+    with ApiClient(configuration) as api_client:
+        line_api = MessagingApi(api_client)
+        reply_text = slip_handler.process(message_id, user_id)
+        line_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=reply_text)],
             )
         )
 
@@ -135,6 +153,11 @@ def dashboard():
 @app.route("/help", methods=["GET"])
 def help_page():
     return render_template("help.html")
+
+
+@app.route("/smart-import", methods=["GET"])
+def smart_import_page():
+    return render_template("smart-import.html")
 
 
 @app.route("/api/expense", methods=["POST"])
@@ -421,6 +444,143 @@ def api_save_dividend():
 def api_delete_dividend(did):
     data.delete_dividend(did)
     return jsonify({"ok": True})
+
+@app.route("/api/smart-import", methods=["POST"])
+def api_smart_import():
+    """Call Gemini API to classify text → save tasks/expenses/notes."""
+    import json, time, requests as req_lib
+    body = request.json or {}
+    text = (body.get("text") or "").strip()
+    if not text:
+        return jsonify({"ok": False, "error": "No text provided"}), 400
+
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    if not gemini_key:
+        # No key — save whole text as a note
+        record = {
+            "id":       str(int(time.time() * 1000)),
+            "date":     __import__("datetime").date.today().isoformat(),
+            "title":    text[:60] + ("…" if len(text) > 60 else ""),
+            "content":  text,
+            "category": "นำเข้า",
+        }
+        data.save_note(record)
+        return jsonify({
+            "ok": True, "savedTasks": 0, "savedExpenses": 0, "savedNotes": 1,
+            "tasks": [], "expenses": [], "notes": [record],
+            "warning": "GEMINI_API_KEY not set — saved as note",
+        })
+
+    prompt = (
+        "วิเคราะห์ข้อความต่อไปนี้และจัดหมวดหมู่เป็น JSON เท่านั้น ห้ามอธิบายเพิ่มเติม:\n\n"
+        f'"{text[:3000]}"\n\n'
+        "ตอบในรูปแบบ JSON เท่านั้น:\n"
+        '{"tasks":[{"title":"...","priority":"high|medium|low","due":"YYYY-MM-DD หรือ blank"}],'
+        '"expenses":[{"amount":0,"category":"อาหาร/เครื่องดื่ม|เดินทาง|ช้อปปิ้ง|สุขภาพ|ที่พัก|ความบันเทิง|การศึกษา|อื่นๆ","notes":"..."}],'
+        '"notes":[{"title":"...","content":"...","category":"..."}]}\n\n'
+        "กฎ: tasks=action items/สิ่งที่ต้องทำ, expenses=รายจ่ายที่มีตัวเลข, notes=สรุป/บันทึก. "
+        "priority: high=ด่วน, low=ไม่เร่งด่วน, medium=ปกติ. ถ้าไม่มีประเภทใดใส่[]"
+    )
+
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+        resp = req_lib.post(url, json={
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 1024},
+        }, timeout=20)
+
+        if resp.status_code != 200:
+            raise ValueError(f"Gemini HTTP {resp.status_code}: {resp.text[:200]}")
+
+        raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        import re as _re
+        jm = _re.search(r'\{[\s\S]*\}', raw)
+        if not jm:
+            raise ValueError("No JSON in Gemini response")
+        classified = json.loads(jm.group())
+
+    except Exception as e:
+        print(f"[SmartImport Gemini] {e}")
+        # Fallback: save as note
+        record = {
+            "id":       str(int(time.time() * 1000)),
+            "date":     __import__("datetime").date.today().isoformat(),
+            "title":    text[:60] + ("…" if len(text) > 60 else ""),
+            "content":  text,
+            "category": "นำเข้า",
+        }
+        data.save_note(record)
+        return jsonify({
+            "ok": True, "savedTasks": 0, "savedExpenses": 0, "savedNotes": 1,
+            "tasks": [], "expenses": [], "notes": [record],
+            "warning": f"AI error: {e} — saved as note",
+        })
+
+    today_str = __import__("datetime").date.today().isoformat()
+    saved_tasks, saved_expenses, saved_notes = 0, 0, 0
+    tasks    = classified.get("tasks", [])
+    expenses = classified.get("expenses", [])
+    notes    = classified.get("notes", [])
+
+    for t in tasks:
+        if not t.get("title"): continue
+        data.save_task({
+            "id":       str(int(time.time() * 1000)),
+            "date":     today_str,
+            "title":    t["title"],
+            "priority": t.get("priority", "medium"),
+            "status":   "todo",
+            "due":      t.get("due", ""),
+            "notes":    "",
+        })
+        saved_tasks += 1
+
+    for e in expenses:
+        amt = float(e.get("amount", 0) or 0)
+        if amt <= 0: continue
+        data.save_expense({
+            "id":       str(int(time.time() * 1000)),
+            "date":     today_str,
+            "amount":   amt,
+            "category": e.get("category", "อื่นๆ"),
+            "payment":  "",
+            "notes":    e.get("notes", ""),
+        })
+        saved_expenses += 1
+
+    for n in notes:
+        if not n.get("content") and not n.get("title"): continue
+        data.save_note({
+            "id":       str(int(time.time() * 1000)),
+            "date":     today_str,
+            "title":    n.get("title") or (n.get("content") or "")[:60],
+            "content":  n.get("content", ""),
+            "category": n.get("category", "นำเข้า"),
+        })
+        saved_notes += 1
+
+    if not saved_tasks and not saved_expenses and not saved_notes:
+        record = {
+            "id":       str(int(time.time() * 1000)),
+            "date":     today_str,
+            "title":    text[:60] + ("…" if len(text) > 60 else ""),
+            "content":  text,
+            "category": "นำเข้า",
+        }
+        data.save_note(record)
+        saved_notes = 1
+        notes = [record]
+
+    return jsonify({
+        "ok": True,
+        "savedTasks":    saved_tasks,
+        "savedExpenses": saved_expenses,
+        "savedNotes":    saved_notes,
+        "tasks":         tasks,
+        "expenses":      expenses,
+        "notes":         notes,
+    })
+
 
 @app.route("/api/targets/<pid>", methods=["GET"])
 def api_get_targets(pid):

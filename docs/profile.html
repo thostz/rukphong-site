@@ -1,412 +1,1003 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rukphong Pullaoy – Senior PM & Consultant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        :root {
-            --bg:      #F5F7FA;
-            --navy2:   #EEF2F7;
-            --card:    #FFFFFF;
-            --border:  rgba(0,0,0,0.08);
-            --gold:    #B8963E;
-            --gold2:   #9A7A2E;
-            --gold3:   rgba(184,150,62,0.07);
-            --text:    #1A2340;
-            --muted:   #5A6E8C;
-            --silver:  #6B7FA3;
-            --radius:  12px;
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-        a { color: inherit; text-decoration: none; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rukphong Pullaoy — Senior PM & WMS Consultant · Infor APAC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ══════════════════════════════════════════════════════
+   RESET & VARS
+══════════════════════════════════════════════════════ */
+:root {
+  --bg:       #020b18;
+  --bg2:      #050f20;
+  --bg3:      #081628;
+  --card:     rgba(8,22,44,0.7);
+  --card2:    rgba(10,28,55,0.85);
+  --border:   rgba(0,180,255,0.12);
+  --border2:  rgba(0,180,255,0.22);
+  --cyan:     #00c8ff;
+  --cyan2:    #0096cc;
+  --gold:     #f0b429;
+  --gold2:    #d49d20;
+  --green:    #00ff88;
+  --purple:   #a259ff;
+  --text:     #e0f0ff;
+  --muted:    #5880a8;
+  --radius:   14px;
+  --mono:     'JetBrains Mono', monospace;
+  --sans:     'Inter', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;color-scheme:dark;}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  line-height:1.6;
+}
+a{color:var(--cyan);text-decoration:none;}
+a:hover{text-decoration:underline;}
 
-        /* ── HERO ── */
-        .hero {
-            background: linear-gradient(135deg, #EEF2F7 0%, #F5F7FA 55%, #E8EDF5 100%);
-            border-bottom: 1px solid var(--border);
-            padding: 48px 5% 40px;
-            position: relative; overflow: hidden;
-        }
-        .hero::after {
-            content: '';
-            position: absolute; top: -60px; right: -60px;
-            width: 340px; height: 340px; border-radius: 50%;
-            background: radial-gradient(circle, rgba(184,150,62,0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        .hero-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 36px; flex-wrap: wrap; }
+/* ══════════════════════════════════════════════════════
+   CANVAS BACKGROUND
+══════════════════════════════════════════════════════ */
+#bg-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:0;pointer-events:none;opacity:.55;
+}
 
-        /* ── PHOTO AVATAR ── */
-        .avatar-wrap {
-            width: 120px; height: 120px; flex-shrink: 0;
-            border-radius: 50%; overflow: hidden;
-            border: 3px solid var(--gold);
-            box-shadow: 0 0 0 6px rgba(184,150,62,0.12), 0 12px 40px rgba(0,0,0,0.12);
-            background: var(--navy2);
-        }
-        .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
-        .avatar-fallback {
-            width: 120px; height: 120px; border-radius: 50%; flex-shrink: 0;
-            background: linear-gradient(135deg, var(--gold), #D4AF5A);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2.6rem; font-weight: 800; color: #fff;
-            border: 3px solid var(--gold);
-            box-shadow: 0 0 0 6px rgba(184,150,62,0.12), 0 12px 40px rgba(0,0,0,0.12);
-        }
+/* ══════════════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════════════ */
+.page{position:relative;z-index:1;}
+.container{max-width:1100px;margin:0 auto;padding:0 5%;}
 
-        .hero-info { flex: 1; min-width: 220px; }
-        .hero-info h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; color: var(--text); }
-        .hero-info h1 span { color: var(--gold2); }
-        .hero-role { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 7px; }
-        .role-badge {
-            font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 4px; letter-spacing: 0.3px;
-        }
-        .role-badge.pm   { background: rgba(184,150,62,0.1); color: #8A6E28; border: 1px solid rgba(184,150,62,0.3); }
-        .role-badge.cons { background: rgba(90,110,140,0.08); color: var(--silver); border: 1px solid rgba(90,110,140,0.2); }
-        .role-badge.infor{ background: #1A2340; color: #D4AF5A; border: 1px solid rgba(184,150,62,0.3); }
-        .role-badge.ai   { background: rgba(16,185,129,0.08); color: #0d9268; border: 1px solid rgba(16,185,129,0.2); }
-        .hero-meta { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
-        .hero-meta span { font-size: 0.81rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
-        .hero-meta a { color: var(--gold2); }
+/* ══════════════════════════════════════════════════════
+   TOP NAV BAR
+══════════════════════════════════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(2,11,24,0.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 5%;
+  display:flex;align-items:center;justify-content:space-between;
+  height:56px;
+}
+.topbar-brand{
+  font-family:var(--mono);font-size:.85rem;font-weight:700;
+  color:var(--cyan);letter-spacing:.04em;
+  display:flex;align-items:center;gap:8px;
+}
+.topbar-brand::before{
+  content:'>';color:var(--gold);font-size:1rem;
+  animation:blink 1.2s step-end infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.topbar-links{display:flex;gap:20px;}
+.topbar-links a{
+  font-size:.77rem;font-weight:600;color:var(--muted);letter-spacing:.04em;
+  text-transform:uppercase;text-decoration:none;
+  transition:color .2s;
+}
+.topbar-links a:hover{color:var(--cyan);}
+.status-dot{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:.72rem;font-family:var(--mono);color:var(--green);
+}
+.status-dot::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}}
 
-        /* ── STATS ── */
-        .stats-row {
-            max-width: 1100px; margin: -24px auto 0; padding: 0 5%;
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 14px;
-            position: relative; z-index: 10;
-        }
-        .stat-card {
-            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-            padding: 18px 16px; display: flex; flex-direction: column; gap: 5px;
-            transition: transform .2s, box-shadow .2s; border-top: 2px solid var(--gold);
-        }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .stat-icon { font-size: 1.3rem; }
-        .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--gold2); line-height: 1; }
-        .stat-label { font-size: 0.72rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; }
+/* ══════════════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════════════ */
+.hero{
+  min-height:100vh;
+  display:flex;align-items:center;
+  padding:80px 5% 60px;
+  position:relative;
+}
+.hero::before{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 60% 40%,rgba(0,150,204,0.07) 0%,transparent 70%),
+    radial-gradient(ellipse 40% 50% at 15% 80%,rgba(240,180,41,0.05) 0%,transparent 60%);
+  pointer-events:none;
+}
+.hero-inner{
+  max-width:1100px;margin:0 auto;width:100%;
+  display:grid;grid-template-columns:1fr 360px;gap:60px;align-items:center;
+}
+@media(max-width:860px){.hero-inner{grid-template-columns:1fr;}}
 
-        /* ── GRID ── */
-        .main-grid {
-            max-width: 1100px; margin: 32px auto; padding: 0 5% 60px;
-            display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
-        }
-        @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
-        .full-width { grid-column: 1 / -1; }
+/* ── Typing headline ── */
+.hero-label{
+  font-family:var(--mono);font-size:.8rem;color:var(--cyan);
+  letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.hero-label::before{
+  content:'';width:32px;height:1px;background:var(--cyan);
+  box-shadow:0 0 6px var(--cyan);
+}
+.hero-name{
+  font-size:clamp(2.4rem,5vw,4rem);
+  font-weight:900;line-height:1.1;
+  letter-spacing:-.03em;
+  color:#fff;
+}
+.hero-name .accent{
+  color:transparent;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text;background-clip:text;
+}
+.hero-cursor{
+  display:inline-block;width:3px;height:.9em;
+  background:var(--cyan);margin-left:2px;vertical-align:middle;
+  animation:blink 0.8s step-end infinite;
+}
+.hero-title{
+  margin-top:14px;font-size:1rem;font-weight:500;color:var(--muted);
+  line-height:1.5;
+}
+.hero-title strong{color:var(--gold);font-weight:700;}
 
-        /* ── CARD ── */
-        .section-card {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 22px;
-        }
-        .section-card h2 {
-            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 1.2px; color: var(--gold); margin-bottom: 16px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .section-card h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+/* ── Badges ── */
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;}
+.hbadge{
+  font-size:.72rem;font-weight:700;letter-spacing:.05em;
+  padding:5px 14px;border-radius:20px;
+  border:1px solid;
+}
+.hbadge-cyan  {border-color:rgba(0,200,255,.3);color:var(--cyan);background:rgba(0,200,255,.06);}
+.hbadge-gold  {border-color:rgba(240,180,41,.3);color:var(--gold);background:rgba(240,180,41,.06);}
+.hbadge-green {border-color:rgba(0,255,136,.3);color:var(--green);background:rgba(0,255,136,.06);}
+.hbadge-purple{border-color:rgba(162,89,255,.3);color:var(--purple);background:rgba(162,89,255,.06);}
 
-        /* ── SUMMARY ── */
-        .summary-text { font-size: 0.88rem; line-height: 1.85; color: var(--silver); }
-        .summary-text strong { color: var(--gold2); font-weight: 600; }
+/* ── Meta ── */
+.hero-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:22px;}
+.hero-meta span{
+  font-size:.8rem;color:var(--muted);
+  display:flex;align-items:center;gap:6px;
+}
+.hero-meta a{color:var(--cyan);}
 
-        /* ── TIMELINE ── */
-        .timeline { display: flex; flex-direction: column; }
-        .tl-item { display: flex; gap: 14px; padding-bottom: 20px; }
-        .tl-item:last-child { padding-bottom: 0; }
-        .tl-left { display: flex; flex-direction: column; align-items: center; width: 32px; flex-shrink: 0; }
-        .tl-dot {
-            width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-            border: 2px solid var(--gold); background: var(--bg);
-        }
-        .tl-dot.current { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
-        .tl-dot.scg { border-color: var(--silver); }
-        .tl-line { flex: 1; width: 1px; background: var(--border); margin-top: 4px; }
-        .tl-item:last-child .tl-line { display: none; }
-        .tl-title { font-size: 0.88rem; font-weight: 700; color: var(--text); }
-        .tl-company { font-size: 0.76rem; color: var(--gold2); font-weight: 600; margin-top: 2px; }
-        .tl-company.silver { color: var(--silver); }
-        .tl-period { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
-        .tl-desc { font-size: 0.77rem; color: var(--muted); margin-top: 5px; line-height: 1.6; }
-        .tl-sub { margin-top: 8px; padding-left: 12px; border-left: 2px solid rgba(184,150,62,0.2); display: flex; flex-direction: column; gap: 7px; }
-        .tl-sub-item .tl-title { font-size: 0.8rem; color: var(--silver); font-weight: 600; }
-        .tl-sub-item .tl-period { font-size: 0.68rem; }
+/* ── CTA ── */
+.hero-cta{display:flex;gap:14px;margin-top:28px;flex-wrap:wrap;}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 26px;border-radius:8px;font-size:.88rem;font-weight:700;
+  cursor:pointer;border:none;transition:all .22s;text-decoration:none;
+}
+.btn-primary{
+  background:var(--cyan);color:#020b18;
+  box-shadow:0 0 20px rgba(0,200,255,.3);
+}
+.btn-primary:hover{background:#33d4ff;box-shadow:0 0 30px rgba(0,200,255,.5);transform:translateY(-2px);text-decoration:none;}
+.btn-ghost{
+  background:transparent;color:var(--cyan);
+  border:1px solid rgba(0,200,255,.3);
+}
+.btn-ghost:hover{border-color:var(--cyan);background:rgba(0,200,255,.06);text-decoration:none;}
 
-        /* ── EXPERTISE BARS ── */
-        .exp-item { margin-bottom: 13px; }
-        .exp-item:last-child { margin-bottom: 0; }
-        .exp-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .exp-name { font-size: 0.81rem; font-weight: 600; color: var(--text); }
-        .exp-pct  { font-size: 0.7rem; color: var(--gold2); font-weight: 600; }
-        .exp-bar  { height: 4px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden; }
-        .exp-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+/* ── Hero card (right) ── */
+.hero-card{
+  background:var(--card2);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  padding:28px 24px;
+  position:relative;overflow:hidden;
+}
+.hero-card::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,200,255,.12) 0%,transparent 70%);
+}
+.hero-avatar{
+  width:90px;height:90px;border-radius:50%;
+  border:2px solid var(--cyan);
+  box-shadow:0 0 20px rgba(0,200,255,.3);
+  background:linear-gradient(135deg,var(--cyan2),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;font-weight:900;color:#fff;
+  margin:0 auto 18px;overflow:hidden;
+}
+.hero-avatar img{width:100%;height:100%;object-fit:cover;object-position:top;}
 
-        /* ── SKILLS ── */
-        .skills-grid { display: flex; flex-wrap: wrap; gap: 7px; }
-        .skill-tag {
-            font-size: 0.73rem; font-weight: 600; padding: 4px 11px; border-radius: 4px;
-            border: 1px solid var(--border); color: var(--silver);
-            background: rgba(255,255,255,0.5); transition: all .18s; cursor: default;
-        }
-        .skill-tag:hover { background: var(--gold3); border-color: rgba(184,150,62,0.35); color: var(--gold2); }
-        .skill-tag.highlight { background: var(--gold3); border-color: rgba(184,150,62,0.35); color: var(--gold2); }
-        .skill-tag.ai { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.25); color: #0d9268; }
+/* ── System stats terminal ── */
+.terminal{
+  background:#020b18;
+  border:1px solid rgba(0,200,255,.15);
+  border-radius:10px;
+  padding:14px 16px;
+  font-family:var(--mono);font-size:.73rem;
+  color:var(--muted);
+  line-height:2;
+}
+.t-line span.label{color:var(--cyan);}
+.t-line span.val  {color:var(--green);}
+.t-line span.gold {color:var(--gold);}
+.t-line span.pur  {color:var(--purple);}
 
-        /* ── CHART ── */
-        .chart-wrap { position: relative; height: 190px; }
+/* ══════════════════════════════════════════════════════
+   KPI STRIP
+══════════════════════════════════════════════════════ */
+.kpi-strip{
+  padding:24px 5%;
+  background:rgba(5,15,30,0.6);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(8px);
+}
+.kpi-grid{
+  max-width:1100px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(5,1fr);gap:20px;
+}
+@media(max-width:720px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi-item{text-align:center;}
+.kpi-num{
+  font-size:2rem;font-weight:900;font-family:var(--mono);
+  background:linear-gradient(135deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  line-height:1.1;
+}
+.kpi-num.gold{background:linear-gradient(135deg,var(--gold),#ff9f00);-webkit-background-clip:text;background-clip:text;}
+.kpi-num.green{background:linear-gradient(135deg,var(--green),#00ccaa);-webkit-background-clip:text;background-clip:text;}
+.kpi-label{font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
 
-        /* ── COVERAGE ── */
-        .coverage { display: flex; flex-wrap: wrap; gap: 8px; }
-        .country-tag {
-            font-size: 0.73rem; font-weight: 600; padding: 5px 12px; border-radius: 4px;
-            background: rgba(184,150,62,0.08); border: 1px solid rgba(184,150,62,0.2); color: var(--gold2);
-        }
+/* ══════════════════════════════════════════════════════
+   SECTION HEADERS
+══════════════════════════════════════════════════════ */
+.section{padding:60px 0;}
+.sec-label{
+  font-family:var(--mono);font-size:.75rem;color:var(--cyan);
+  letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;
+  display:flex;align-items:center;gap:10px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,200,255,.3),transparent);}
+.sec-title{
+  font-size:1.7rem;font-weight:800;color:#fff;
+  letter-spacing:-.02em;margin-bottom:36px;
+}
+.sec-title .hl{
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
 
-        /* ── CERT ── */
-        .cert-list { display: flex; flex-direction: column; gap: 9px; }
-        .cert-item {
-            display: flex; align-items: flex-start; gap: 11px;
-            padding: 11px 13px; border-radius: 8px;
-            background: var(--bg); border: 1px solid var(--border);
-        }
-        .cert-icon { font-size: 1.1rem; flex-shrink: 0; }
-        .cert-title { font-size: 0.81rem; font-weight: 600; color: var(--text); }
-        .cert-sub   { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+/* ══════════════════════════════════════════════════════
+   GLASS CARDS
+══════════════════════════════════════════════════════ */
+.glass{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  backdrop-filter:blur(12px);
+  padding:24px;
+  transition:border-color .25s,transform .25s,box-shadow .25s;
+}
+.glass:hover{
+  border-color:var(--border2);
+  transform:translateY(-3px);
+  box-shadow:0 20px 40px rgba(0,0,0,.4),0 0 0 1px rgba(0,200,255,.08);
+}
+.glass-title{
+  font-size:.7rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.12em;color:var(--cyan);margin-bottom:18px;
+  display:flex;align-items:center;gap:8px;
+}
+.glass-title::before{
+  content:'//';font-family:var(--mono);color:var(--gold);font-size:.75rem;
+}
 
-        /* ── CONTACT ── */
-        .contact-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-        .contact-item {
-            display: flex; align-items: center; gap: 9px;
-            padding: 10px 14px; border-radius: 8px; flex: 1; min-width: 175px;
-            background: var(--bg); border: 1px solid var(--border);
-            font-size: 0.81rem; font-weight: 500; color: var(--silver);
-        }
-        .contact-item a { color: var(--gold2); }
+/* ══════════════════════════════════════════════════════
+   GRID LAYOUTS
+══════════════════════════════════════════════════════ */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+.col-span-2{grid-column:span 2;}
+@media(max-width:860px){
+  .grid-2{grid-template-columns:1fr;}
+  .grid-3{grid-template-columns:1fr;}
+  .col-span-2{grid-column:span 1;}
+}
 
-        footer {
-            text-align: center; padding: 22px; font-size: 0.72rem; color: var(--muted);
-            border-top: 1px solid var(--border);
-        }
-    </style>
+/* ══════════════════════════════════════════════════════
+   TIMELINE
+══════════════════════════════════════════════════════ */
+.timeline{position:relative;padding-left:28px;}
+.timeline::before{
+  content:'';position:absolute;left:8px;top:6px;bottom:6px;
+  width:1px;background:linear-gradient(180deg,var(--cyan),rgba(0,200,255,0) 100%);
+}
+.tl-item{position:relative;margin-bottom:28px;}
+.tl-item:last-child{margin-bottom:0;}
+.tl-dot{
+  position:absolute;left:-24px;top:4px;
+  width:12px;height:12px;border-radius:50%;
+  border:2px solid var(--cyan);background:var(--bg);
+  box-shadow:0 0 10px rgba(0,200,255,.4);
+  z-index:1;
+}
+.tl-dot.active{
+  background:var(--cyan);
+  box-shadow:0 0 16px rgba(0,200,255,.8),0 0 4px rgba(0,200,255,1);
+  animation:pulse-dot 2s ease-in-out infinite;
+}
+.tl-dot.silver{border-color:var(--muted);}
+.tl-title{font-size:.9rem;font-weight:700;color:#fff;line-height:1.3;}
+.tl-company{
+  font-size:.78rem;font-weight:700;color:var(--cyan);
+  margin-top:3px;font-family:var(--mono);
+}
+.tl-company.silver{color:var(--muted);}
+.tl-period{font-size:.7rem;color:var(--muted);margin-top:3px;font-family:var(--mono);}
+.tl-desc{font-size:.8rem;color:var(--muted);margin-top:7px;line-height:1.65;}
+.tl-sub{
+  margin-top:10px;padding-left:14px;
+  border-left:2px solid rgba(0,200,255,.15);
+  display:flex;flex-direction:column;gap:9px;
+}
+.tl-sub-title{font-size:.8rem;font-weight:600;color:var(--text);}
+.tl-sub-period{font-size:.68rem;color:var(--muted);font-family:var(--mono);}
+
+/* ══════════════════════════════════════════════════════
+   SKILL BARS
+══════════════════════════════════════════════════════ */
+.skill-item{margin-bottom:16px;}
+.skill-item:last-child{margin-bottom:0;}
+.skill-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:6px;
+}
+.skill-name{font-size:.83rem;font-weight:600;color:var(--text);}
+.skill-pct{font-family:var(--mono);font-size:.72rem;color:var(--cyan);}
+.skill-track{
+  height:3px;background:rgba(255,255,255,.06);
+  border-radius:99px;overflow:hidden;position:relative;
+}
+.skill-fill{
+  height:100%;border-radius:99px;width:0;
+  transition:width 1.2s cubic-bezier(.22,1,.36,1);
+}
+.fill-cyan   {background:linear-gradient(90deg,var(--cyan2),var(--cyan));}
+.fill-gold   {background:linear-gradient(90deg,var(--gold2),var(--gold));}
+.fill-green  {background:linear-gradient(90deg,#00cc66,var(--green));}
+.fill-purple {background:linear-gradient(90deg,#7c3aed,var(--purple));}
+
+/* skill glow dot */
+.skill-fill::after{
+  content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:6px;height:6px;border-radius:50%;
+  background:inherit;box-shadow:0 0 8px currentColor;
+}
+
+/* ══════════════════════════════════════════════════════
+   SKILL TAGS
+══════════════════════════════════════════════════════ */
+.tags{display:flex;flex-wrap:wrap;gap:7px;}
+.tag{
+  font-size:.72rem;font-weight:600;
+  padding:5px 13px;border-radius:20px;
+  border:1px solid;cursor:default;
+  transition:all .2s;
+}
+.tag-cyan  {border-color:rgba(0,200,255,.2);color:var(--cyan);background:rgba(0,200,255,.05);}
+.tag-gold  {border-color:rgba(240,180,41,.2);color:var(--gold);background:rgba(240,180,41,.05);}
+.tag-green {border-color:rgba(0,255,136,.2);color:var(--green);background:rgba(0,255,136,.05);}
+.tag-muted {border-color:rgba(88,128,168,.2);color:var(--muted);background:transparent;}
+.tag:hover {transform:translateY(-1px);filter:brightness(1.2);}
+
+/* ══════════════════════════════════════════════════════
+   CERTIFICATIONS
+══════════════════════════════════════════════════════ */
+.cert-item{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px 16px;border-radius:10px;
+  background:rgba(0,200,255,.03);
+  border:1px solid rgba(0,200,255,.08);
+  margin-bottom:10px;
+  transition:border-color .2s,background .2s;
+}
+.cert-item:last-child{margin-bottom:0;}
+.cert-item:hover{border-color:rgba(0,200,255,.2);background:rgba(0,200,255,.06);}
+.cert-icon{font-size:1.3rem;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(0,200,255,.4));}
+.cert-title{font-size:.83rem;font-weight:700;color:#fff;}
+.cert-sub  {font-size:.72rem;color:var(--muted);margin-top:3px;font-family:var(--mono);}
+
+/* ══════════════════════════════════════════════════════
+   COUNTRIES
+══════════════════════════════════════════════════════ */
+.country-grid{display:flex;flex-wrap:wrap;gap:9px;}
+.country{
+  font-size:.78rem;font-weight:700;padding:7px 15px;border-radius:8px;
+  background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);
+  color:var(--text);transition:all .2s;
+}
+.country:hover{background:rgba(0,200,255,.1);border-color:var(--cyan);box-shadow:0 0 12px rgba(0,200,255,.2);}
+
+/* ══════════════════════════════════════════════════════
+   CONTACT
+══════════════════════════════════════════════════════ */
+.contact-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media(max-width:600px){.contact-grid{grid-template-columns:1fr;}}
+.contact-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;border-radius:10px;
+  background:rgba(0,200,255,.03);border:1px solid rgba(0,200,255,.08);
+  font-size:.82rem;color:var(--muted);
+  transition:all .2s;
+}
+.contact-item:hover{border-color:rgba(0,200,255,.2);color:var(--text);}
+.contact-item a{color:var(--cyan);}
+.ci-icon{font-size:1.1rem;filter:drop-shadow(0 0 4px rgba(0,200,255,.4));}
+
+/* ══════════════════════════════════════════════════════
+   SUMMARY
+══════════════════════════════════════════════════════ */
+.summary{
+  font-size:.88rem;line-height:1.95;color:var(--muted);
+}
+.summary strong{color:var(--cyan);font-weight:700;}
+.summary .gold{color:var(--gold);}
+
+/* ══════════════════════════════════════════════════════
+   CHART WRAP
+══════════════════════════════════════════════════════ */
+.chart-wrap{position:relative;height:200px;}
+
+/* ══════════════════════════════════════════════════════
+   GLOW DIVIDER
+══════════════════════════════════════════════════════ */
+.glow-line{
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,200,255,.4),transparent);
+  margin:0;
+}
+
+/* ══════════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════════ */
+footer{
+  text-align:center;padding:28px 5%;
+  border-top:1px solid var(--border);
+  font-size:.73rem;color:var(--muted);
+  font-family:var(--mono);
+}
+footer span{color:var(--cyan);}
+
+/* ══════════════════════════════════════════════════════
+   ENTRANCE ANIMATION
+══════════════════════════════════════════════════════ */
+.fade-up{
+  opacity:0;transform:translateY(28px);
+  transition:opacity .7s ease, transform .7s ease;
+}
+.fade-up.visible{opacity:1;transform:translateY(0);}
+</style>
 </head>
 <body>
 
-<!-- HERO -->
-<section class="hero">
-    <div class="hero-inner">
-        <div class="avatar-wrap">
-            <img src="profile.png" alt="Rukphong Pullaoy"
-                 onerror="this.parentElement.outerHTML='<div class=\'avatar-fallback\'>RP</div>'">
-        </div>
-        <div class="hero-info">
-            <h1>Rukphong <span>Pullaoy</span></h1>
-            <div class="hero-role">
-                <span class="role-badge pm">Senior Project Manager</span>
-                <span class="role-badge cons">Senior Consultant – WMS</span>
-                <span class="role-badge infor">Infor · APAC</span>
-                <span class="role-badge ai">GenAI Certified</span>
-            </div>
-            <div class="hero-meta">
-                <span>📍 Bangkok Metropolitan Area</span>
-                <span>✉️ rukphonp@gmail.com</span>
-                <span>🔗 <a href="https://www.linkedin.com/in/rukphong" target="_blank">linkedin.com/in/rukphong</a></span>
-            </div>
-        </div>
+<!-- ── PARTICLE CANVAS ── -->
+<canvas id="bg-canvas"></canvas>
+
+<div class="page">
+
+<!-- ══════════════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════════════════ -->
+<nav class="topbar">
+  <div class="topbar-brand">rukphong.dev</div>
+  <div class="topbar-links">
+    <a href="#about">About</a>
+    <a href="#career">Career</a>
+    <a href="#skills">Skills</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="status-dot">Available · APAC</div>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════ -->
+<section class="hero" id="about">
+  <div class="hero-inner">
+
+    <!-- Left -->
+    <div>
+      <div class="hero-label">Senior PM &amp; WMS Consultant</div>
+      <h1 class="hero-name">
+        Rukphong<br>
+        <span class="accent" id="typed-name">Pullaoy</span><span class="hero-cursor" id="cursor"></span>
+      </h1>
+      <p class="hero-title">
+        <strong>20+ years</strong> leading ERP &amp; WMS implementations across APAC ·
+        <strong>Infor Global Professional Services</strong> ·
+        Supply Chain Transformation
+      </p>
+      <div class="badge-row">
+        <span class="hbadge hbadge-cyan">Senior Project Manager</span>
+        <span class="hbadge hbadge-gold">WMS Consultant</span>
+        <span class="hbadge hbadge-green">GenAI Certified</span>
+        <span class="hbadge hbadge-purple">APAC Coverage</span>
+      </div>
+      <div class="hero-meta">
+        <span>📍 Bangkok Metropolitan Area</span>
+        <span>✉️ <a href="mailto:rukphonp@gmail.com">rukphonp@gmail.com</a></span>
+        <span>🔗 <a href="https://www.linkedin.com/in/rukphong" target="_blank">linkedin.com/in/rukphong</a></span>
+      </div>
+      <div class="hero-cta">
+        <a href="https://www.linkedin.com/in/rukphong" target="_blank" class="btn btn-primary">
+          🔗 LinkedIn Profile
+        </a>
+        <a href="mailto:rukphonp@gmail.com" class="btn btn-ghost">
+          ✉️ Get in Touch
+        </a>
+      </div>
     </div>
+
+    <!-- Right — terminal card -->
+    <div class="hero-card fade-up">
+      <div class="hero-avatar">
+        <img src="profile.png" alt="RP"
+             onerror="this.parentElement.innerHTML='RP'">
+      </div>
+      <div class="terminal">
+        <div class="t-line"><span class="label">user</span>       <span class="val">Rukphong Pullaoy</span></div>
+        <div class="t-line"><span class="label">role</span>       <span class="val">Sr PM · Sr Consultant</span></div>
+        <div class="t-line"><span class="label">company</span>    <span class="gold">Infor · APAC</span></div>
+        <div class="t-line"><span class="label">focus</span>      <span class="val">WMS · ERP · GenAI</span></div>
+        <div class="t-line"><span class="label">years</span>      <span class="val">20+</span></div>
+        <div class="t-line"><span class="label">regions</span>    <span class="val">TH · AU · KR · ID · VN · CN</span></div>
+        <div class="t-line"><span class="label">ai_cert</span>    <span class="pur">Gemini Educator ✓</span></div>
+        <div class="t-line"><span class="label">status</span>     <span class="val" style="color:var(--green)">● ACTIVE</span></div>
+      </div>
+    </div>
+
+  </div>
 </section>
 
-<!-- STATS -->
-<div class="stats-row">
-    <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-value">20+</div><div class="stat-label">Years Experience</div></div>
-    <div class="stat-card"><div class="stat-icon">🚀</div><div class="stat-value">ERP &amp; WMS</div><div class="stat-label">Project Leadership</div></div>
-    <div class="stat-card"><div class="stat-icon">🌏</div><div class="stat-value">6</div><div class="stat-label">APAC Countries</div></div>
-    <div class="stat-card"><div class="stat-icon">⚡</div><div class="stat-value">T2V</div><div class="stat-label">WMS Methodology</div></div>
-    <div class="stat-card"><div class="stat-icon">🤖</div><div class="stat-value">GenAI</div><div class="stat-label">Certified Educator</div></div>
+<!-- ══════════════════════════════════════════════
+     KPI STRIP
+══════════════════════════════════════════════════ -->
+<div class="kpi-strip">
+  <div class="kpi-grid">
+    <div class="kpi-item fade-up">
+      <div class="kpi-num" data-target="20">0</div>
+      <div class="kpi-label">Years Experience</div>
+    </div>
+    <div class="kpi-item fade-up">
+      <div class="kpi-num gold" data-text="ERP &amp; WMS">—</div>
+      <div class="kpi-label">Project Leadership</div>
+    </div>
+    <div class="kpi-item fade-up">
+      <div class="kpi-num" data-target="6">0</div>
+      <div class="kpi-label">APAC Countries</div>
+    </div>
+    <div class="kpi-item fade-up">
+      <div class="kpi-num green" data-text="T2V">—</div>
+      <div class="kpi-label">WMS Methodology</div>
+    </div>
+    <div class="kpi-item fade-up">
+      <div class="kpi-num" data-text="GenAI">—</div>
+      <div class="kpi-label">Certified Educator</div>
+    </div>
+  </div>
 </div>
 
-<!-- MAIN GRID -->
-<div class="main-grid">
+<div class="glow-line"></div>
+
+<!-- ══════════════════════════════════════════════
+     ABOUT + CAREER
+══════════════════════════════════════════════════ -->
+<section class="section" id="career">
+  <div class="container">
 
     <!-- Summary -->
-    <div class="section-card full-width">
-        <h2>⚡ Professional Summary</h2>
-        <p class="summary-text">
-            Senior Project Manager &amp; Senior Consultant with <strong>20+ years</strong> of empowering organizations through innovative technology and supply chain excellence.
-            Currently leading <strong>Infor CloudSuite Enterprise &amp; WMS projects</strong> across APAC with a focus on strategic delivery and Time to Value (T2V).
-            Deep subject matter expertise in Warehouse Management System implementations — improving processes, cost visibility, and cross-regional collaboration across
-            <strong>Australia, Korea, Indonesia, Thailand, Vietnam, and China</strong>.
-            Experienced in managing end-to-end project phases from analysis and design through go-live and hypercare, while mentoring junior consultants and aligning with client solution strategy.
-            Passionate about integrating <strong>Generative AI</strong> into modern project management and consulting practice.
-        </p>
+    <div class="fade-up" style="margin-bottom:20px;">
+      <div class="sec-label">01 // About</div>
+      <h2 class="sec-title">Professional <span class="hl">Summary</span></h2>
+    </div>
+    <div class="glass fade-up" style="margin-bottom:36px;">
+      <p class="summary">
+        Senior Project Manager &amp; Senior Consultant with <strong>20+ years</strong> of empowering organizations through innovative technology and supply chain excellence.
+        Currently leading <strong>Infor CloudSuite Enterprise &amp; WMS projects</strong> across APAC with a focus on strategic delivery and Time to Value (T2V).
+        Deep subject matter expertise in Warehouse Management System implementations — improving processes, cost visibility, and cross-regional collaboration across
+        <span class="gold">Australia, Korea, Indonesia, Thailand, Vietnam, and China</span>.
+        Experienced in managing end-to-end project phases from analysis and design through go-live and hypercare, while mentoring junior consultants.
+        Passionate about integrating <strong>Generative AI</strong> into modern project management and consulting practice.
+      </p>
     </div>
 
     <!-- Career Timeline -->
-    <div class="section-card full-width">
-        <h2>💼 Career History</h2>
-        <div class="timeline">
-            <div class="tl-item">
-                <div class="tl-left"><div class="tl-dot current"></div><div class="tl-line"></div></div>
-                <div class="tl-content">
-                    <div class="tl-title">Senior Project Manager – ERP &amp; WMS · Senior Consultant – WMS Implementation</div>
-                    <div class="tl-company">Infor · Global Professional Services</div>
-                    <div class="tl-period">Mar 2022 – Present · 4 yrs 3 mos</div>
-                    <div class="tl-desc">Lead ERP &amp; WMS projects overseeing scope, budget, and timelines. Drive WMS implementations using Industry Process Catalogue to achieve Time to Value. Deliver solutions across AU, KR, ID, TH, VN. Mentor junior consultants.</div>
-                </div>
-            </div>
-            <div class="tl-item">
-                <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
-                <div class="tl-content">
-                    <div class="tl-title">Product Implementation Manager</div>
-                    <div class="tl-company">Anchanto · Thailand</div>
-                    <div class="tl-period">Nov 2020 – Feb 2022 · 1 yr 4 mos</div>
-                    <div class="tl-desc">Drove training and seamless implementation of Anchanto Software. Engaged clients across all stages of deployment and partnered with product &amp; sales teams.</div>
-                </div>
-            </div>
-            <div class="tl-item">
-                <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
-                <div class="tl-content">
-                    <div class="tl-title">Assistant IT Manager / Project Management</div>
-                    <div class="tl-company">LF Logistics · Bangkok</div>
-                    <div class="tl-period">May 2018 – Nov 2020 · 2 yrs 7 mos</div>
-                    <div class="tl-desc">Managed 8–10 concurrent projects. IT Country Project Lead and Product Owner. Designed WMS/TMS solutions with Global IT team.</div>
-                </div>
-            </div>
-            <div class="tl-item">
-                <div class="tl-left"><div class="tl-dot scg"></div><div class="tl-line"></div></div>
-                <div class="tl-content">
-                    <div class="tl-title">Multiple Roles · 15 Years 5 Months</div>
-                    <div class="tl-company silver">SCG Logistic Management Co., Ltd.</div>
-                    <div class="tl-period">Dec 2002 – Apr 2018</div>
-                    <div class="tl-sub">
-                        <div class="tl-sub-item"><div class="tl-title">Indonesia Project Lead – Logistics &amp; Warehouse (Support President)</div><div class="tl-period">Oct 2015 – Apr 2018 · Contributed to Deming Grand Prize</div></div>
-                        <div class="tl-sub-item"><div class="tl-title">Head of Support Logistics Planning – TMS Tariff Team</div><div class="tl-period">Oct 2015 – Dec 2017 · Report to Operation Director · Bangkok</div></div>
-                        <div class="tl-sub-item"><div class="tl-title">Logistics Analyst &amp; Operation Assistant Manager</div><div class="tl-period">Apr 2012 – Sep 2015 · Led team of 80 members</div></div>
-                        <div class="tl-sub-item"><div class="tl-title">Consultant IT &amp; Logistics Planning – China Project</div><div class="tl-period">Apr 2011 – Mar 2012 · Nanning, Guangxi, China</div></div>
-                        <div class="tl-sub-item"><div class="tl-title">Senior Logistics Planner – Bulk Transportation</div><div class="tl-period">Apr 2007 – Dec 2011 · JDA TMS 6.2 &amp; SAP CS Super User</div></div>
-                        <div class="tl-sub-item"><div class="tl-title">Field Service &amp; Logistics Planner</div><div class="tl-period">Dec 2002 – Mar 2007 · Bulk import-export &amp; domestic logistics</div></div>
-                    </div>
-                </div>
-            </div>
-            <div class="tl-item">
-                <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
-                <div class="tl-content">
-                    <div class="tl-title">IT Support Specialist</div>
-                    <div class="tl-company">CDG Group Thailand · Royal Thai Police</div>
-                    <div class="tl-period">Jan 2002 – Dec 2002 · 1 yr</div>
-                </div>
-            </div>
+    <div class="fade-up" style="margin-bottom:20px;">
+      <div class="sec-label">02 // Career</div>
+      <h2 class="sec-title">Career <span class="hl">History</span></h2>
+    </div>
+    <div class="glass fade-up">
+      <div class="glass-title">Work Experience</div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot active"></div>
+          <div>
+            <div class="tl-title">Senior PM – ERP &amp; WMS · Senior Consultant – WMS</div>
+            <div class="tl-company">Infor · Global Professional Services</div>
+            <div class="tl-period">Mar 2022 – Present · 4 yrs 3 mos</div>
+            <div class="tl-desc">Lead ERP &amp; WMS projects overseeing scope, budget, and timelines. Drive WMS implementations using Industry Process Catalogue to achieve Time to Value. Deliver solutions across AU, KR, ID, TH, VN. Mentor junior consultants.</div>
+          </div>
         </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div>
+            <div class="tl-title">Product Implementation Manager</div>
+            <div class="tl-company">Anchanto · Thailand</div>
+            <div class="tl-period">Nov 2020 – Feb 2022 · 1 yr 4 mos</div>
+            <div class="tl-desc">Drove training and seamless implementation of Anchanto Software. Engaged clients across all stages of deployment and partnered with product &amp; sales teams.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div>
+            <div class="tl-title">Assistant IT Manager / Project Management</div>
+            <div class="tl-company">LF Logistics · Bangkok</div>
+            <div class="tl-period">May 2018 – Nov 2020 · 2 yrs 7 mos</div>
+            <div class="tl-desc">Managed 8–10 concurrent projects. IT Country Project Lead and Product Owner. Designed WMS/TMS solutions with Global IT team.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot silver"></div>
+          <div>
+            <div class="tl-title">Multiple Roles · 15 Years 5 Months</div>
+            <div class="tl-company silver">SCG Logistic Management Co., Ltd.</div>
+            <div class="tl-period">Dec 2002 – Apr 2018</div>
+            <div class="tl-sub">
+              <div><div class="tl-sub-title">Indonesia Project Lead – Logistics &amp; Warehouse</div><div class="tl-sub-period">Oct 2015 – Apr 2018 · Contributed to Deming Grand Prize</div></div>
+              <div><div class="tl-sub-title">Head of Support Logistics Planning – TMS Tariff Team</div><div class="tl-sub-period">Oct 2015 – Dec 2017 · Report to Operation Director</div></div>
+              <div><div class="tl-sub-title">Logistics Analyst &amp; Operation Assistant Manager</div><div class="tl-sub-period">Apr 2012 – Sep 2015 · Led team of 80 members</div></div>
+              <div><div class="tl-sub-title">Consultant IT &amp; Logistics Planning – China Project</div><div class="tl-sub-period">Apr 2011 – Mar 2012 · Nanning, Guangxi, China</div></div>
+              <div><div class="tl-sub-title">Senior Logistics Planner · Field Service &amp; Logistics</div><div class="tl-sub-period">Dec 2002 – Mar 2012 · JDA TMS 6.2 · SAP CS Super User</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot silver"></div>
+          <div>
+            <div class="tl-title">IT Support Specialist</div>
+            <div class="tl-company silver">CDG Group Thailand · Royal Thai Police</div>
+            <div class="tl-period">Jan 2002 – Dec 2002 · 1 yr</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Expertise Bars -->
-    <div class="section-card">
-        <h2>🎯 Core Expertise</h2>
-        <div class="exp-item"><div class="exp-row"><span class="exp-name">WMS / Infor WMS</span><span class="exp-pct">98%</span></div><div class="exp-bar"><div class="exp-fill" style="width:98%"></div></div></div>
-        <div class="exp-item"><div class="exp-row"><span class="exp-name">Project Management (ERP &amp; WMS)</span><span class="exp-pct">96%</span></div><div class="exp-bar"><div class="exp-fill" style="width:96%"></div></div></div>
-        <div class="exp-item"><div class="exp-row"><span class="exp-name">TMS / Logistics Planning</span><span class="exp-pct">92%</span></div><div class="exp-bar"><div class="exp-fill" style="width:92%;background:linear-gradient(90deg,#6B7FA3,#A8B8D0)"></div></div></div>
-        <div class="exp-item"><div class="exp-row"><span class="exp-name">Business Analysis &amp; Process Optimization</span><span class="exp-pct">90%</span></div><div class="exp-bar"><div class="exp-fill" style="width:90%"></div></div></div>
-        <div class="exp-item"><div class="exp-row"><span class="exp-name">System Integration / API</span><span class="exp-pct">85%</span></div><div class="exp-bar"><div class="exp-fill" style="width:85%;background:linear-gradient(90deg,#6B7FA3,#A8B8D0)"></div></div></div>
-        <div class="exp-item"><div class="exp-row"><span class="exp-name">Generative AI for PM &amp; Consulting</span><span class="exp-pct">80%</span></div><div class="exp-bar"><div class="exp-fill" style="width:80%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div></div>
+  </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ══════════════════════════════════════════════
+     SKILLS
+══════════════════════════════════════════════════ -->
+<section class="section" id="skills">
+  <div class="container">
+    <div class="fade-up" style="margin-bottom:20px;">
+      <div class="sec-label">03 // Expertise</div>
+      <h2 class="sec-title">Skills &amp; <span class="hl">Technologies</span></h2>
     </div>
 
-    <!-- Right column -->
-    <div style="display:flex;flex-direction:column;gap:18px;">
-        <div class="section-card">
-            <h2>🏭 Industry Focus</h2>
-            <div class="chart-wrap"><canvas id="industryChart"></canvas></div>
+    <div class="grid-2" style="margin-bottom:20px;">
+
+      <!-- Skill bars -->
+      <div class="glass fade-up">
+        <div class="glass-title">Core Expertise</div>
+        <div class="skill-item">
+          <div class="skill-row"><span class="skill-name">WMS / Infor WMS</span><span class="skill-pct">98%</span></div>
+          <div class="skill-track"><div class="skill-fill fill-cyan" data-w="98"></div></div>
         </div>
-        <div class="section-card">
-            <h2>🌏 APAC Coverage</h2>
-            <div class="coverage">
-                <span class="country-tag">🇹🇭 Thailand</span>
-                <span class="country-tag">🇦🇺 Australia</span>
-                <span class="country-tag">🇰🇷 Korea</span>
-                <span class="country-tag">🇮🇩 Indonesia</span>
-                <span class="country-tag">🇻🇳 Vietnam</span>
-                <span class="country-tag">🇨🇳 China</span>
-            </div>
+        <div class="skill-item">
+          <div class="skill-row"><span class="skill-name">Project Management (ERP &amp; WMS)</span><span class="skill-pct">96%</span></div>
+          <div class="skill-track"><div class="skill-fill fill-cyan" data-w="96"></div></div>
         </div>
+        <div class="skill-item">
+          <div class="skill-row"><span class="skill-name">TMS / Logistics Planning</span><span class="skill-pct">92%</span></div>
+          <div class="skill-track"><div class="skill-fill fill-gold" data-w="92"></div></div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-row"><span class="skill-name">Business Analysis &amp; Process Optimization</span><span class="skill-pct">90%</span></div>
+          <div class="skill-track"><div class="skill-fill fill-cyan" data-w="90"></div></div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-row"><span class="skill-name">System Integration / API</span><span class="skill-pct">85%</span></div>
+          <div class="skill-track"><div class="skill-fill fill-gold" data-w="85"></div></div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-row"><span class="skill-name">Generative AI for PM &amp; Consulting</span><span class="skill-pct">80%</span></div>
+          <div class="skill-track"><div class="skill-fill fill-green" data-w="80"></div></div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="glass fade-up">
+        <div class="glass-title">Industry Focus</div>
+        <div class="chart-wrap"><canvas id="industryChart"></canvas></div>
+      </div>
+
     </div>
 
-    <!-- Skills -->
-    <div class="section-card">
-        <h2>🛠 Technical Skills</h2>
-        <div class="skills-grid">
-            <span class="skill-tag highlight">Infor WMS</span>
-            <span class="skill-tag highlight">Infor CloudSuite</span>
-            <span class="skill-tag highlight">Project Management</span>
-            <span class="skill-tag ai">GenAI / Generative AI</span>
-            <span class="skill-tag ai">Gemini Certified Educator</span>
-            <span class="skill-tag">SAP / SAP CS</span>
-            <span class="skill-tag">JDA TMS 6.2</span>
-            <span class="skill-tag">SQL</span>
-            <span class="skill-tag">TMS</span>
-            <span class="skill-tag">ERP</span>
-            <span class="skill-tag">API Integration</span>
-            <span class="skill-tag">Tableau</span>
-            <span class="skill-tag">Hyperion</span>
-            <span class="skill-tag">E-commerce / Marketplace</span>
-            <span class="skill-tag">Fulfillment Operations</span>
-            <span class="skill-tag">Vendor Management</span>
-            <span class="skill-tag">Stakeholder Management</span>
-            <span class="skill-tag">UAT / Go-Live</span>
-            <span class="skill-tag">TQM / ISO / KPI</span>
-        </div>
+    <!-- Tag cloud -->
+    <div class="glass fade-up" style="margin-bottom:20px;">
+      <div class="glass-title">Technical Skills</div>
+      <div class="tags">
+        <span class="tag tag-cyan">Infor WMS</span>
+        <span class="tag tag-cyan">Infor CloudSuite</span>
+        <span class="tag tag-cyan">Project Management</span>
+        <span class="tag tag-green">GenAI / Generative AI</span>
+        <span class="tag tag-green">Gemini Certified Educator</span>
+        <span class="tag tag-gold">SAP / SAP CS</span>
+        <span class="tag tag-gold">JDA TMS 6.2</span>
+        <span class="tag tag-muted">SQL</span>
+        <span class="tag tag-muted">TMS</span>
+        <span class="tag tag-muted">ERP</span>
+        <span class="tag tag-muted">API Integration</span>
+        <span class="tag tag-muted">Tableau</span>
+        <span class="tag tag-muted">Hyperion</span>
+        <span class="tag tag-muted">E-commerce / Marketplace</span>
+        <span class="tag tag-muted">Fulfillment Operations</span>
+        <span class="tag tag-muted">Vendor Management</span>
+        <span class="tag tag-muted">Stakeholder Management</span>
+        <span class="tag tag-muted">UAT / Go-Live</span>
+        <span class="tag tag-muted">TQM / ISO / KPI</span>
+        <span class="tag tag-gold">T2V Methodology</span>
+      </div>
     </div>
 
-    <!-- Certifications -->
-    <div class="section-card">
-        <h2>🏅 Certifications &amp; Education</h2>
-        <div class="cert-list">
-            <div class="cert-item"><div class="cert-icon">🤖</div><div><div class="cert-title">Generative AI Overview for Project Managers</div><div class="cert-sub">LinkedIn Learning</div></div></div>
-            <div class="cert-item"><div class="cert-icon">🎓</div><div><div class="cert-title">Gemini Certified Educator · Digital Skills: AI</div><div class="cert-sub">Google</div></div></div>
-            <div class="cert-item"><div class="cert-icon">🏭</div><div><div class="cert-title">Infor Industry Essentials: Food &amp; Beverage – Foundation</div><div class="cert-sub">Infor</div></div></div>
-            <div class="cert-item"><div class="cert-icon">⚙️</div><div><div class="cert-title">Infor Engage End-to-End Process – Qualified</div><div class="cert-sub">Infor</div></div></div>
-            <div class="cert-item"><div class="cert-icon">📊</div><div><div class="cert-title">Data Engineering &amp; Data Science Intro (45 hrs)</div><div class="cert-sub">Khon Kaen University · 2020</div></div></div>
-            <div class="cert-item"><div class="cert-icon">🎓</div><div><div class="cert-title">Bachelor of Business Administration (BBA)</div><div class="cert-sub">Suan Sunandha Rajabhat University · 2003</div></div></div>
+    <!-- Certifications + APAC -->
+    <div class="grid-2">
+      <div class="glass fade-up">
+        <div class="glass-title">Certifications &amp; Education</div>
+        <div class="cert-item"><span class="cert-icon">🤖</span><div><div class="cert-title">Generative AI Overview for Project Managers</div><div class="cert-sub">LinkedIn Learning</div></div></div>
+        <div class="cert-item"><span class="cert-icon">🎓</span><div><div class="cert-title">Gemini Certified Educator · Digital Skills: AI</div><div class="cert-sub">Google</div></div></div>
+        <div class="cert-item"><span class="cert-icon">🏭</span><div><div class="cert-title">Infor Industry Essentials: Food &amp; Beverage</div><div class="cert-sub">Infor</div></div></div>
+        <div class="cert-item"><span class="cert-icon">⚙️</span><div><div class="cert-title">Infor Engage End-to-End Process – Qualified</div><div class="cert-sub">Infor</div></div></div>
+        <div class="cert-item"><span class="cert-icon">📊</span><div><div class="cert-title">Data Engineering &amp; Data Science Intro (45 hrs)</div><div class="cert-sub">Khon Kaen University · 2020</div></div></div>
+        <div class="cert-item"><span class="cert-icon">🎓</span><div><div class="cert-title">Bachelor of Business Administration (BBA)</div><div class="cert-sub">Suan Sunandha Rajabhat University · 2003</div></div></div>
+      </div>
+      <div class="glass fade-up">
+        <div class="glass-title">APAC Coverage</div>
+        <div class="country-grid">
+          <span class="country">🇹🇭 Thailand</span>
+          <span class="country">🇦🇺 Australia</span>
+          <span class="country">🇰🇷 Korea</span>
+          <span class="country">🇮🇩 Indonesia</span>
+          <span class="country">🇻🇳 Vietnam</span>
+          <span class="country">🇨🇳 China</span>
         </div>
+
+        <!-- Mini terminal for Infor stack -->
+        <div style="margin-top:20px;">
+          <div class="glass-title" style="margin-top:0;">Tech Stack</div>
+          <div class="terminal" style="line-height:1.8;">
+            <div class="t-line"><span class="label">WMS</span>   <span class="val">Infor WMS · JDA TMS</span></div>
+            <div class="t-line"><span class="label">ERP</span>   <span class="val">Infor M3 · SAP CS</span></div>
+            <div class="t-line"><span class="label">AI</span>    <span class="pur">Gemini · Claude · ChatGPT</span></div>
+            <div class="t-line"><span class="label">Data</span>  <span class="val">SQL · Tableau · Hyperion</span></div>
+            <div class="t-line"><span class="label">Infra</span> <span class="val">Cloud · API · Integration</span></div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Contact -->
-    <div class="section-card full-width">
-        <h2>📬 Contact</h2>
-        <div class="contact-grid">
-            <div class="contact-item">✉️ &nbsp;rukphonp@gmail.com</div>
-            <div class="contact-item">📍 &nbsp;Bangkok Metropolitan Area · APAC</div>
-            <div class="contact-item">🔗 &nbsp;<a href="https://www.linkedin.com/in/rukphong" target="_blank">linkedin.com/in/rukphong</a></div>
-            <div class="contact-item">🌐 &nbsp;English (Professional) · Thai</div>
-        </div>
+  </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ══════════════════════════════════════════════
+     CONTACT
+══════════════════════════════════════════════════ -->
+<section class="section" id="contact">
+  <div class="container">
+    <div class="fade-up" style="margin-bottom:20px;">
+      <div class="sec-label">04 // Contact</div>
+      <h2 class="sec-title">Get In <span class="hl">Touch</span></h2>
     </div>
+    <div class="glass fade-up">
+      <div class="glass-title">Contact Information</div>
+      <div class="contact-grid">
+        <div class="contact-item"><span class="ci-icon">✉️</span> <a href="mailto:rukphonp@gmail.com">rukphonp@gmail.com</a></div>
+        <div class="contact-item"><span class="ci-icon">📍</span> Bangkok Metropolitan Area · APAC</div>
+        <div class="contact-item"><span class="ci-icon">🔗</span> <a href="https://www.linkedin.com/in/rukphong" target="_blank">linkedin.com/in/rukphong</a></div>
+        <div class="contact-item"><span class="ci-icon">🌐</span> English (Professional) · Thai (Native)</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-</div>
+<footer>
+  <span>$ rukphong.dev</span> &nbsp;·&nbsp;
+  Senior Project Manager ERP &amp; WMS | WMS Implementation Expert &nbsp;·&nbsp;
+  <span>Infor APAC</span> &nbsp;·&nbsp; © 2026
+</footer>
 
-<footer>© 2026 Rukphong Pullaoy &nbsp;·&nbsp; Senior Project Manager ERP &amp; WMS | Senior Consultant | WMS Implementation Expert &nbsp;·&nbsp; Infor APAC</footer>
+</div><!-- /page -->
 
+<!-- ══════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════ -->
 <script>
-    new Chart(document.getElementById('industryChart').getContext('2d'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Logistics & 3PL', 'E-commerce / Fulfillment', 'Manufacturing / Cement', 'Food & Beverage', 'Retail'],
-            datasets: [{
-                data: [38, 22, 20, 12, 8],
-                backgroundColor: ['#B8963E','#D4AF5A','#6B7FA3','#A8B8D0','#4a5a7a'],
-                borderWidth: 0, hoverOffset: 5,
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false, cutout: '68%',
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: { color: '#6B7FA3', font: { size: 11, family: 'Inter' }, boxWidth: 10, padding: 10 }
-                }
-            }
-        }
+/* ── 1. Particle network background ───────────────────────────── */
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, pts;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    init();
+  }
+
+  function init() {
+    const N = Math.floor((W * H) / 14000);
+    pts = Array.from({length: N}, () => ({
+      x:  Math.random() * W,
+      y:  Math.random() * H,
+      vx: (Math.random() - .5) * .4,
+      vy: (Math.random() - .5) * .4,
+      r:  Math.random() * 1.5 + .5,
+    }));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid lines (circuit board feel)
+    ctx.strokeStyle = 'rgba(0,180,255,0.025)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 80) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 80) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+    // Move
+    pts.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
     });
+
+    // Connections
+    for (let i = 0; i < pts.length; i++) {
+      for (let j = i+1; j < pts.length; j++) {
+        const dx = pts[i].x - pts[j].x;
+        const dy = pts[i].y - pts[j].y;
+        const d  = Math.sqrt(dx*dx + dy*dy);
+        if (d < 130) {
+          ctx.strokeStyle = `rgba(0,180,255,${(1 - d/130) * 0.18})`;
+          ctx.lineWidth = .7;
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[j].x, pts[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Dots
+    pts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(0,200,255,0.55)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+})();
+
+/* ── 2. Typing effect ─────────────────────────────────────────── */
+(function() {
+  const el     = document.getElementById('typed-name');
+  const cursor = document.getElementById('cursor');
+  const words  = ['Pullaoy', 'Senior PM', 'WMS Expert', 'APAC Lead', 'Pullaoy'];
+  let wi = 0, ci = 0, deleting = false;
+
+  function type() {
+    const word = words[wi];
+    if (!deleting) {
+      el.textContent = word.slice(0, ++ci);
+      if (ci === word.length) {
+        if (wi === words.length - 1) { cursor.style.display = 'none'; return; }
+        setTimeout(() => { deleting = true; type(); }, 2200);
+        return;
+      }
+    } else {
+      el.textContent = word.slice(0, --ci);
+      if (ci === 0) { deleting = false; wi++; }
+    }
+    setTimeout(type, deleting ? 55 : 90);
+  }
+  setTimeout(type, 900);
+})();
+
+/* ── 3. Counter animation ─────────────────────────────────────── */
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target);
+  if (isNaN(target)) { el.textContent = el.dataset.text || el.textContent; return; }
+  const suffix = target >= 20 ? '+' : '';
+  let start = 0;
+  const step = Math.ceil(target / 40);
+  const id = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = start + suffix;
+    if (start >= target) clearInterval(id);
+  }, 35);
+}
+
+/* ── 4. Intersection Observer (fade-up + skill bars + counters) ─ */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    el.classList.add('visible');
+
+    // Skill fills
+    el.querySelectorAll('.skill-fill[data-w]').forEach(bar => {
+      bar.style.width = bar.dataset.w + '%';
+    });
+
+    // Counters inside kpi-item
+    el.querySelectorAll('[data-target],[data-text]').forEach(c => {
+      if (c.dataset.text) { c.textContent = c.dataset.text; }
+      else animateCounter(c);
+    });
+
+    io.unobserve(el);
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+
+/* ── 5. Chart.js industry donut ──────────────────────────────── */
+new Chart(document.getElementById('industryChart').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Logistics & 3PL', 'E-commerce / Fulfillment', 'Manufacturing', 'Food & Beverage', 'Retail'],
+    datasets: [{
+      data: [38, 22, 20, 12, 8],
+      backgroundColor: ['#00c8ff','#7c3aed','#f0b429','#00ff88','#5880a8'],
+      borderWidth: 0,
+      hoverOffset: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '70%',
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          color: '#5880a8',
+          font: { size: 11, family: 'Inter' },
+          boxWidth: 8,
+          padding: 12,
+        }
+      }
+    }
+  }
+});
 </script>
 </body>
 </html>
