@@ -19,7 +19,8 @@ from services import sheets_service as sheets
 from services import data_service as data_svc
 
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID", "")
-GS_SCRIPT_URL  = os.getenv("GS_SCRIPT_URL", "")   # Apps Script URL (GitHub Pages)
+GS_SCRIPT_URL  = os.getenv("GS_SCRIPT_URL", "")
+GEMINI_KEY     = os.getenv("GEMINI_API_KEY", "")
 
 # Status mapping: LINE label → data model key
 _STATUS_MAP = {
@@ -121,6 +122,13 @@ def handle_text(user_id: str, display_name: str, text: str) -> list:
         except ValueError:
             pass
 
+    # ── Smart Classify (Gemini) — ข้อความยาว / บันทึกประชุม ──────────────────
+    _SMART_TRIGGERS = re.compile(
+        r'^(?:วิเคราะห์|analyze|ประชุม|meeting|สรุป|todo list|action item)', re.I)
+    if len(text) > 120 or _SMART_TRIGGERS.match(lower):
+        reply = _smart_classify(text, lang)
+        return [TextMessage(text=reply)]
+
     return [lm.main_menu(t("greeting", lang, name=display_name), lang)]
 
 
@@ -218,6 +226,117 @@ def _post_gs_async(action: str, record: dict):
         except Exception as e:
             print(f"[GS.{action}] {e}")
     threading.Thread(target=_post, daemon=True).start()
+
+
+def _smart_classify(text: str, lang: str) -> str:
+    """Call Gemini to classify text → save tasks/expenses/notes → return reply."""
+    import datetime
+
+    if not GEMINI_KEY:
+        # No key → save as note
+        record = {
+            "id": str(int(time.time() * 1000)),
+            "date": datetime.date.today().isoformat(),
+            "title": text[:60] + ("…" if len(text) > 60 else ""),
+            "content": text,
+            "category": "นำเข้า",
+        }
+        try:
+            data_svc.save_note(record)
+        except Exception:
+            pass
+        title = record["title"]
+        return (f"📝 บันทึกเป็นโน้ต\n\"{title}\"\n\n"
+                "(ตั้งค่า GEMINI_API_KEY เพื่อจำแนกอัตโนมัติ)")
+
+    prompt = (
+        "วิเคราะห์ข้อความต่อไปนี้และจัดหมวดหมู่เป็น JSON เท่านั้น:\n\n"
+        f'"{text[:3000]}"\n\n'
+        '{"tasks":[{"title":"...","priority":"high|medium|low","due":"YYYY-MM-DD หรือ blank"}],'
+        '"expenses":[{"amount":0,"category":"อาหาร/เครื่องดื่ม|เดินทาง|ช้อปปิ้ง|สุขภาพ|อื่นๆ","notes":"..."}],'
+        '"notes":[{"title":"...","content":"...","category":"..."}]}\n\n'
+        "tasks=action items, expenses=รายจ่ายที่มีตัวเลข, notes=สรุป/บันทึก. "
+        "priority: high=ด่วน, medium=ปกติ, low=ไม่เร่งด่วน. ถ้าไม่มีประเภทใดใส่[]"
+    )
+    url = (f"https://generativelanguage.googleapis.com/v1beta/"
+           f"models/gemini-1.5-flash:generateContent?key={GEMINI_KEY}")
+    today = datetime.date.today().isoformat()
+
+    try:
+        resp = requests.post(url, json={
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 1024},
+        }, timeout=20)
+        if resp.status_code != 200:
+            raise ValueError(f"Gemini HTTP {resp.status_code}")
+        raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        import re as _re
+        jm = _re.search(r'\{[\s\S]*\}', raw)
+        if not jm:
+            raise ValueError("No JSON in response")
+        classified = json.loads(jm.group())
+    except Exception as e:
+        print(f"[SmartClassify] {e}")
+        # fallback → save as note
+        rec = {"id": str(int(time.time()*1000)), "date": today,
+               "title": text[:60]+"…", "content": text, "category": "นำเข้า"}
+        try: data_svc.save_note(rec)
+        except Exception: pass
+        return f"📝 บันทึกเป็นโน้ต\n\"{rec['title']}\""
+
+    tasks    = classified.get("tasks", [])
+    expenses = classified.get("expenses", [])
+    notes    = classified.get("notes", [])
+    st, se, sn = 0, 0, 0
+
+    for tk in tasks:
+        if not tk.get("title"): continue
+        try:
+            data_svc.save_task({"id": str(int(time.time()*1000)), "date": today,
+                "title": tk["title"], "priority": tk.get("priority","medium"),
+                "status": "todo", "due": tk.get("due",""), "notes": ""})
+            st += 1
+        except Exception: pass
+
+    for ex in expenses:
+        amt = float(ex.get("amount", 0) or 0)
+        if amt <= 0: continue
+        try:
+            data_svc.save_expense({"id": str(int(time.time()*1000)), "date": today,
+                "amount": amt, "category": ex.get("category","อื่นๆ"),
+                "payment": "", "notes": ex.get("notes","")})
+            se += 1
+        except Exception: pass
+
+    for n in notes:
+        if not n.get("content") and not n.get("title"): continue
+        try:
+            data_svc.save_note({"id": str(int(time.time()*1000)), "date": today,
+                "title": n.get("title") or (n.get("content",""))[:60],
+                "content": n.get("content",""), "category": n.get("category","นำเข้า")})
+            sn += 1
+        except Exception: pass
+
+    if not st and not se and not sn:
+        rec = {"id": str(int(time.time()*1000)), "date": today,
+               "title": text[:60]+"…", "content": text, "category": "นำเข้า"}
+        try: data_svc.save_note(rec)
+        except Exception: pass
+        return f"📝 บันทึกเป็นโน้ต\n\"{rec['title']}\""
+
+    reply = "🤖 วิเคราะห์เสร็จแล้ว!\n"
+    if st:
+        reply += f"\n✅ งาน {st} รายการ:\n"
+        reply += "\n".join(f"  • {t['title']}" + (" 🔴" if t.get("priority")=="high" else "")
+                           for t in tasks[:5])
+    if se:
+        reply += f"\n\n💰 รายจ่าย {se} รายการ:\n"
+        reply += "\n".join(f"  • ฿{float(e['amount']):,.0f} {e.get('category','')}"
+                           for e in expenses[:3])
+    if sn:
+        reply += f"\n\n📝 โน้ต {sn} รายการ:\n"
+        reply += "\n".join(f"  • {n.get('title','…')}" for n in notes[:3])
+    return reply
 
 
 def _recent_expenses(lang: str) -> object:
