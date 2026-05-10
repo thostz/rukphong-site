@@ -263,21 +263,32 @@ def _smart_classify(text: str, lang: str) -> str:
            f"models/gemini-2.0-flash:generateContent?key={GEMINI_KEY}")
     today = datetime.date.today().isoformat()
 
-    try:
-        resp = requests.post(url, json={
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 1024},
-        }, timeout=20)
-        if resp.status_code != 200:
-            raise ValueError(f"Gemini HTTP {resp.status_code}")
-        raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
-        import re as _re
-        jm = _re.search(r'\{[\s\S]*\}', raw)
-        if not jm:
-            raise ValueError("No JSON in response")
-        classified = json.loads(jm.group())
-    except Exception as e:
-        print(f"[SmartClassify] {e}")
+    classified = None
+    for attempt in range(3):
+        try:
+            resp = requests.post(url, json={
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.1, "maxOutputTokens": 1024},
+            }, timeout=25)
+            if resp.status_code == 429:
+                wait = 20 * (attempt + 1)
+                print(f"[SmartClassify] 429 quota — retry {attempt+1}/3 in {wait}s")
+                time.sleep(wait)
+                continue
+            if resp.status_code != 200:
+                raise ValueError(f"Gemini HTTP {resp.status_code}")
+            raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+            jm = re.search(r'\{[\s\S]*\}', raw)
+            if not jm:
+                raise ValueError("No JSON in response")
+            classified = json.loads(jm.group())
+            break
+        except Exception as e:
+            print(f"[SmartClassify] attempt {attempt+1}: {e}")
+            if attempt < 2:
+                time.sleep(10)
+
+    if classified is None:
         # fallback → save as note
         rec = {"id": str(int(time.time()*1000)), "date": today,
                "title": text[:60]+"…", "content": text, "category": "นำเข้า"}

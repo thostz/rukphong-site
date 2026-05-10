@@ -172,22 +172,33 @@ def _gemini_ocr(img_b64: str, mime: str, gemini_key: str) -> dict | None:
         "generationConfig": {"temperature": 0.1, "maxOutputTokens": 512},
     }
 
-    try:
-        resp = requests.post(url, json=payload, timeout=25)
-        if resp.status_code != 200:
-            print(f"[SlipHandler] Gemini Vision error {resp.status_code}: {resp.text[:300]}")
-            return None
+    for attempt in range(3):
+        try:
+            resp = requests.post(url, json=payload, timeout=30)
 
-        raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
-        jm = re.search(r'\{[\s\S]*\}', raw)
-        if not jm:
-            print(f"[SlipHandler] No JSON in Gemini response: {raw[:200]}")
-            return None
-        return json.loads(jm.group())
+            if resp.status_code == 429:
+                wait = 20 * (attempt + 1)  # 20s, 40s, 60s
+                print(f"[SlipHandler] Gemini 429 quota — retry {attempt+1}/3 in {wait}s")
+                time.sleep(wait)
+                continue
 
-    except Exception as e:
-        print(f"[SlipHandler] Gemini OCR error: {e}")
-        return None
+            if resp.status_code != 200:
+                print(f"[SlipHandler] Gemini Vision error {resp.status_code}: {resp.text[:300]}")
+                return None
+
+            raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+            jm = re.search(r'\{[\s\S]*\}', raw)
+            if not jm:
+                print(f"[SlipHandler] No JSON in Gemini response: {raw[:200]}")
+                return None
+            return json.loads(jm.group())
+
+        except Exception as e:
+            print(f"[SlipHandler] Gemini OCR error (attempt {attempt+1}): {e}")
+            if attempt < 2:
+                time.sleep(10)
+
+    return None
 
 
 def _parse_date(date_str: str) -> str | None:

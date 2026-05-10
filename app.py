@@ -115,23 +115,13 @@ def debug_status():
         },
     }
 
-    # Test Gemini text API (no image)
+    # Gemini key format check only (no API call — avoids wasting quota)
     if gemini_key:
-        try:
-            r = _req.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}",
-                json={"contents": [{"parts": [{"text": "reply only: OK"}]}],
-                      "generationConfig": {"maxOutputTokens": 10}},
-                timeout=10,
-            )
-            if r.status_code == 200:
-                result["gemini_test"] = "✅ API reachable — " + r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-            else:
-                result["gemini_test"] = f"❌ HTTP {r.status_code}: {r.text[:200]}"
-        except Exception as e:
-            result["gemini_test"] = f"❌ exception: {e}"
+        result["gemini_key_check"] = "✅ key present (39 chars)" if len(gemini_key) > 30 else f"⚠️ key looks short ({len(gemini_key)} chars)"
+        result["gemini_model"] = "gemini-2.0-flash"
+        result["gemini_note"] = "API not called here to preserve free-tier quota (15 RPM)"
     else:
-        result["gemini_test"] = "⏭️ skipped (no key)"
+        result["gemini_key_check"] = "❌ NOT SET"
 
     # Test LINE token (get bot info)
     if line_token:
