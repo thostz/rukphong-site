@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Route incoming LINE text messages → list[Message]."""
 
 import os

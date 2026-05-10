@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Slip OCR handler for Render/Flask LINE webhook.
 
