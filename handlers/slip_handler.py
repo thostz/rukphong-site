@@ -4,7 +4,7 @@ Slip OCR handler for Render/Flask LINE webhook.
 
 Flow:
   1. Download image from LINE Content API
-  2. If GEMINI_API_KEY is set → use Gemini Vision (gemini-1.5-flash) to read slip
+  2. If GEMINI_API_KEY is set → use Gemini Vision (gemini-2.0-flash) to read slip
      Otherwise → reply with manual entry prompt
   3. Parse amount + category + date from Gemini response
   4. Save to PostgreSQL via data_service
@@ -160,7 +160,7 @@ def _gemini_ocr(img_b64: str, mime: str, gemini_key: str) -> dict | None:
 
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/"
-        f"models/gemini-1.5-flash:generateContent?key={gemini_key}"
+        f"models/gemini-2.0-flash:generateContent?key={gemini_key}"
     )
     payload = {
         "contents": [{

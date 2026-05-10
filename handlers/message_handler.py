@@ -260,7 +260,7 @@ def _smart_classify(text: str, lang: str) -> str:
         "priority: high=ด่วน, medium=ปกติ, low=ไม่เร่งด่วน. ถ้าไม่มีประเภทใดใส่[]"
     )
     url = (f"https://generativelanguage.googleapis.com/v1beta/"
-           f"models/gemini-1.5-flash:generateContent?key={GEMINI_KEY}")
+           f"models/gemini-2.0-flash:generateContent?key={GEMINI_KEY}")
     today = datetime.date.today().isoformat()
 
     try:
