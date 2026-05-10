@@ -95,6 +95,65 @@ def health():
     return {"status": "ok"}, 200
 
 
+@app.route("/debug", methods=["GET"])
+def debug_status():
+    """Diagnostic endpoint — check env vars + test Gemini API."""
+    import requests as _req, sys
+
+    gemini_key  = os.getenv("GEMINI_API_KEY", "")
+    line_token  = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "")
+    line_secret = os.getenv("LINE_CHANNEL_SECRET", "")
+    gs_url      = os.getenv("GS_SCRIPT_URL", "")
+
+    result = {
+        "python_version": sys.version,
+        "env": {
+            "GEMINI_API_KEY":            "✅ set" if gemini_key  else "❌ NOT SET",
+            "LINE_CHANNEL_ACCESS_TOKEN": "✅ set" if line_token  else "❌ NOT SET",
+            "LINE_CHANNEL_SECRET":       "✅ set" if line_secret else "❌ NOT SET",
+            "GS_SCRIPT_URL":             "✅ set" if gs_url      else "⚠️ not set (optional)",
+        },
+    }
+
+    # Test Gemini text API (no image)
+    if gemini_key:
+        try:
+            r = _req.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}",
+                json={"contents": [{"parts": [{"text": "reply only: OK"}]}],
+                      "generationConfig": {"maxOutputTokens": 10}},
+                timeout=10,
+            )
+            if r.status_code == 200:
+                result["gemini_test"] = "✅ API reachable — " + r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            else:
+                result["gemini_test"] = f"❌ HTTP {r.status_code}: {r.text[:200]}"
+        except Exception as e:
+            result["gemini_test"] = f"❌ exception: {e}"
+    else:
+        result["gemini_test"] = "⏭️ skipped (no key)"
+
+    # Test LINE token (get bot info)
+    if line_token:
+        try:
+            r = _req.get(
+                "https://api.line.me/v2/bot/info",
+                headers={"Authorization": f"Bearer {line_token}"},
+                timeout=8,
+            )
+            if r.status_code == 200:
+                info = r.json()
+                result["line_bot_info"] = f"✅ Bot: {info.get('displayName','?')} | {info.get('basicId','?')}"
+            else:
+                result["line_bot_info"] = f"❌ HTTP {r.status_code}: {r.text[:200]}"
+        except Exception as e:
+            result["line_bot_info"] = f"❌ exception: {e}"
+    else:
+        result["line_bot_info"] = "⏭️ skipped (no token)"
+
+    return jsonify(result)
+
+
 @app.route("/theme-preview", methods=["GET"])
 def theme_preview():
     return send_from_directory(".", "theme-preview.html")

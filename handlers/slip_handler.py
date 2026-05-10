@@ -38,26 +38,30 @@ def process(message_id: str, user_id: str) -> str:
     gemini_key = os.getenv("GEMINI_API_KEY", "")
     line_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "")
 
+    print(f"[SlipHandler] process() — gemini_key={'SET' if gemini_key else 'MISSING'}, line_token={'SET' if line_token else 'MISSING'}, msg_id={message_id}")
+
     if not gemini_key:
         return (
-            "📸 ได้รับรูปแล้ว!\n\n"
-            "หากเป็น Slip ให้พิมพ์คำสั่งด้วยตนเอง:\n"
-            "จ่าย [จำนวน] [หมวด]\n\n"
-            "ตัวอย่าง:\nจ่าย 350 อาหาร\nจ่าย 120 เดินทาง\n\n"
-            "(ตั้งค่า GEMINI_API_KEY เพื่อเปิดใช้งาน Slip OCR อัตโนมัติ)"
+            "⚠️ [DEBUG] GEMINI_API_KEY ยังไม่ได้ตั้งค่าบน Render\n\n"
+            "วิธีแก้: Render Dashboard → Environment → เพิ่ม GEMINI_API_KEY\n\n"
+            "หรือพิมพ์:\nจ่าย [จำนวน] [หมวด]\nเช่น: จ่าย 350 อาหาร"
         )
 
     try:
         img_b64, mime = _download_image(message_id, line_token)
         if not img_b64:
-            return "❌ ไม่สามารถดาวน์โหลดรูปได้ กรุณาลองใหม่"
+            return (
+                "⚠️ [DEBUG] ดาวน์โหลดรูปจาก LINE ไม่ได้\n"
+                f"token={'SET' if line_token else 'MISSING'}\n"
+                "ตรวจสอบ LINE_CHANNEL_ACCESS_TOKEN บน Render"
+            )
 
         result = _gemini_ocr(img_b64, mime, gemini_key)
         if not result:
             return (
-                "❌ อ่านข้อมูลจากรูปไม่ได้\n\n"
-                "กรุณาพิมพ์:\nจ่าย [จำนวน] [หมวด]\n\n"
-                "เช่น: จ่าย 350 อาหาร"
+                "⚠️ [DEBUG] Gemini อ่านรูปไม่ได้\n"
+                f"mime={mime} | img_size={len(img_b64)} chars\n"
+                "ตรวจสอบ log บน Render ว่ามี Gemini error อะไร"
             )
 
         amount   = result.get("amount", 0)
@@ -111,8 +115,8 @@ def process(message_id: str, user_id: str) -> str:
         return reply
 
     except Exception as e:
-        print(f"[SlipHandler] {e}")
-        return f"❌ เกิดข้อผิดพลาด: {e}"
+        print(f"[SlipHandler] EXCEPTION: {e}")
+        return f"⚠️ [DEBUG] Exception: {e}"
 
 
 # ── Internals ─────────────────────────────────────────────────────────────────
