@@ -65,7 +65,9 @@
         .hero-role { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 7px; }
         .role-badge {
             font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 4px; letter-spacing: 0.3px;
+            text-decoration: none; cursor: pointer; transition: opacity .18s;
         }
+        .role-badge:hover { opacity: 0.75; }
         .role-badge.pm   { background: rgba(184,150,62,0.1); color: #8A6E28; border: 1px solid rgba(184,150,62,0.3); }
         .role-badge.cons { background: rgba(90,110,140,0.08); color: var(--silver); border: 1px solid rgba(90,110,140,0.2); }
         .role-badge.infor{ background: #1A2340; color: #D4AF5A; border: 1px solid rgba(184,150,62,0.3); }

@@ -121,6 +121,30 @@
   /* ── CHART ── */
   .chart-wrap { height: 170px; position: relative; }
 
+  /* ── ROLE BADGES ── */
+  .role-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+  .role-chip {
+    font-size: 0.72rem; font-weight: 700; padding: 4px 11px; border-radius: 4px;
+    text-decoration: none; cursor: pointer; transition: opacity .18s; white-space: nowrap;
+  }
+  .role-chip:hover { opacity: 0.75; }
+  .role-chip.pm    { background: rgba(184,150,62,0.1);  color: #8A6E28; border: 1px solid rgba(184,150,62,0.3); }
+  .role-chip.cons  { background: rgba(90,110,140,0.08); color: #6B7FA3; border: 1px solid rgba(90,110,140,0.2); }
+  .role-chip.infor { background: #1A2340; color: #D4AF5A; border: 1px solid rgba(184,150,62,0.3); }
+  .role-chip.ai    { background: rgba(16,185,129,0.08); color: #0d9268; border: 1px solid rgba(16,185,129,0.2); }
+
+  /* ── CLAUDE TOKEN ── */
+  .kpi-card.teal   { border-top-color: #10b981; }
+  .kpi-card.teal   .kpi-value { color: #10b981; }
+  .kpi-card.teal   .kpi-sub   { color: #10b981; }
+  .token-period-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tok-tab { font-size: 0.7rem; font-weight: 700; padding: 4px 12px; border-radius: 99px; cursor: pointer; border: 1px solid rgba(16,185,129,0.3); color: #10b981; background: transparent; transition: all .15s; }
+  .tok-tab.active { background: #10b981; color: #fff; border-color: #10b981; }
+  .tok-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+  .tok-stat { background: #F8FAFC; border-radius: 8px; padding: 8px 10px; text-align: center; }
+  .tok-stat-val { font-size: 1rem; font-weight: 800; color: #10b981; }
+  .tok-stat-lbl { font-size: 0.65rem; font-weight: 600; color: #8898AA; text-transform: uppercase; margin-top: 2px; }
+
   /* ── UTILS ── */
   .empty   { text-align: center; padding: 24px 0; color: #8898AA; font-size: 0.82rem; }
   .loading { text-align: center; padding: 20px 0; color: #B8963E; font-size: 0.82rem; }
@@ -165,6 +189,12 @@
     <div class="kpi-value" id="kpiInvVal">—</div>
     <div class="kpi-label">Portfolio Value</div>
     <div class="kpi-sub"   id="kpiInvGL">G/L: —</div>
+  </div>
+  <div class="kpi-card teal">
+    <div class="kpi-icon">🤖</div>
+    <div class="kpi-value" id="kpiClaudeMonth">—</div>
+    <div class="kpi-label">Claude Tokens / Month</div>
+    <div class="kpi-sub"   id="kpiClaudeToday">Today: —</div>
   </div>
 </div>
 
@@ -223,6 +253,23 @@
     <div class="feed" id="feedList"><div class="loading">⏳ Loading...</div></div>
   </div>
 
+  <div class="section-card full-width">
+    <div class="card-header">
+      <div class="card-title">🤖 Claude Token Usage</div>
+      <div style="display:flex;gap:6px;">
+        <button class="tok-tab active" onclick="setTokPeriod('week',this)">7 Days</button>
+        <button class="tok-tab"        onclick="setTokPeriod('month',this)">30 Days</button>
+        <button class="tok-tab"        onclick="setTokPeriod('all',this)">All Time</button>
+      </div>
+    </div>
+    <div class="tok-summary">
+      <div class="tok-stat"><div class="tok-stat-val" id="tokOut">—</div><div class="tok-stat-lbl">Output Tokens</div></div>
+      <div class="tok-stat"><div class="tok-stat-val" id="tokIn">—</div><div class="tok-stat-lbl">Input + Cache</div></div>
+      <div class="tok-stat"><div class="tok-stat-val" id="tokMsgs">—</div><div class="tok-stat-lbl">Turns</div></div>
+    </div>
+    <div class="chart-wrap"><canvas id="claudeChart"></canvas></div>
+  </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -261,17 +308,20 @@ async function api(url) {
 
 // ── Load All ────────────────────────────────────────────────
 async function loadAll() {
-  const [expRes, taskRes, noteRes, invRes] = await Promise.all([
+  const [expRes, taskRes, noteRes, invRes, claudeRes] = await Promise.all([
     api('/api/expenses'),
     api('/api/tasks'),
     api('/api/notes'),
     api('/api/investments'),
+    api('/api/claude-usage'),
   ]);
   renderExpenses(expRes.data || []);
   renderTasks(taskRes.data || []);
   renderNotes(noteRes.data || []);
   renderInvestments(invRes.data || []);
   renderActivity(expRes.data || [], taskRes.data || [], noteRes.data || []);
+  _claudeData = claudeRes.data || [];
+  renderClaudeUsage('week');
 }
 
 // ── Expenses ────────────────────────────────────────────────
@@ -385,6 +435,74 @@ function renderInvestments(data) {
         return `<tr><td class="inv-ticker">${r.ticker}</td><td class="inv-val">${fmtB(r.value)}</td><td class="${c}">${s}${p}%</td></tr>`;
       }).join('')}</tbody>
     </table>`;
+}
+
+// ── Claude Token Usage ────────────────────────────────────────
+let _claudeData = [];
+let _claudeChart = null;
+
+function fmtTok(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return String(n);
+}
+
+function setTokPeriod(period, btn) {
+  document.querySelectorAll('.tok-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderClaudeUsage(period);
+}
+
+function renderClaudeUsage(period) {
+  const today = new Date().toISOString().slice(0, 10);
+  const thisMonth = today.slice(0, 7);
+  let cutoff = '';
+  if (period === 'week')  { const d = new Date(); d.setDate(d.getDate() - 6); cutoff = d.toISOString().slice(0, 10); }
+  if (period === 'month') { const d = new Date(); d.setDate(d.getDate() - 29); cutoff = d.toISOString().slice(0, 10); }
+
+  const filtered = _claudeData.filter(d => !cutoff || d.date >= cutoff);
+  const totOut   = filtered.reduce((s, d) => s + d.output, 0);
+  const totIn    = filtered.reduce((s, d) => s + d.input + d.cache_read + d.cache_create, 0);
+  const totMsgs  = filtered.reduce((s, d) => s + d.messages, 0);
+
+  document.getElementById('tokOut').textContent  = fmtTok(totOut);
+  document.getElementById('tokIn').textContent   = fmtTok(totIn);
+  document.getElementById('tokMsgs').textContent = totMsgs.toLocaleString();
+
+  // KPI card — month & today
+  const monthData = _claudeData.filter(d => d.date.startsWith(thisMonth));
+  const todayData = _claudeData.find(d => d.date === today);
+  const monthOut  = monthData.reduce((s, d) => s + d.output, 0);
+  const todayOut  = todayData ? todayData.output : 0;
+  document.getElementById('kpiClaudeMonth').textContent = fmtTok(monthOut);
+  document.getElementById('kpiClaudeToday').textContent = 'Today: ' + fmtTok(todayOut);
+
+  // Chart
+  const labels    = filtered.map(d => { const [,mo,dy] = d.date.split('-'); return `${mo}/${dy}`; });
+  const outData   = filtered.map(d => d.output);
+  const cacheData = filtered.map(d => d.cache_read);
+  const inData    = filtered.map(d => d.input + d.cache_create);
+
+  if (_claudeChart) _claudeChart.destroy();
+  _claudeChart = new Chart(document.getElementById('claudeChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Output', data: outData,   backgroundColor: '#10b981', borderRadius: 4, stack: 'a' },
+        { label: 'Input',  data: inData,    backgroundColor: 'rgba(16,185,129,0.35)', borderRadius: 0, stack: 'a' },
+        { label: 'Cache',  data: cacheData, backgroundColor: 'rgba(16,185,129,0.12)', borderRadius: 0, stack: 'a' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 10 } } },
+      scales: {
+        x: { stacked: true, ticks: { font: { size: 10 } } },
+        y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 }, callback: v => fmtTok(v) } }
+      }
+    }
+  });
 }
 
 // ── Activity ──────────────────────────────────────────────────

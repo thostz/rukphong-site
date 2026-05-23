@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -204,6 +205,11 @@ def help_page():
     return render_template("help.html")
 
 
+@app.route("/sandbox", methods=["GET"])
+def sandbox():
+    return render_template("sandbox.html")
+
+
 @app.route("/smart-import", methods=["GET"])
 def smart_import_page():
     return render_template("smart-import.html")
@@ -357,10 +363,7 @@ def api_save_expense():
     result = data.save_expense(record)
     if SPREADSHEET_ID:
         try:
-            sheets.append_expense_web(SPREADSHEET_ID,
-                date=record.get("date",""), amount=float(record.get("amount",0)),
-                category=record.get("category",""), payment=record.get("currency",""),
-                note=record.get("notes",""), user_name="Web")
+            sheets.sync_expense(SPREADSHEET_ID, {**record, "id": result["id"]})
         except Exception:
             pass
     return jsonify({"ok": True, **result})
@@ -368,6 +371,11 @@ def api_save_expense():
 @app.route("/api/expenses/<eid>", methods=["DELETE"])
 def api_delete_expense(eid):
     data.delete_expense(eid)
+    if SPREADSHEET_ID:
+        try:
+            sheets.delete_expense_sheet(SPREADSHEET_ID, eid)
+        except Exception:
+            pass
     return jsonify({"ok": True})
 
 
@@ -411,11 +419,7 @@ def api_save_task():
     result = data.save_task(record)
     if SPREADSHEET_ID:
         try:
-            sheets.append_work_web(SPREADSHEET_ID,
-                date=record.get("due",""), task=record.get("title",""),
-                client="", status=record.get("status",""),
-                priority=record.get("priority",""), due_date=record.get("due",""),
-                description="", note=record.get("notes",""), user_name="Web")
+            sheets.sync_task(SPREADSHEET_ID, {**record, "id": result["id"]})
         except Exception:
             pass
     return jsonify({"ok": True, **result})
@@ -423,6 +427,11 @@ def api_save_task():
 @app.route("/api/tasks/<tid>", methods=["DELETE"])
 def api_delete_task(tid):
     data.delete_task(tid)
+    if SPREADSHEET_ID:
+        try:
+            sheets.delete_task_sheet(SPREADSHEET_ID, tid)
+        except Exception:
+            pass
     return jsonify({"ok": True})
 
 
@@ -565,60 +574,72 @@ def api_smart_import():
             "warning": f"AI error: {e} — saved as note",
         })
 
+    import re as _re2
+    def _safe_float(v):
+        try:
+            return float(_re2.sub(r'[^\d.]', '', str(v)) or 0)
+        except (ValueError, TypeError):
+            return 0.0
+
     today_str = __import__("datetime").date.today().isoformat()
     saved_tasks, saved_expenses, saved_notes = 0, 0, 0
-    tasks    = classified.get("tasks", [])
-    expenses = classified.get("expenses", [])
-    notes    = classified.get("notes", [])
+    tasks    = classified.get("tasks", []) if isinstance(classified.get("tasks"), list) else []
+    expenses = classified.get("expenses", []) if isinstance(classified.get("expenses"), list) else []
+    notes    = classified.get("notes", []) if isinstance(classified.get("notes"), list) else []
 
-    for t in tasks:
-        if not t.get("title"): continue
-        data.save_task({
-            "id":       str(int(time.time() * 1000)),
-            "date":     today_str,
-            "title":    t["title"],
-            "priority": t.get("priority", "medium"),
-            "status":   "todo",
-            "due":      t.get("due", ""),
-            "notes":    "",
-        })
-        saved_tasks += 1
+    try:
+        for t in tasks:
+            if not t.get("title"): continue
+            data.save_task({
+                "id":       str(int(time.time() * 1000)),
+                "date":     today_str,
+                "title":    t["title"],
+                "priority": t.get("priority", "medium"),
+                "status":   "todo",
+                "due":      t.get("due", ""),
+                "notes":    "",
+            })
+            saved_tasks += 1
 
-    for e in expenses:
-        amt = float(e.get("amount", 0) or 0)
-        if amt <= 0: continue
-        data.save_expense({
-            "id":       str(int(time.time() * 1000)),
-            "date":     today_str,
-            "amount":   amt,
-            "category": e.get("category", "อื่นๆ"),
-            "payment":  "",
-            "notes":    e.get("notes", ""),
-        })
-        saved_expenses += 1
+        for e in expenses:
+            amt = _safe_float(e.get("amount", 0) or 0)
+            if amt <= 0: continue
+            data.save_expense({
+                "id":       str(int(time.time() * 1000)),
+                "date":     today_str,
+                "amount":   amt,
+                "category": e.get("category", "อื่นๆ"),
+                "payment":  "",
+                "notes":    e.get("notes", ""),
+            })
+            saved_expenses += 1
 
-    for n in notes:
-        if not n.get("content") and not n.get("title"): continue
-        data.save_note({
-            "id":       str(int(time.time() * 1000)),
-            "date":     today_str,
-            "title":    n.get("title") or (n.get("content") or "")[:60],
-            "content":  n.get("content", ""),
-            "category": n.get("category", "นำเข้า"),
-        })
-        saved_notes += 1
+        for n in notes:
+            if not n.get("content") and not n.get("title"): continue
+            data.save_note({
+                "id":       str(int(time.time() * 1000)),
+                "date":     today_str,
+                "title":    n.get("title") or (n.get("content") or "")[:60],
+                "content":  n.get("content", ""),
+                "category": n.get("category", "นำเข้า"),
+            })
+            saved_notes += 1
 
-    if not saved_tasks and not saved_expenses and not saved_notes:
-        record = {
-            "id":       str(int(time.time() * 1000)),
-            "date":     today_str,
-            "title":    text[:60] + ("…" if len(text) > 60 else ""),
-            "content":  text,
-            "category": "นำเข้า",
-        }
-        data.save_note(record)
-        saved_notes = 1
-        notes = [record]
+        if not saved_tasks and not saved_expenses and not saved_notes:
+            record = {
+                "id":       str(int(time.time() * 1000)),
+                "date":     today_str,
+                "title":    text[:60] + ("…" if len(text) > 60 else ""),
+                "content":  text,
+                "category": "นำเข้า",
+            }
+            data.save_note(record)
+            saved_notes = 1
+            notes = [record]
+
+    except Exception as save_err:
+        print(f"[SmartImport Save] {save_err}")
+        return jsonify({"ok": False, "error": f"บันทึกข้อมูลล้มเหลว: {save_err}"}), 500
 
     return jsonify({
         "ok": True,
@@ -639,6 +660,228 @@ def api_get_targets(pid):
 def api_save_targets(pid):
     d = request.json or {}
     data.save_targets(pid, d)
+    return jsonify({"ok": True})
+
+
+# ── SYNC API ──────────────────────────────────────────────────────────────────
+
+@app.route("/api/sync/push", methods=["POST"])
+def api_sync_push():
+    """Push all SQLite data → Google Sheets."""
+    if not SPREADSHEET_ID:
+        return jsonify({"ok": False, "error": "SPREADSHEET_ID not set"}), 500
+    try:
+        counts = sheets.push_all(SPREADSHEET_ID, data)
+        return jsonify({"ok": True, "pushed": counts})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/sync/pull", methods=["POST"])
+def api_sync_pull():
+    """Pull new rows from Google Sheets → SQLite (skips existing IDs)."""
+    if not SPREADSHEET_ID:
+        return jsonify({"ok": False, "error": "SPREADSHEET_ID not set"}), 500
+    try:
+        counts = sheets.pull_all(SPREADSHEET_ID, data)
+        return jsonify({"ok": True, "imported": counts})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/sync/init", methods=["POST"])
+def api_sync_init():
+    """Create all sheet tabs with correct headers if they don't exist."""
+    if not SPREADSHEET_ID:
+        return jsonify({"ok": False, "error": "SPREADSHEET_ID not set"}), 500
+    try:
+        sheets.init_sheets(SPREADSHEET_ID)
+        return jsonify({"ok": True, "message": "Sheets initialized"})
+    except Exception as e:
+        app.logger.error("sync/init failed: %s", e, exc_info=True)
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ── CLAUDE USAGE API ──────────────────────────────────────────────────────────
+
+@app.route("/api/claude-usage", methods=["GET"])
+def api_claude_usage():
+    import glob
+    from collections import defaultdict
+
+    claude_dir = os.path.expanduser("~/.claude/projects")
+    by_day = defaultdict(lambda: {"input": 0, "output": 0, "cache_read": 0, "cache_create": 0, "messages": 0})
+
+    for jsonl_path in glob.glob(os.path.join(claude_dir, "**", "*.jsonl"), recursive=True):
+        try:
+            with open(jsonl_path, encoding="utf-8") as f:
+                for line in f:
+                    obj = json.loads(line)
+                    if obj.get("type") != "assistant":
+                        continue
+                    msg = obj.get("message", {})
+                    usage = msg.get("usage")
+                    if not usage:
+                        continue
+                    ts = obj.get("timestamp", "")
+                    day = ts[:10] if ts else "unknown"
+                    by_day[day]["input"]        += usage.get("input_tokens", 0)
+                    by_day[day]["output"]       += usage.get("output_tokens", 0)
+                    by_day[day]["cache_read"]   += usage.get("cache_read_input_tokens", 0)
+                    by_day[day]["cache_create"] += usage.get("cache_creation_input_tokens", 0)
+                    by_day[day]["messages"]     += 1
+        except Exception:
+            pass
+
+    result = [{"date": d, **by_day[d]} for d in sorted(by_day.keys())]
+    return jsonify({"ok": True, "data": result})
+
+
+# ── SANDBOX API ───────────────────────────────────────────────────────────────
+
+import time as _time
+import platform as _platform
+
+_SANDBOX_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_MEMORY_PATH  = r"\\wsl.localhost\Ubuntu\home\rukphong\.claude\projects\-mnt-c-Users-U939-OneDrive-Desktop-Sandbox\memory"
+
+_SKIP_DIRS = {".git", "__pycache__", "node_modules", ".claude",
+              "kind-grothendieck-0b547e", "practical-agnesi-e5afd8", ".venv", "venv"}
+_SKIP_EXTS = {".pyc", ".pyo", ".db-wal", ".db-shm", ".db-journal"}
+
+
+def _build_tree(path, depth=0, max_depth=2):
+    nodes = []
+    try:
+        entries = sorted(os.scandir(path), key=lambda e: (not e.is_dir(), e.name.lower()))
+    except PermissionError:
+        return nodes
+    for e in entries:
+        if e.name.startswith(".") or e.name in _SKIP_DIRS:
+            continue
+        if e.is_dir():
+            node = {"name": e.name, "is_dir": True, "children": []}
+            if depth < max_depth:
+                node["children"] = _build_tree(e.path, depth + 1, max_depth)
+            nodes.append(node)
+        else:
+            if any(e.name.endswith(x) for x in _SKIP_EXTS):
+                continue
+            try:
+                mtime = _time.strftime("%m-%d", _time.localtime(e.stat().st_mtime))
+            except Exception:
+                mtime = ""
+            nodes.append({"name": e.name, "is_dir": False, "modified": mtime})
+    return nodes
+
+
+def _load_memories():
+    mems = []
+    try:
+        for fname in sorted(os.listdir(_MEMORY_PATH)):
+            if not fname.endswith(".md"):
+                continue
+            fpath = os.path.join(_MEMORY_PATH, fname)
+            try:
+                with open(fpath, encoding="utf-8") as f:
+                    mems.append({"file": fname, "content": f.read()})
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return mems
+
+
+@app.route("/api/sandbox", methods=["GET"])
+def api_sandbox():
+    try:
+        recent_files = []
+        for root, dirs, files in os.walk(_SANDBOX_PATH):
+            dirs[:] = [d for d in dirs if d not in _SKIP_DIRS and not d.startswith(".")]
+            for f in files:
+                if any(f.endswith(e) for e in _SKIP_EXTS):
+                    continue
+                fp = os.path.join(root, f)
+                try:
+                    st  = os.stat(fp)
+                    rel = fp[len(_SANDBOX_PATH) + 1:].replace("\\", "/")
+                    recent_files.append({
+                        "path":         rel,
+                        "modified":     st.st_mtime,
+                        "modified_str": _time.strftime("%Y-%m-%d %H:%M", _time.localtime(st.st_mtime)),
+                        "size":         st.st_size,
+                    })
+                except Exception:
+                    pass
+        recent_files.sort(key=lambda x: x["modified"], reverse=True)
+        recent_files = recent_files[:60]
+
+        projects = []
+        for item in sorted(os.listdir(_SANDBOX_PATH)):
+            item_path = os.path.join(_SANDBOX_PATH, item)
+            if not os.path.isdir(item_path) or item.startswith(".") or item in _SKIP_DIRS:
+                continue
+            file_count, last_mod = 0, 0
+            for root, dirs, files in os.walk(item_path):
+                dirs[:] = [d for d in dirs if d not in _SKIP_DIRS and not d.startswith(".")]
+                for f in files:
+                    if any(f.endswith(e) for e in _SKIP_EXTS):
+                        continue
+                    try:
+                        mtime = os.stat(os.path.join(root, f)).st_mtime
+                        file_count += 1
+                        if mtime > last_mod:
+                            last_mod = mtime
+                    except Exception:
+                        pass
+            projects.append({
+                "name":             item,
+                "file_count":       file_count,
+                "last_modified":    _time.strftime("%Y-%m-%d", _time.localtime(last_mod)) if last_mod else "N/A",
+                "last_modified_ts": last_mod,
+            })
+        projects.sort(key=lambda x: x["last_modified_ts"], reverse=True)
+
+        return jsonify({
+            "ok":           True,
+            "recent_files": recent_files,
+            "projects":     projects,
+            "tree":         _build_tree(_SANDBOX_PATH),
+            "memories":     _load_memories(),
+            "generated_at": _time.strftime("%Y-%m-%d %H:%M:%S"),
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({"ok": False, "error": str(e), "trace": traceback.format_exc()}), 500
+
+
+@app.route("/api/sandbox/todos", methods=["GET"])
+def api_sandbox_todos_get():
+    todos = data.get_todos()
+    # map created_at → created for template compatibility
+    for t in todos:
+        t["created"] = t.pop("created_at", "")[:10]
+    return jsonify({"ok": True, "todos": todos})
+
+
+@app.route("/api/sandbox/todos", methods=["POST"])
+def api_sandbox_todos_add():
+    text = (request.json or {}).get("text", "").strip()
+    if not text:
+        return jsonify({"ok": False, "error": "empty"}), 400
+    result = data.add_todo(text)
+    return jsonify({"ok": True, **result})
+
+
+@app.route("/api/sandbox/todos/<tid>", methods=["PATCH"])
+def api_sandbox_todos_toggle(tid):
+    data.toggle_todo(tid)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/sandbox/todos/<tid>", methods=["DELETE"])
+def api_sandbox_todos_delete(tid):
+    data.delete_todo(tid)
     return jsonify({"ok": True})
 
 

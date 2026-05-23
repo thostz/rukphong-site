@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandbox Overview — Rukphong</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #F5F7FA; color: #1A2340; min-height: 100vh; padding-bottom: 60px; }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #1A2340 0%, #2A3550 60%, #1E2B44 100%);
+    padding: 28px 5% 56px; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(184,150,62,0.15) 0%, transparent 60%);
+  }
+  .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .hero-label { font-size: 0.72rem; font-weight: 600; color: #B8963E; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .hero-title { font-size: 1.7rem; font-weight: 800; color: #fff; line-height: 1.2; }
+  .hero-title span { color: #D4AF5A; }
+  .hero-sub  { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 6px; }
+  .hero-right { text-align: right; }
+  .hero-time { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
+  .refresh-btn {
+    margin-top: 10px; font-size: 0.72rem; font-weight: 600; color: #D4AF5A;
+    background: rgba(184,150,62,0.1); border: 1px solid rgba(184,150,62,0.3);
+    border-radius: 99px; padding: 5px 14px; cursor: pointer; transition: all .15s;
+  }
+  .refresh-btn:hover { background: rgba(184,150,62,0.2); }
+
+  /* ── NAV ── */
+  .nav-pills { max-width: 1200px; margin: 0 auto; padding: 14px 5% 0; display: flex; gap: 8px; flex-wrap: wrap; }
+  .nav-pill { font-size: 0.72rem; font-weight: 600; padding: 5px 13px; border-radius: 99px; text-decoration: none; color: #6B7FA3; background: #fff; border: 1px solid rgba(0,0,0,0.08); transition: all .15s; }
+  .nav-pill:hover, .nav-pill.active { background: #1A2340; color: #D4AF5A; border-color: #1A2340; }
+
+  /* ── STAT CARDS ── */
+  .stat-row {
+    max-width: 1200px; margin: -32px auto 0; padding: 0 5%;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px;
+    position: relative; z-index: 10;
+  }
+  .stat-card {
+    background: #fff; border-radius: 12px; padding: 18px 16px;
+    border: 1px solid rgba(0,0,0,0.07); border-top: 3px solid #B8963E;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .stat-card.green  { border-top-color: #27ae60; }
+  .stat-card.blue   { border-top-color: #6B7FA3; }
+  .stat-card.purple { border-top-color: #8b5cf6; }
+  .stat-card.teal   { border-top-color: #0d9268; }
+  .stat-icon  { font-size: 1.3rem; margin-bottom: 3px; }
+  .stat-value { font-size: 1.55rem; font-weight: 800; color: #B8963E; line-height: 1; }
+  .stat-card.green  .stat-value { color: #27ae60; }
+  .stat-card.blue   .stat-value { color: #6B7FA3; }
+  .stat-card.purple .stat-value { color: #8b5cf6; }
+  .stat-card.teal   .stat-value { color: #0d9268; }
+  .stat-label { font-size: 0.68rem; font-weight: 600; color: #8898AA; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 3px; }
+
+  /* ── LAYOUT ── */
+  .main-grid { max-width: 1200px; margin: 28px auto 0; padding: 0 5%; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
+  .full-width { grid-column: 1 / -1; }
+
+  /* ── SECTION CARD ── */
+  .section-card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid rgba(0,0,0,0.07); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .card-title { font-size: 0.88rem; font-weight: 700; color: #1A2340; display: flex; align-items: center; gap: 7px; }
+  .card-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(184,150,62,0.1); color: #8A6E28; }
+
+  /* ── PROJECTS ── */
+  .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .proj-card {
+    border-radius: 10px; padding: 14px; border: 1px solid rgba(0,0,0,0.07);
+    background: #F8FAFC; cursor: pointer; transition: all .18s;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .proj-card:hover { background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  .proj-icon { font-size: 1.4rem; }
+  .proj-name { font-size: 0.82rem; font-weight: 700; color: #1A2340; }
+  .proj-meta { font-size: 0.68rem; color: #8898AA; }
+  .proj-date { font-size: 0.68rem; color: #B8963E; font-weight: 600; margin-top: 4px; }
+  .proj-link { font-size: 0.68rem; color: #6B7FA3; margin-top: 2px; text-decoration: none; }
+  .proj-link:hover { color: #B8963E; }
+
+  /* ── RECENT FILES ── */
+  .file-list { display: flex; flex-direction: column; gap: 1px; }
+  .file-item { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 7px; transition: background .12s; }
+  .file-item:hover { background: #F8FAFC; }
+  .file-ext { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 800; flex-shrink: 0; }
+  .ext-py   { background: rgba(53,114,165,0.12); color: #3572a5; }
+  .ext-html { background: rgba(227,76,38,0.1);   color: #e34c26; }
+  .ext-js   { background: rgba(241,224,90,0.15);  color: #a89020; }
+  .ext-css  { background: rgba(38,77,228,0.1);    color: #264ed4; }
+  .ext-json { background: rgba(39,174,96,0.1);    color: #27ae60; }
+  .ext-md   { background: rgba(107,127,163,0.1);  color: #6B7FA3; }
+  .ext-txt  { background: rgba(0,0,0,0.06);       color: #888; }
+  .ext-other{ background: rgba(0,0,0,0.06);       color: #888; }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 0.78rem; font-weight: 600; color: #1A2340; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-path { font-size: 0.65rem; color: #8898AA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-time { font-size: 0.65rem; color: #B8963E; font-weight: 600; flex-shrink: 0; }
+
+  /* ── TREE ── */
+  .tree { font-size: 0.78rem; line-height: 1.8; }
+  .tree ul { list-style: none; padding-left: 18px; border-left: 1px dashed rgba(0,0,0,0.1); margin-left: 6px; }
+  .tree li { position: relative; }
+  .tree-dir { font-weight: 700; color: #1A2340; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 1px 0; }
+  .tree-dir::before { content: '▶'; font-size: 0.55rem; color: #B8963E; transition: transform .15s; }
+  .tree-dir.open::before { transform: rotate(90deg); }
+  .tree-file { color: #5A6E8C; display: flex; align-items: center; gap: 5px; padding: 1px 0; }
+  .tree-file span { color: #8898AA; font-size: 0.62rem; }
+
+  /* ── MEMORY ── */
+  .memory-list { display: flex; flex-direction: column; gap: 10px; }
+  .mem-card { border-radius: 8px; background: #F8FAFC; border-left: 3px solid #B8963E; padding: 12px 14px; }
+  .mem-card.user    { border-left-color: #B8963E; }
+  .mem-card.project { border-left-color: #27ae60; }
+  .mem-card.feedback{ border-left-color: #8b5cf6; }
+  .mem-card.reference { border-left-color: #6B7FA3; }
+  .mem-title { font-size: 0.78rem; font-weight: 700; color: #1A2340; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .mem-type { font-size: 0.6rem; font-weight: 700; padding: 1px 7px; border-radius: 99px; }
+  .mem-type.user     { background: rgba(184,150,62,0.12); color: #8A6E28; }
+  .mem-type.project  { background: rgba(39,174,96,0.1);   color: #1a8048; }
+  .mem-type.feedback { background: rgba(139,92,246,0.1);  color: #6d28d9; }
+  .mem-type.reference{ background: rgba(107,127,163,0.1); color: #4a5c7a; }
+  .mem-body { font-size: 0.74rem; color: #5A6E8C; line-height: 1.6; white-space: pre-wrap; }
+
+  /* ── LOADING / EMPTY ── */
+  .loading { text-align: center; padding: 24px 0; color: #B8963E; font-size: 0.82rem; }
+  .empty   { text-align: center; padding: 24px 0; color: #8898AA; font-size: 0.82rem; }
+  .error   { text-align: center; padding: 16px; color: #e74c3c; font-size: 0.78rem; background: rgba(231,76,60,0.05); border-radius: 8px; }
+
+  /* ── SHOW MORE ── */
+  .show-more { text-align: center; margin-top: 10px; }
+  .show-more-btn { font-size: 0.72rem; font-weight: 600; color: #B8963E; background: none; border: 1px solid rgba(184,150,62,0.3); border-radius: 99px; padding: 4px 14px; cursor: pointer; transition: all .15s; }
+  .show-more-btn:hover { background: rgba(184,150,62,0.08); }
+
+  /* ── TODO ── */
+  .todo-input-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .todo-input { flex: 1; border: 1px solid rgba(0,0,0,0.12); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; font-family: inherit; outline: none; transition: border-color .15s; }
+  .todo-input:focus { border-color: #B8963E; }
+  .todo-add-btn { background: #1A2340; color: #D4AF5A; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: opacity .15s; white-space: nowrap; }
+  .todo-add-btn:hover { opacity: 0.85; }
+  .todo-list { display: flex; flex-direction: column; gap: 6px; }
+  .todo-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; background: #F8FAFC; border-left: 3px solid #B8963E; transition: opacity .2s; }
+  .todo-item.done { opacity: 0.45; border-left-color: #27ae60; }
+  .todo-check { width: 17px; height: 17px; accent-color: #27ae60; cursor: pointer; flex-shrink: 0; }
+  .todo-text { flex: 1; font-size: 0.8rem; color: #1A2340; line-height: 1.4; }
+  .todo-item.done .todo-text { text-decoration: line-through; color: #8898AA; }
+  .todo-date { font-size: 0.65rem; color: #8898AA; flex-shrink: 0; }
+  .todo-del { background: none; border: none; color: #ccc; font-size: 1rem; cursor: pointer; padding: 0 2px; line-height: 1; flex-shrink: 0; }
+  .todo-del:hover { color: #e74c3c; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-label">Sandbox Monitor</div>
+      <div class="hero-title">Project <span>Overview</span></div>
+      <div class="hero-sub">ไฟล์ล่าสุด · โปรเจกต์ · โครงสร้าง · Claude Memory</div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-time" id="heroTime"></div>
+      <button class="refresh-btn" onclick="loadAll()">Refresh</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav-pills">
+  <a class="nav-pill" href="/">Home</a>
+  <a class="nav-pill" href="/dashboard">Dashboard</a>
+  <a class="nav-pill active" href="/sandbox">Sandbox</a>
+  <a class="nav-pill" href="/notes">Notes</a>
+  <a class="nav-pill" href="/tasks">Tasks</a>
+  <a class="nav-pill" href="/expense">Expense</a>
+  <a class="nav-pill" href="http://localhost:5055" target="_blank">SoftTech</a>
+</div>
+
+<!-- STAT CARDS -->
+<div class="stat-row" id="statRow">
+  <div class="stat-card"><div class="stat-icon">📁</div><div class="stat-value" id="sTotalProj">—</div><div class="stat-label">Projects</div></div>
+  <div class="stat-card green"><div class="stat-icon">📄</div><div class="stat-value" id="sTotalFiles">—</div><div class="stat-label">Total Files</div></div>
+  <div class="stat-card blue"><div class="stat-icon">🕐</div><div class="stat-value" id="sLastMod">—</div><div class="stat-label">Last Modified</div></div>
+  <div class="stat-card purple"><div class="stat-icon">🧠</div><div class="stat-value" id="sMemCount">—</div><div class="stat-label">Memory Entries</div></div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="main-grid">
+
+  <!-- PROJECTS -->
+  <div class="section-card full-width">
+    <div class="card-header">
+      <div class="card-title">📂 Projects</div>
+      <div class="card-badge" id="projBadge">loading…</div>
+    </div>
+    <div class="project-grid" id="projectGrid"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- RECENT FILES -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-title">🕐 Recently Modified</div>
+      <div class="card-badge" id="fileBadge">loading…</div>
+    </div>
+    <div class="file-list" id="fileList"><div class="loading">Loading…</div></div>
+    <div class="show-more" id="fileMore" style="display:none">
+      <button class="show-more-btn" onclick="showMoreFiles()">Show more</button>
+    </div>
+  </div>
+
+  <!-- FOLDER TREE -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-title">🗂 Folder Structure</div>
+      <div class="card-badge">Sandbox</div>
+    </div>
+    <div class="tree" id="treeView"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- TODO / สิ่งที่ต้องทำ -->
+  <div class="section-card full-width">
+    <div class="card-header">
+      <div class="card-title">✅ สิ่งที่ต้องทำ</div>
+      <div class="card-badge" id="todoBadge">loading…</div>
+    </div>
+    <div class="todo-input-row">
+      <input class="todo-input" id="todoInput" type="text" placeholder="เพิ่มรายการ… แล้วกด Enter">
+      <button class="todo-add-btn" onclick="addTodo()">+ เพิ่ม</button>
+    </div>
+    <div class="todo-list" id="todoList"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- CLAUDE MEMORY -->
+  <div class="section-card full-width">
+    <div class="card-header">
+      <div class="card-title">🧠 Claude Memory</div>
+      <div class="card-badge" id="memBadge">loading…</div>
+    </div>
+    <div class="memory-list" id="memoryList"><div class="loading">Loading…</div></div>
+  </div>
+
+</div>
+
+<script>
+const PROJECT_LINKS = {
+  "Line":       "http://localhost:5000",
+  "ai_company": "http://localhost:5055",
+  "Carsem":     null,
+};
+const PROJECT_ICONS = {
+  "Line": "📱", "ai_company": "🤖", "Carsem": "🏭",
+  "Daily summary": "📅", "Email": "📧", "AI Knowledge": "🧠",
+  "Picture hadling": "🖼️", "Pwd": "🔑",
+};
+
+let allFiles = [], showFileCount = 15;
+
+function ext(name) {
+  const m = name.match(/\.([^.]+)$/);
+  return m ? m[1].toLowerCase() : '';
+}
+function extClass(e) {
+  return {py:'ext-py',html:'ext-html',js:'ext-js',css:'ext-css',json:'ext-json',md:'ext-md',txt:'ext-txt'}[e] || 'ext-other';
+}
+function extLabel(e) {
+  if (!e) return '?';
+  return e.length > 4 ? e.slice(0,4) : e;
+}
+
+async function loadAll() {
+  document.getElementById('fileList').innerHTML = '<div class="loading">Loading…</div>';
+  document.getElementById('projectGrid').innerHTML = '<div class="loading">Loading…</div>';
+  document.getElementById('treeView').innerHTML = '<div class="loading">Loading…</div>';
+  document.getElementById('memoryList').innerHTML = '<div class="loading">Loading…</div>';
+
+  try {
+    const res = await fetch('/api/sandbox');
+    const d = await res.json();
+    if (!d.ok) throw new Error(d.error || 'Error');
+
+    // stats
+    const totalFiles = d.projects.reduce((s, p) => s + p.file_count, 0);
+    document.getElementById('sTotalProj').textContent  = d.projects.length;
+    document.getElementById('sTotalFiles').textContent = totalFiles;
+    document.getElementById('sLastMod').textContent    = d.recent_files[0]?.modified_str?.slice(5,10) || '—';
+    document.getElementById('sMemCount').textContent   = d.memories.length;
+    document.getElementById('heroTime').textContent    = 'Generated: ' + d.generated_at;
+
+    renderProjects(d.projects);
+    allFiles = d.recent_files;
+    showFileCount = 15;
+    renderFiles();
+    renderTree(d.tree, document.getElementById('treeView'));
+    renderMemory(d.memories);
+  } catch(e) {
+    ['fileList','projectGrid','treeView','memoryList'].forEach(id => {
+      document.getElementById(id).innerHTML = `<div class="error">Error: ${e.message}</div>`;
+    });
+  }
+}
+
+function renderProjects(projects) {
+  const el = document.getElementById('projectGrid');
+  document.getElementById('projBadge').textContent = projects.length + ' folders';
+  if (!projects.length) { el.innerHTML = '<div class="empty">No projects found</div>'; return; }
+  el.innerHTML = projects.map(p => {
+    const icon = PROJECT_ICONS[p.name] || '📁';
+    const link = PROJECT_LINKS[p.name];
+    const linkHtml = link
+      ? `<a class="proj-link" href="${link}" target="_blank">Open → ${link}</a>`
+      : '';
+    return `
+      <div class="proj-card">
+        <div class="proj-icon">${icon}</div>
+        <div class="proj-name">${p.name}</div>
+        <div class="proj-meta">${p.file_count} files</div>
+        <div class="proj-date">Last: ${p.last_modified}</div>
+        ${linkHtml}
+      </div>`;
+  }).join('');
+}
+
+function renderFiles() {
+  const el = document.getElementById('fileList');
+  const moreEl = document.getElementById('fileMore');
+  document.getElementById('fileBadge').textContent = allFiles.length + ' files';
+  if (!allFiles.length) { el.innerHTML = '<div class="empty">No files found</div>'; return; }
+  const slice = allFiles.slice(0, showFileCount);
+  el.innerHTML = slice.map(f => {
+    const parts = f.path.split('/');
+    const name  = parts.pop();
+    const dir   = parts.join('/');
+    const e     = ext(name);
+    return `
+      <div class="file-item">
+        <div class="file-ext ${extClass(e)}">${extLabel(e).toUpperCase()}</div>
+        <div class="file-info">
+          <div class="file-name">${name}</div>
+          <div class="file-path">${dir || '/'}</div>
+        </div>
+        <div class="file-time">${f.modified_str.slice(5)}</div>
+      </div>`;
+  }).join('');
+  moreEl.style.display = allFiles.length > showFileCount ? 'block' : 'none';
+}
+
+function showMoreFiles() {
+  showFileCount += 15;
+  renderFiles();
+}
+
+function renderTree(nodes, container) {
+  container.innerHTML = '';
+  container.appendChild(buildTree(nodes));
+}
+
+function buildTree(nodes) {
+  const ul = document.createElement('ul');
+  nodes.forEach(n => {
+    const li = document.createElement('li');
+    if (n.is_dir) {
+      const label = document.createElement('div');
+      label.className = 'tree-dir';
+      label.textContent = '📁 ' + n.name;
+      label.onclick = () => {
+        label.classList.toggle('open');
+        const sub = li.querySelector('ul');
+        if (sub) sub.style.display = sub.style.display === 'none' ? '' : 'none';
+      };
+      li.appendChild(label);
+      if (n.children && n.children.length) {
+        const sub = buildTree(n.children);
+        sub.style.display = 'none';
+        li.appendChild(sub);
+      }
+    } else {
+      const label = document.createElement('div');
+      label.className = 'tree-file';
+      const e = ext(n.name);
+      label.innerHTML = `<span class="file-ext ${extClass(e)}" style="width:22px;height:18px;font-size:0.55rem;border-radius:3px">${extLabel(e).toUpperCase()}</span> ${n.name} <span>${n.modified || ''}</span>`;
+      li.appendChild(label);
+    }
+    ul.appendChild(li);
+  });
+  return ul;
+}
+
+function renderMemory(mems) {
+  const el = document.getElementById('memoryList');
+  document.getElementById('memBadge').textContent = mems.length + ' entries';
+  if (!mems.length) { el.innerHTML = '<div class="empty">No memory entries</div>'; return; }
+  el.innerHTML = mems.map(m => {
+    const typeMatch = m.content.match(/type:\s*(\w+)/);
+    const nameMatch = m.content.match(/name:\s*([^\n]+)/);
+    const descMatch = m.content.match(/description:\s*([^\n]+)/);
+    const type = typeMatch ? typeMatch[1].trim() : 'other';
+    const name = nameMatch ? nameMatch[1].trim() : m.file.replace('.md','');
+    const desc = descMatch ? descMatch[1].trim() : '';
+    // strip frontmatter
+    const body = m.content.replace(/^---[\s\S]*?---\n?/, '').trim();
+    return `
+      <div class="mem-card ${type}">
+        <div class="mem-title">
+          ${name}
+          <span class="mem-type ${type}">${type}</span>
+        </div>
+        ${desc ? `<div style="font-size:0.7rem;color:#8898AA;margin-bottom:6px;">${desc}</div>` : ''}
+        <div class="mem-body">${escHtml(body)}</div>
+      </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── TODO ──
+async function loadTodos() {
+  const res = await fetch('/api/sandbox/todos');
+  const d = await res.json();
+  renderTodos(d.todos || []);
+}
+
+function renderTodos(todos) {
+  const el = document.getElementById('todoList');
+  const pending = todos.filter(t => !t.done).length;
+  document.getElementById('todoBadge').textContent = `${pending} รายการ`;
+  if (!todos.length) { el.innerHTML = '<div class="empty">ยังไม่มีรายการ</div>'; return; }
+  el.innerHTML = todos.map(t => `
+    <div class="todo-item ${t.done ? 'done' : ''}" id="todo-${t.id}">
+      <input class="todo-check" type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodo('${t.id}')">
+      <div class="todo-text">${escHtml(t.text)}</div>
+      <div class="todo-date">${t.created || ''}</div>
+      <button class="todo-del" onclick="deleteTodo('${t.id}')" title="ลบ">×</button>
+    </div>`).join('');
+}
+
+async function addTodo() {
+  const input = document.getElementById('todoInput');
+  const text = input.value.trim();
+  if (!text) return;
+  await fetch('/api/sandbox/todos', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({text})
+  });
+  input.value = '';
+  loadTodos();
+}
+
+async function toggleTodo(id) {
+  await fetch(`/api/sandbox/todos/${id}`, {method: 'PATCH'});
+  loadTodos();
+}
+
+async function deleteTodo(id) {
+  await fetch(`/api/sandbox/todos/${id}`, {method: 'DELETE'});
+  loadTodos();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('todoInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTodo();
+  });
+});
+
+// Update clock
+function tick() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('heroTime').textContent =
+    `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+setInterval(tick, 1000);
+loadAll();
+loadTodos();
+</script>
+</body>
+</html>

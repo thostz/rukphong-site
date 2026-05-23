@@ -1,20 +1,19 @@
-"""User authentication via PostgreSQL — login, register, session."""
+"""User authentication via SQLite — login, register, session."""
 
 import os
+import sqlite3
 import hashlib
 import secrets
 from datetime import datetime
 
-import psycopg2
-import psycopg2.extras
+_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "app.db")
 
 
 def _connect():
-    url = os.environ["DATABASE_URL"]
-    # Render uses postgres:// but psycopg2 needs postgresql://
-    if url.startswith("postgres://"):
-        url = "postgresql://" + url[len("postgres://"):]
-    con = psycopg2.connect(url, cursor_factory=psycopg2.extras.RealDictCursor)
+    os.makedirs(os.path.dirname(_DB_PATH), exist_ok=True)
+    con = sqlite3.connect(_DB_PATH, check_same_thread=False)
+    con.row_factory = sqlite3.Row
+    con.execute("PRAGMA journal_mode=WAL")
     return con
 
 
@@ -24,12 +23,12 @@ def init_db():
     cur = con.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id           SERIAL PRIMARY KEY,
-            email        TEXT    UNIQUE NOT NULL,
-            name         TEXT    NOT NULL,
-            password_hash TEXT   NOT NULL,
-            role         TEXT    NOT NULL DEFAULT 'user',
-            created_at   TEXT    NOT NULL
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            email         TEXT    UNIQUE NOT NULL,
+            name          TEXT    NOT NULL,
+            password_hash TEXT    NOT NULL,
+            role          TEXT    NOT NULL DEFAULT 'user',
+            created_at    TEXT    NOT NULL
         )
     """)
     cur.execute("""
@@ -42,7 +41,7 @@ def init_db():
     """)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS contacts (
-            id         SERIAL PRIMARY KEY,
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
             name       TEXT NOT NULL,
             email      TEXT NOT NULL,
             company    TEXT,
@@ -53,11 +52,10 @@ def init_db():
     """)
     con.commit()
 
-    # Seed admin if not exists
-    cur.execute("SELECT id FROM users WHERE email=%s", ("admin@rukphong.com",))
+    cur.execute("SELECT id FROM users WHERE email=?", ("admin@rukphong.com",))
     if not cur.fetchone():
         cur.execute(
-            "INSERT INTO users (email,name,password_hash,role,created_at) VALUES (%s,%s,%s,%s,%s)",
+            "INSERT INTO users (email,name,password_hash,role,created_at) VALUES (?,?,?,?,?)",
             ("admin@rukphong.com", "Rukphong",
              _hash("admin123"), "admin",
              datetime.now().isoformat())
@@ -82,7 +80,7 @@ def register(email: str, name: str, password: str) -> dict:
         con = _connect()
         cur = con.cursor()
         cur.execute(
-            "INSERT INTO users (email,name,password_hash,role,created_at) VALUES (%s,%s,%s,%s,%s)",
+            "INSERT INTO users (email,name,password_hash,role,created_at) VALUES (?,?,?,?,?)",
             (email, name.strip(), _hash(password), "user",
              datetime.now().isoformat())
         )
@@ -90,7 +88,7 @@ def register(email: str, name: str, password: str) -> dict:
         cur.close()
         con.close()
         return {"ok": True}
-    except psycopg2.errors.UniqueViolation:
+    except sqlite3.IntegrityError:
         return {"ok": False, "error": "Email นี้มีผู้ใช้แล้ว"}
     except Exception as e:
         return {"ok": False, "error": str(e)}
@@ -101,7 +99,7 @@ def login(email: str, password: str) -> dict:
     con = _connect()
     cur = con.cursor()
     cur.execute(
-        "SELECT id,name,role FROM users WHERE email=%s AND password_hash=%s",
+        "SELECT id,name,role FROM users WHERE email=? AND password_hash=?",
         (email, _hash(password))
     )
     row = cur.fetchone()
@@ -112,7 +110,7 @@ def login(email: str, password: str) -> dict:
 
     token = secrets.token_hex(32)
     cur.execute(
-        "INSERT INTO sessions (token,user_id,created_at) VALUES (%s,%s,%s)",
+        "INSERT INTO sessions (token,user_id,created_at) VALUES (?,?,?)",
         (token, row["id"], datetime.now().isoformat())
     )
     con.commit()
@@ -129,7 +127,7 @@ def verify_token(token: str) -> dict | None:
     cur.execute("""
         SELECT u.id, u.name, u.email, u.role
         FROM sessions s JOIN users u ON s.user_id=u.id
-        WHERE s.token=%s
+        WHERE s.token=?
     """, (token,))
     row = cur.fetchone()
     cur.close()
@@ -140,7 +138,7 @@ def verify_token(token: str) -> dict | None:
 def logout(token: str):
     con = _connect()
     cur = con.cursor()
-    cur.execute("DELETE FROM sessions WHERE token=%s", (token,))
+    cur.execute("DELETE FROM sessions WHERE token=?", (token,))
     con.commit()
     cur.close()
     con.close()
@@ -152,7 +150,7 @@ def save_contact(name: str, email: str, company: str,
         con = _connect()
         cur = con.cursor()
         cur.execute(
-            "INSERT INTO contacts (name,email,company,subject,message,created_at) VALUES (%s,%s,%s,%s,%s,%s)",
+            "INSERT INTO contacts (name,email,company,subject,message,created_at) VALUES (?,?,?,?,?,?)",
             (name, email, company, subject, message, datetime.now().isoformat())
         )
         con.commit()

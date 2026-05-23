@@ -207,6 +207,11 @@ function clearForm() {
 
 // Set today's date as default
 document.getElementById('noteDate').value = new Date().toISOString().slice(0,10);
+
+// Pre-fill filters from URL params (?cat=work&q=WMS)
+const _params = new URLSearchParams(location.search);
+if (_params.get('cat')) document.getElementById('filterCat').value = _params.get('cat');
+if (_params.get('q'))   document.getElementById('filterSearch').value = _params.get('q');
 render();
 </script>
 

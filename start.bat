@@ -8,4 +8,6 @@ echo =============================================
 
 .venv\Scripts\python.exe start_all.py
 
+start http://localhost:5000/sandbox
+
 pause
