@@ -328,7 +328,7 @@ function showResults(r) {
         <div class="item-icon">📋</div>
         <div class="item-body">
           <div class="item-title">${esc(t.title)}</div>
-          <div class="item-meta"><span class="badge badge-${pri}">${{high:'🔴 สูง',medium:'🟡 กลาง',low:'🟢 ต่ำ'}[pri]||pri}</span>${t.due?' &nbsp;📅 '+t.due:''}</div>
+          <div class="item-meta"><span class="badge badge-${pri}">${({'high':'🔴 สูง','medium':'🟡 กลาง','low':'🟢 ต่ำ'})[pri]||pri}</span>${t.due?' &nbsp;📅 '+t.due:''}</div>
         </div>
       </div>`;
     }).join('');
