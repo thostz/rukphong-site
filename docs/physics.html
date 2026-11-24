@@ -5,39 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Performance Calculator</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&family=Roboto+Slab:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@300;400;600;700&display=swap');
         * { box-sizing: border-box; }
-        body { font-family: 'Open Sans', sans-serif; margin: 0; padding: 0; background-color: #eaeaea; color: #333; }
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #F5F7FA; color: #1A2340; }
 
-        .site-nav { background: #2c3e50; display: flex; flex-wrap: wrap; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
-        .site-nav a { color: #ecf0f1; text-decoration: none; padding: 12px 18px; font-size: 0.9em; font-weight: 600; transition: background 0.15s; }
-        .site-nav a:hover, .site-nav a.active { background: #c0392b; }
 
-        .container { width: 90%; max-width: 1150px; margin: 30px auto; padding: 24px; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 10px; }
-        h1 { font-family: 'Roboto Slab', serif; color: #2c3e50; text-align: center; font-size: 2em; margin-bottom: 4px; }
-        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 28px; font-size: 0.93em; }
+        .container { width: 90%; max-width: 1150px; margin: 30px auto; padding: 24px; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border-radius: 12px; border-top: 3px solid #B8963E; }
+        h1 { font-family: 'Inter', sans-serif; font-weight: 800; color: #1A2340; text-align: center; font-size: 1.6em; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #5A6E8C; margin-bottom: 28px; font-size: 0.93em; }
 
         /* Config Label Bar */
         .label-bar {
             display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;
-            background: #fdf3f2; border: 1px solid #f1c0bb; border-radius: 8px;
+            background: #FFF8EC; border: 1px solid #E5D3A8; border-radius: 8px;
             padding: 16px 20px; margin-bottom: 16px;
         }
         .label-bar .field { display: flex; flex-direction: column; gap: 4px; }
-        .label-bar label { font-size: 0.78em; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+        .label-bar label { font-size: 0.78em; font-weight: 600; color: #5A6E8C; text-transform: uppercase; letter-spacing: 0.04em; }
         .label-bar input, .label-bar select {
             padding: 7px 10px; border: 1px solid #dbb; border-radius: 5px;
             font-size: 0.95em; background: #fff; min-width: 160px;
         }
-        .label-bar input:focus, .label-bar select:focus { outline: none; border-color: #c0392b; box-shadow: 0 0 0 2px #f5c6c2; }
+        .label-bar input:focus, .label-bar select:focus { outline: none; border-color: #B8963E; box-shadow: 0 0 0 2px #EFE2C2; }
 
         .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
         .badge {
             display: inline-flex; align-items: center; gap: 6px;
-            background: #c0392b; color: #fff; border-radius: 20px;
+            background: #B8963E; color: #fff; border-radius: 20px;
             padding: 4px 12px; font-size: 0.82em; font-weight: 600; cursor: pointer;
         }
-        .badge.active-badge { background: #922b21; outline: 2px solid #f1948a; }
+        .badge.active-badge { background: #8F7330; outline: 2px solid #D9C38F; }
         .badge .remove { cursor: pointer; font-size: 1em; opacity: 0.8; }
         .badge .remove:hover { opacity: 1; }
 
@@ -49,9 +46,9 @@
         .active-info.visible { display: block; }
 
         .btn { padding: 8px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9em; font-weight: 600; transition: background 0.15s; }
-        .btn-primary { background: #c0392b; color: #fff; }
+        .btn-primary { background: #B8963E; color: #fff; }
         .btn-primary:hover { background: #96281b; }
-        .btn-secondary { background: #ecf0f1; color: #2c3e50; border: 1px solid #c5ccd4; }
+        .btn-secondary { background: #ecf0f1; color: #1A2340; border: 1px solid #c5ccd4; }
         .btn-secondary:hover { background: #d5dde6; }
 
         /* Calc grid */
@@ -59,80 +56,80 @@
 
         .calc-card { border: 1px solid #dde4ec; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         .calc-card-header {
-            background: #2c3e50; color: #ecf0f1; padding: 12px 18px;
-            font-family: 'Roboto Slab', serif; font-size: 1em; display: flex; align-items: center; gap: 8px;
+            background: #1A2340; color: #ecf0f1; padding: 12px 18px;
+            font-family: 'Inter', sans-serif; font-size: 1em; display: flex; align-items: center; gap: 8px;
         }
         .calc-card-header .icon { font-size: 1.2em; }
         .calc-card-body { padding: 16px 18px; }
 
         .formula-tag {
-            display: inline-block; background: #fdecea; color: #7b241c;
-            border: 1px solid #f1948a; border-radius: 4px;
+            display: inline-block; background: #FFF3DC; color: #6B5520;
+            border: 1px solid #D9C38F; border-radius: 4px;
             font-size: 0.8em; padding: 3px 8px; margin-bottom: 12px; font-family: monospace;
         }
 
         .input-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
         .input-group { display: flex; flex-direction: column; gap: 3px; }
-        .input-group label { font-size: 0.78em; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+        .input-group label { font-size: 0.78em; font-weight: 600; color: #5A6E8C; text-transform: uppercase; letter-spacing: 0.04em; }
         .input-group .iw { display: flex; align-items: center; }
         .input-group input {
             flex: 1; padding: 7px 10px; border: 1px solid #c0cfe0; border-radius: 5px 0 0 5px;
             font-size: 0.95em; min-width: 0;
         }
-        .input-group input:focus { outline: none; border-color: #c0392b; box-shadow: 0 0 0 2px #f5c6c2; }
+        .input-group input:focus { outline: none; border-color: #B8963E; box-shadow: 0 0 0 2px #EFE2C2; }
         .input-group .unit {
             background: #ecf0f1; border: 1px solid #c0cfe0; border-left: none;
-            padding: 7px 10px; border-radius: 0 5px 5px 0; font-size: 0.82em; color: #555; white-space: nowrap;
+            padding: 7px 10px; border-radius: 0 5px 5px 0; font-size: 0.82em; color: #5A6E8C; white-space: nowrap;
         }
 
         .solve-btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
         .solve-btn {
-            padding: 5px 12px; border: 1px solid #c0392b; border-radius: 4px;
-            background: #fff; color: #c0392b; font-size: 0.82em; font-weight: 600; cursor: pointer; transition: background 0.12s;
+            padding: 5px 12px; border: 1px solid #B8963E; border-radius: 4px;
+            background: #fff; color: #B8963E; font-size: 0.82em; font-weight: 600; cursor: pointer; transition: background 0.12s;
         }
-        .solve-btn:hover, .solve-btn.active-solve { background: #c0392b; color: #fff; }
+        .solve-btn:hover, .solve-btn.active-solve { background: #B8963E; color: #fff; }
 
         .result-box {
             background: #f8f8f8; border: 1px solid #dde4ec; border-radius: 6px;
             padding: 10px 14px; min-height: 42px; font-size: 0.95em; color: #1a5276;
         }
-        .result-box .rv { font-size: 1.3em; font-weight: 700; color: #922b21; }
-        .result-box .rl { font-size: 0.78em; color: #7f8c8d; }
+        .result-box .rv { font-size: 1.3em; font-weight: 700; color: #8F7330; }
+        .result-box .rl { font-size: 0.78em; color: #5A6E8C; }
         .result-box.error { background: #fef9f0; border-color: #f0c080; color: #935116; }
 
         /* Gear Simulation */
         .gear-sim-section { margin-top: 34px; }
-        .section-h2 { font-family: 'Roboto Slab', serif; color: #2c3e50; font-size: 1.4em; border-bottom: 2px solid #ddd; padding-bottom: 6px; margin-bottom: 16px; }
+        .section-h2 { font-family: 'Inter', sans-serif; color: #1A2340; font-size: 1.4em; border-bottom: 2px solid #ddd; padding-bottom: 6px; margin-bottom: 16px; }
         .gear-sim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
         @media(max-width:720px) { .gear-sim-grid { grid-template-columns: 1fr; } }
         .gear-panel { border: 1px solid #dde4ec; border-radius: 10px; padding: 16px 18px; }
-        .gear-panel-title { font-family: 'Roboto Slab', serif; font-size: 1em; color: #2c3e50; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+        .gear-panel-title { font-family: 'Inter', sans-serif; font-size: 1em; color: #1A2340; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
         .gsim-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .gsim-field { display: flex; flex-direction: column; gap: 3px; }
-        .gsim-field label { font-size: 0.76em; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+        .gsim-field label { font-size: 0.76em; font-weight: 600; color: #5A6E8C; text-transform: uppercase; letter-spacing: 0.04em; }
         .gear-sim-summary {
-            background: #f0f6fc; border: 1px solid #c5d8f0; border-radius: 8px;
+            background: #F8FAFC; border: 1px solid #c5d8f0; border-radius: 8px;
             padding: 12px 18px; margin-bottom: 14px; font-size: 0.9em;
             display: flex; flex-wrap: wrap; gap: 18px;
         }
         .gear-sim-summary .s-item { display: flex; flex-direction: column; }
         .gear-sim-summary .s-val { font-size: 1.15em; font-weight: 700; color: #154360; }
-        .gear-sim-summary .s-lbl { font-size: 0.75em; color: #7f8c8d; }
+        .gear-sim-summary .s-lbl { font-size: 0.75em; color: #5A6E8C; }
         .gsim-table { width: 100%; border-collapse: collapse; font-size: 0.86em; min-width: 780px; }
-        .gsim-table th { background: #2c3e50; color: #ecf0f1; padding: 8px 10px; text-align: center; white-space: nowrap; }
+        .gsim-table th { background: #1A2340; color: #ecf0f1; padding: 8px 10px; text-align: center; white-space: nowrap; }
         .gsim-table td { padding: 7px 10px; border-bottom: 1px solid #eee; text-align: center; }
-        .gsim-table tr:hover td { background: #f5f9ff; }
-        .gsim-table .gear-num { font-weight: 700; color: #c0392b; }
-        .traction-yes { color: #c0392b; font-weight: 700; }
+        .gsim-table tr:hover td { background: #F8FAFC; }
+        .gsim-table .gear-num { font-weight: 700; color: #B8963E; }
+        .traction-yes { color: #B8963E; font-weight: 700; }
         .traction-no  { color: #27ae60; }
 
         /* History */
         .history-section { margin-top: 32px; }
-        .history-section h2 { font-family: 'Roboto Slab', serif; color: #c0392b; font-size: 1.3em; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 12px; }
+        .history-section h2 { font-family: 'Inter', sans-serif; color: #B8963E; font-size: 1.3em; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 12px; }
         .history-table { width: 100%; border-collapse: collapse; font-size: 0.87em; }
-        .history-table th { background: #2c3e50; color: #ecf0f1; padding: 8px 12px; text-align: left; }
+        .history-table th { background: #1A2340; color: #ecf0f1; padding: 8px 12px; text-align: left; }
         .history-table td { padding: 7px 12px; border-bottom: 1px solid #eee; }
-        .history-table tr:hover td { background: #fff5f4; }
+        .history-table tr:hover td { background: #FFFBF2; }
         .history-table .no-data { text-align: center; color: #aaa; padding: 20px; }
         .clr-btn { float: right; margin-top: -38px; }
     </style>
@@ -387,7 +384,7 @@
     <!-- Gear Simulation -->
     <div class="gear-sim-section">
         <h2 class="section-h2">&#9881;&#65039; Gear-by-Gear Acceleration Simulation</h2>
-        <p style="color:#7f8c8d;font-size:.9em;margin-top:-8px;margin-bottom:16px">Enter engine specs and gear ratios to simulate wheel torque, speed range, and peak acceleration for each gear.</p>
+        <p style="color:#5A6E8C;font-size:.9em;margin-top:-8px;margin-bottom:16px">Enter engine specs and gear ratios to simulate wheel torque, speed range, and peak acceleration for each gear.</p>
 
         <div class="gear-sim-grid">
             <!-- Engine Inputs -->
@@ -600,11 +597,11 @@
         if (htSolve === 'HP') {
             if (isNaN(T) || isNaN(RPM) || RPM <= 0) return showResult('ht-result', 'Provide Torque (lb·ft) and RPM to solve HP.', true);
             res = T * RPM / 5252; inputs = `T=${fmt(T,'lb·ft')}, RPM=${fmt(RPM)}`;
-            showResult('ht-result', `<div class="rl">Horsepower</div><div class="rv">${fmt(res,'HP')}</div><div style="font-size:.85em;color:#555;margin-top:4px">${fmt(res*0.7457,'kW')}</div>`);
+            showResult('ht-result', `<div class="rl">Horsepower</div><div class="rv">${fmt(res,'HP')}</div><div style="font-size:.85em;color:#5A6E8C;margin-top:4px">${fmt(res*0.7457,'kW')}</div>`);
         } else if (htSolve === 'T') {
             if (isNaN(HP) || isNaN(RPM) || RPM <= 0) return showResult('ht-result', 'Provide HP and RPM to solve Torque.', true);
             res = HP * 5252 / RPM; inputs = `HP=${fmt(HP)}, RPM=${fmt(RPM)}`;
-            showResult('ht-result', `<div class="rl">Torque</div><div class="rv">${fmt(res,'lb·ft')}</div><div style="font-size:.85em;color:#555;margin-top:4px">${fmt(res*1.35582,'N·m')}</div>`);
+            showResult('ht-result', `<div class="rl">Torque</div><div class="rv">${fmt(res,'lb·ft')}</div><div style="font-size:.85em;color:#5A6E8C;margin-top:4px">${fmt(res*1.35582,'N·m')}</div>`);
         } else {
             if (isNaN(HP) || isNaN(T) || T <= 0) return showResult('ht-result', 'Provide HP and Torque to solve RPM.', true);
             res = HP * 5252 / T; inputs = `HP=${fmt(HP)}, T=${fmt(T,'lb·ft')}`;
@@ -623,7 +620,7 @@
         showResult('pw-result', `
             <div class="rl">Power-to-Weight</div>
             <div class="rv">${ratio.toPrecision(4)} HP/kg</div>
-            <div style="font-size:.85em;color:#555;margin-top:4px">
+            <div style="font-size:.85em;color:#5A6E8C;margin-top:4px">
                 ${hpTon.toFixed(1)} HP/ton &nbsp;|&nbsp;
                 ${(HP*0.7457/W*1000).toFixed(1)} kW/ton
                 ${hpTon >= 300 ? ' &#128293; Supercar' : hpTon >= 150 ? ' &#9889; Performance' : hpTon >= 80 ? ' &#128664; Sport' : ' &#128663; Standard'}
@@ -662,7 +659,7 @@
             showResult('fr-result', `
                 <div class="rl">Max Friction / Traction Force</div>
                 <div class="rv">${fmt(res,'N')}</div>
-                <div style="font-size:.85em;color:#555;margin-top:4px">
+                <div style="font-size:.85em;color:#5A6E8C;margin-top:4px">
                     Max acceleration = ${aMax.toFixed(3)} m/s² (${(aMax/G).toFixed(3)} g) &nbsp;|&nbsp;
                     ${(mu).toFixed(2)} μ — ${mu<=0.5?'Ice/Wet':mu<=0.9?'Wet Asphalt':mu<=1.1?'Dry Asphalt':mu<=1.5?'Sport Tire':'Racing Slick'}
                 </div>`);
@@ -688,7 +685,7 @@
         showResult('drag-result', `
             <div class="rl">Aerodynamic Drag Force</div>
             <div class="rv">${fmt(F,'N')}</div>
-            <div style="font-size:.85em;color:#555;margin-top:4px">Power to overcome drag: <strong>${fmt(Pw/1000,'kW')}</strong> (${fmt(Pw/745.7,'HP')})</div>`);
+            <div style="font-size:.85em;color:#5A6E8C;margin-top:4px">Power to overcome drag: <strong>${fmt(Pw/1000,'kW')}</strong> (${fmt(Pw/745.7,'HP')})</div>`);
         logHistory('Aero Drag', inputs, fmt(F,'N'));
     }
 
@@ -704,7 +701,7 @@
         showResult('brk-result', `
             <div class="rl">Stopping Distance</div>
             <div class="rv">${d.toFixed(2)} m</div>
-            <div style="font-size:.85em;color:#555;margin-top:4px">Braking time ≈ ${t.toFixed(2)} s &nbsp;|&nbsp; Deceleration = ${(mu*G).toFixed(2)} m/s² (${mu.toFixed(2)} g)</div>`);
+            <div style="font-size:.85em;color:#5A6E8C;margin-top:4px">Braking time ≈ ${t.toFixed(2)} s &nbsp;|&nbsp; Deceleration = ${(mu*G).toFixed(2)} m/s² (${mu.toFixed(2)} g)</div>`);
         logHistory('Braking Distance', inputs, `${d.toFixed(2)} m`);
     }
 
@@ -722,7 +719,7 @@
             const wheel_rps = RPM / 60 / GR;
             const v_ms = wheel_rps * 2 * Math.PI * r;
             const vkm = v_ms * 3.6;
-            html += `<div style="font-size:.85em;color:#555;margin-top:4px">Vehicle speed ≈ <strong>${vkm.toFixed(1)} km/h</strong> at ${RPM} RPM &nbsp;|&nbsp; Wheel force = ${fmt(Tw/r,'N')}</div>`;
+            html += `<div style="font-size:.85em;color:#5A6E8C;margin-top:4px">Vehicle speed ≈ <strong>${vkm.toFixed(1)} km/h</strong> at ${RPM} RPM &nbsp;|&nbsp; Wheel force = ${fmt(Tw/r,'N')}</div>`;
         }
         const inputs = `T=${fmt(T,'N·m')}, GR=${GR}, η=${eta}${!isNaN(r)&&r>0?', r='+r+'m':''}`;
         showResult('wt-result', html);
@@ -827,7 +824,7 @@
         showResult('rr-result', `
             <div class="rl">Rolling Resistance Force</div>
             <div class="rv">${fmt(F,'N')}</div>
-            <div style="font-size:.85em;color:#555;margin-top:4px">Typical Cr: 0.010–0.015 road tires &nbsp;|&nbsp; 0.002–0.005 low rolling resistance</div>`);
+            <div style="font-size:.85em;color:#5A6E8C;margin-top:4px">Typical Cr: 0.010–0.015 road tires &nbsp;|&nbsp; 0.002–0.005 low rolling resistance</div>`);
         logHistory('Rolling Resistance', inputs, fmt(F,'N'));
     }
 </script>
