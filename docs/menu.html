@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All Pages — Rukphong</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', 'Sarabun', sans-serif; background: #F5F7FA; color: #1A2340; padding-bottom: 48px; }
+
+  .hero { background: linear-gradient(135deg, #1A2340 0%, #2A3550 60%, #1E2B44 100%); padding: 28px 5% 56px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(184,150,62,0.15) 0%, transparent 60%); }
+  .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; }
+  .hero-tag { font-size: 0.72rem; font-weight: 700; color: #B8963E; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .hero-title { font-size: 1.7rem; font-weight: 800; color: #fff; line-height: 1.2; }
+  .hero-title span { color: #D4AF5A; }
+  .hero-sub { font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-top: 8px; }
+
+  .search-wrap { max-width: 1100px; margin: -24px auto 0; padding: 0 5%; position: relative; z-index: 2; }
+  .search-box { background: #fff; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.07); }
+  .search-box input { flex: 1; min-width: 0; border: none; outline: none; font: inherit; font-size: 0.9rem; color: #1A2340; background: transparent; }
+  .search-box input::placeholder { color: #8898AA; }
+  .count { font-size: 0.75rem; color: #5A6E8C; white-space: nowrap; }
+
+  .content { max-width: 1100px; margin: 24px auto 0; padding: 0 5%; }
+  .group { margin-top: 26px; }
+  .group-title { font-size: 0.78rem; font-weight: 700; color: #8A6E28; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid rgba(184,150,62,0.2); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  @media (max-width: 420px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.07); border-top: 3px solid #B8963E; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .card.page { cursor: pointer; transition: transform .12s, box-shadow .12s; }
+  .card.page:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.09); }
+  .card.page:focus-visible { outline: 2px solid #B8963E; outline-offset: 2px; }
+  .card.svc { border-top-color: #5A6E8C; }
+  .card-head { display: flex; align-items: center; gap: 10px; }
+  .card-icon { font-size: 1.4rem; }
+  .card-name { font-weight: 700; font-size: 1rem; flex: 1; }
+  .open { font-size: 0.72rem; font-weight: 700; color: #B8963E; white-space: nowrap; }
+  .where { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(90,110,140,0.1); color: #5A6E8C; white-space: nowrap; }
+  .desc { font-size: 0.85rem; color: #5A6E8C; line-height: 1.5; }
+  .feats { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
+  .feats li { font-size: 0.74rem; padding: 3px 9px; border-radius: 99px; background: #FFF8EC; color: #6B5520; border: 1px solid rgba(184,150,62,0.25); }
+  .cmds { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .cmds li { font-size: 0.8rem; color: #5A6E8C; }
+  .cmds code { font-family: 'Courier New', monospace; font-weight: 700; color: #1A2340; background: #F8FAFC; padding: 1px 6px; border-radius: 4px; }
+  .empty { display: none; text-align: center; color: #5A6E8C; margin-top: 40px; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<div class="hero"><div class="hero-inner">
+  <div class="hero-tag">Site map</div>
+  <div class="hero-title">ทุกหน้าและทุกฟังก์ชัน <span>ในที่เดียว</span></div>
+  <div class="hero-sub">กดการ์ดเพื่อเปิดหน้านั้น · ส่วน “ระบบเบื้องหลัง” คือฟังก์ชันที่ทำงานผ่าน LINE / Google Sheets / เซิร์ฟเวอร์</div>
+</div></div>
+
+<div class="search-wrap"><div class="search-box">
+  <span aria-hidden="true">🔍</span>
+  <input id="q" type="search" placeholder="ค้นหาหน้า หรือฟังก์ชัน เช่น “กราฟ”, “CSV”, “LINE”" aria-label="Search pages and functions">
+  <span class="count" id="count"></span>
+</div></div>
+
+<div class="content" id="content"></div>
+<div class="empty" id="empty">ไม่พบหน้าหรือฟังก์ชันที่ตรงกับคำค้น</div>
+
+<script>
+const GROUPS = [
+  { title: 'ภาพรวม · Overview', items: [
+    { src: 'dashboard.html', icon: '🏠', name: 'Dashboard', desc: 'หน้าแรก สรุปภาพรวมทุกโมดูล',
+      feats: ['การ์ด KPI', 'งานล่าสุด', 'โน้ตล่าสุด', 'คำทักทายตามเวลา', 'ลิงก์ไปแต่ละโมดูล'] },
+    { src: 'profile.html', icon: '👤', name: 'Profile', desc: 'โปรไฟล์ Senior PM & WMS Consultant · Infor APAC',
+      feats: ['ประวัติการทำงาน', 'ทักษะ', 'Professional summary', 'ช่องทางติดต่อ'] },
+  ]},
+  { title: 'การเงิน · Money', items: [
+    { src: 'expense.html', icon: '💰', name: 'Expense', desc: 'บันทึกและติดตามรายจ่าย',
+      feats: ['เพิ่ม / แก้ไข / ลบรายจ่าย', 'หมวดหมู่', 'วิธีชำระเงิน', 'กราฟตามหมวด', 'แนวโน้มรายเดือน', 'การ์ดสรุป', 'ตัวกรอง'] },
+    { src: 'investment.html', icon: '📈', name: 'Investment', desc: 'ติดตามพอร์ตการลงทุน',
+      feats: ['หลายพอร์ต', 'ราคาทุน / ราคาปัจจุบัน', 'กำไร-ขาดทุน', 'กราฟสัดส่วน', 'กำไร-ขาดทุนรายสินทรัพย์', 'เงินปันผล'] },
+  ]},
+  { title: 'งานและโน้ต · Productivity', items: [
+    { src: 'tasks.html', icon: '✅', name: 'Tasks', desc: 'จัดการงานส่วนตัวแบบ Kanban',
+      feats: ['To Do / In Progress / Done', 'ลำดับความสำคัญ', 'วันครบกำหนด', 'การ์ดสรุป'] },
+    { src: 'notes.html', icon: '📝', name: 'Notes', desc: 'จดโน้ตแยกหมวด',
+      feats: ['เพิ่ม / แก้ไข / ลบโน้ต', 'หมวดหมู่', 'ค้นหา'] },
+    { src: 'assignment.html', icon: '📋', name: 'Assignments', desc: 'Assignment Tracker สำหรับทีม 7 แท็บ (TH/EN)',
+      feats: ['Instructions', 'Set up โปรเจกต์ / เจ้าของงาน', 'Tracker + กราฟ', 'Eisenhower matrix', 'Calendar', 'Kanban', 'Team KPI', 'Export CSV'] },
+    { src: 'smart-import.html', icon: '🤖', name: 'Smart Import', desc: 'วางข้อความแล้วให้ AI แยกเป็นรายจ่าย / งาน / โน้ตให้อัตโนมัติ',
+      feats: ['วางข้อความ', 'รายจ่ายหลายรายการ', 'Todo list', 'Meeting notes', 'วิเคราะห์ด้วย Gemini'] },
+  ]},
+  { title: 'เครื่องมือ · Tools', items: [
+    { src: 'physics.html', icon: '🏎️', name: 'Car Physics', desc: 'คำนวณสมรรถนะรถยนต์',
+      feats: ['แรงบิด / รอบเครื่อง', 'อัตราทดเกียร์', 'แรงต้านอากาศ (Cd)', 'แรงเสียดทาน (μ)', 'จำลองอัตราเร่งทีละเกียร์', 'ประวัติการคำนวณ', 'เปรียบเทียบหลาย setup'] },
+    { src: 'help.html', icon: '❓', name: 'Help', desc: 'คู่มือการใช้งานและคำสั่งทั้งหมด',
+      feats: ['คำสั่ง LINE Bot', 'โมดูลทั้งหมด', 'ตั้งค่า LINE Bot', 'หมวดหมู่รายจ่าย', 'Tips & Tricks', 'Quick reference'] },
+  ]},
+  { title: 'ระบบเบื้องหลัง · Behind the scenes', items: [
+    { icon: '💬', name: 'LINE Bot', where: 'LINE', desc: 'พิมพ์คำสั่งใน LINE แล้วบันทึกเข้าระบบทันที',
+      cmds: [['จ่าย [จำนวน] [หมวด]', 'บันทึกรายจ่าย (หรือ “ใช้”)'], ['งาน [ชื่องาน]', 'เพิ่ม Task'], ['โน้ต [ข้อความ]', 'บันทึกโน้ต (หรือ “memo”)'],
+             ['ดูรายจ่าย', 'สรุปรายจ่ายวันนี้'], ['ดูงาน', 'งานที่ยังไม่เสร็จ'], ['help', 'ดูคำสั่งทั้งหมด']],
+      feats: ['อ่านสลิปโอนเงิน', 'Rich menu', 'แจ้งเตือน (push)'] },
+    { icon: '📊', name: 'Google Sheets sync', where: 'Sheets', desc: 'เก็บข้อมูลทุกโมดูลไว้ใน Google Sheets และ SQLite',
+      feats: ['Push / Pull sync', 'Expense', 'Tasks', 'Notes', 'Investment', 'Dividends'] },
+    { icon: '🗂️', name: 'Assignment Tracker (Apps Script)', where: 'Sheets', desc: 'เว็บแอป Google Apps Script ที่เก็บข้อมูลใน Google Sheets',
+      feats: ['ชีต Tasks', 'ชีต Transactions', 'ชีต Config', 'แท็บจัดการ Transaction'] },
+    { icon: '🖥️', name: 'Server & API (Flask)', where: 'Server', desc: 'แอป Python ที่รับ LINE webhook และให้ API กับทุกหน้า (ต้องเปิดเซิร์ฟเวอร์)',
+      feats: ['LINE webhook', 'API รายจ่าย / งาน / โน้ต', 'API พอร์ต / ปันผล / เป้าหมาย', 'Smart Import (Gemini)', 'ล็อกอิน / สมัครสมาชิก', 'แบบฟอร์มติดต่อ', 'Health check'] },
+    { icon: '🔗', name: 'Automation', where: 'n8n · Cloudflare', desc: 'เวิร์กโฟลว์อัตโนมัติและตัวกลางรับส่งข้อมูล',
+      feats: ['n8n workflow', 'Cloudflare Worker', 'ส่งอีเมล', 'Sync tasks'] },
+  ]},
+];
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+function openPage(src) {
+  if (window.parent !== window) window.parent.postMessage({ action: 'switchTab', src }, '*');
+  else location.href = src;
+}
+
+const content = document.getElementById('content');
+content.innerHTML = GROUPS.map(g => `
+  <section class="group">
+    <h2 class="group-title">${esc(g.title)}</h2>
+    <div class="grid">${g.items.map(it => {
+      const text = [it.name, it.desc, ...(it.feats || []), ...(it.cmds || []).flat()].join(' ').toLowerCase();
+      const head = it.src
+        ? `<span class="open">เปิด →</span>`
+        : `<span class="where">${esc(it.where)}</span>`;
+      const cmds = it.cmds ? `<ul class="cmds">${it.cmds.map(([c, d]) => `<li><code>${esc(c)}</code> ${esc(d)}</li>`).join('')}</ul>` : '';
+      const attrs = it.src ? `class="card page" role="link" tabindex="0" data-src="${esc(it.src)}"` : 'class="card svc"';
+      return `<article ${attrs} data-text="${esc(text)}">
+        <div class="card-head"><span class="card-icon" aria-hidden="true">${it.icon}</span><span class="card-name">${esc(it.name)}</span>${head}</div>
+        <p class="desc">${esc(it.desc)}</p>
+        ${cmds}
+        <ul class="feats">${(it.feats || []).map(f => `<li>${esc(f)}</li>`).join('')}</ul>
+      </article>`;
+    }).join('')}</div>
+  </section>`).join('');
+
+content.addEventListener('click', e => { const c = e.target.closest('.card.page'); if (c) openPage(c.dataset.src); });
+content.addEventListener('keydown', e => {
+  const c = e.target.closest('.card.page');
+  if (c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openPage(c.dataset.src); }
+});
+
+const q = document.getElementById('q'), count = document.getElementById('count'), empty = document.getElementById('empty');
+function filter() {
+  const term = q.value.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll('.group').forEach(g => {
+    let any = false;
+    g.querySelectorAll('.card').forEach(c => {
+      const ok = !term || c.dataset.text.includes(term);
+      c.style.display = ok ? '' : 'none';
+      if (ok) { any = true; shown++; }
+    });
+    g.style.display = any ? '' : 'none';
+  });
+  count.textContent = shown + ' รายการ';
+  empty.style.display = shown ? 'none' : 'block';
+}
+q.addEventListener('input', filter);
+filter();
+</script>
+</body>
+</html>
