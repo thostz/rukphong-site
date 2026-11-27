@@ -1,128 +1,230 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Rukphong Pullaoy — Dashboard</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#B8963E">
+<meta name="theme-color" content="#F4F5F8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D1017" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rukphong">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #F5F7FA; }
+  html, body { height: 100%; overflow: hidden; }
+  body { display: flex; flex-direction: column; }
 
-  header {
-    height: 58px; background: #FFFFFF;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-    display: flex; align-items: center;
-    padding: 0 24px; gap: 20px;
-    position: relative; z-index: 100; flex-shrink: 0;
+  /* ── Top bar ─────────────────────────────────────────────── */
+  .topbar {
+    flex-shrink: 0; position: relative; z-index: 20;
+    display: flex; align-items: center; gap: 18px;
+    height: 60px; padding: 0 20px;
+    padding-top: env(safe-area-inset-top);
+    height: calc(60px + env(safe-area-inset-top));
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--border);
   }
-  header::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, #B8963E, #D4AF5A, #B8963E);
-  }
-  .logo {
-    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
-    border-right: 1px solid rgba(0,0,0,0.08); padding-right: 20px;
-  }
-  .logo-av {
-    width: 34px; height: 34px; border-radius: 6px;
+  .brand { display: flex; align-items: center; gap: 11px; flex-shrink: 0; text-decoration: none; }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 10px;
     background: linear-gradient(135deg, #B8963E, #D4AF5A);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; font-weight: 800; color: #fff; flex-shrink: 0;
+    display: grid; place-items: center;
+    font-size: 0.78rem; font-weight: 800; color: #fff; letter-spacing: 0.02em;
+    box-shadow: 0 2px 8px rgba(184,150,62,0.35);
   }
-  .logo-text { font-size: 0.88rem; font-weight: 700; color: #1A2340; }
-  .logo-sub  { font-size: 0.62rem; color: #B8963E; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+  .brand-name { font-size: 0.92rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; line-height: 1.15; }
+  .brand-sub  { font-size: 0.66rem; font-weight: 600; color: var(--subtle); letter-spacing: 0.02em; }
+  .page-title { display: none; font-size: 1.02rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
 
-  .tabs { display: flex; align-items: center; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+  /* Desktop tabs */
+  .tabs {
+    display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0;
+    overflow-x: auto; scrollbar-width: none; padding: 4px;
+  }
   .tabs::-webkit-scrollbar { display: none; }
   .tab {
-    display: flex; align-items: center; gap: 7px;
-    padding: 7px 16px; border-radius: 6px;
-    font-size: 0.8rem; font-weight: 600; color: #6B7FA3;
-    cursor: pointer; white-space: nowrap;
-    border: 1px solid transparent;
-    transition: all .18s; background: none; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 36px; padding: 0 14px; border-radius: 9px;
+    font-size: 0.82rem; font-weight: 600; color: var(--muted);
+    text-decoration: none; white-space: nowrap; cursor: pointer;
+    transition: background-color .15s, color .15s;
   }
-  .tab:hover  { color: #B8963E; background: rgba(184,150,62,0.07); }
-  .tab.active { color: #B8963E; background: rgba(184,150,62,0.1); border-color: rgba(184,150,62,0.25); }
+  .tab svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .tab:hover { color: var(--text); background: var(--surface-3); }
+  .tab.active { color: var(--accent-ink); background: var(--accent-soft); }
 
-  .header-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; margin-left: auto; }
-  #clock { font-size: 0.72rem; color: #6B7FA3; font-variant-numeric: tabular-nums; }
-  .badge {
-    font-size: 0.62rem; font-weight: 700; padding: 3px 9px; border-radius: 99px;
-    letter-spacing: 0.4px; text-transform: uppercase;
-    background: rgba(184,150,62,0.1); color: #B8963E; border: 1px solid rgba(184,150,62,0.25);
-  }
+  .top-right { display: flex; align-items: center; gap: 12px; margin-left: auto; flex-shrink: 0; }
+  #clock { font-size: 0.78rem; font-weight: 600; color: var(--subtle); font-variant-numeric: tabular-nums; }
 
-  .frame-wrap { height: calc(100vh - 58px); width: 100%; }
-  #main-frame { width: 100%; height: 100%; border: none; display: block; background: #F5F7FA; }
-  @supports (height: 100dvh) { .frame-wrap { height: calc(100dvh - 58px); } }
+  /* ── Content ─────────────────────────────────────────────── */
+  .frame-wrap { flex: 1; min-height: 0; position: relative; }
+  #main-frame { width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
 
-  /* มือถือ: ซ่อนชื่อ/badge/นาฬิกา ให้แท็บมีที่พอ เลื่อนแท็บซ้ายขวาได้ */
-  @media (max-width: 700px) {
-    header { padding: 0 10px; gap: 10px; }
-    .logo { padding-right: 10px; }
-    .logo-text, .logo-sub, .header-right { display: none; }
-    .tab { padding: 7px 11px; }
+  /* ── Bottom nav (phones) ─────────────────────────────────── */
+  .bottom-nav { display: none; }
+  .sheet-backdrop, .sheet { display: none; }
+
+  @media (max-width: 760px) {
+    .topbar { height: calc(54px + env(safe-area-inset-top)); padding-left: 16px; padding-right: 16px; gap: 12px; }
+    .brand-mark { width: 32px; height: 32px; }
+    .brand-text, .tabs, #clock { display: none; }
+    .page-title { display: block; }
+
+    .bottom-nav {
+      flex-shrink: 0; display: grid; grid-template-columns: repeat(5, 1fr);
+      padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-top: 1px solid var(--border);
+      position: relative; z-index: 20;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      min-height: 52px; border-radius: 12px; border: 0; background: none;
+      font-family: var(--font); font-size: 0.66rem; font-weight: 600; color: var(--subtle);
+      text-decoration: none; cursor: pointer; transition: color .15s;
+    }
+    .nav-item svg { width: 23px; height: 23px; transition: transform .15s; }
+    .nav-item .pill {
+      display: grid; place-items: center; width: 54px; height: 30px; border-radius: 99px;
+      transition: background-color .2s;
+    }
+    .nav-item.active { color: var(--accent-ink); }
+    .nav-item.active .pill { background: var(--accent-soft); }
+    .nav-item:active svg { transform: scale(0.9); }
+
+    /* "More" sheet */
+    .sheet-backdrop {
+      display: block; position: fixed; inset: 0; z-index: 40;
+      background: rgba(0,0,0,0.35); opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .sheet {
+      display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
+      background: var(--surface); border-radius: 20px 20px 0 0;
+      padding: 10px 12px calc(16px + env(safe-area-inset-bottom));
+      box-shadow: var(--shadow-lg);
+      transform: translateY(105%); transition: transform .25s cubic-bezier(.2,.8,.2,1);
+    }
+    body.sheet-open .sheet-backdrop { opacity: 1; pointer-events: auto; }
+    body.sheet-open .sheet { transform: none; }
+    .sheet-grip { width: 40px; height: 4px; border-radius: 99px; background: var(--border-strong); margin: 2px auto 12px; }
+    .sheet-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--subtle); padding: 0 10px 8px; }
+    .sheet-item {
+      display: flex; align-items: center; gap: 14px; width: 100%;
+      min-height: 56px; padding: 0 12px; border-radius: 12px; border: 0; background: none;
+      font-family: var(--font); font-size: 0.95rem; font-weight: 600; color: var(--text);
+      text-align: left; cursor: pointer;
+    }
+    .sheet-item:active, .sheet-item.active { background: var(--accent-soft); }
+    .sheet-icon {
+      width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
+      background: var(--surface-3); color: var(--accent-ink); flex-shrink: 0;
+    }
+    .sheet-icon svg { width: 20px; height: 20px; }
+    .sheet-desc { display: block; font-size: 0.76rem; font-weight: 500; color: var(--subtle); margin-top: 1px; }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">
-    <div class="logo-av">RP</div>
-    <div>
-      <div class="logo-text">Rukphong Pullaoy</div>
-      <div class="logo-sub">Senior PM &amp; Consultant · Infor APAC</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5"/><path d="M16.5 14h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/><path d="M15 8h5v5"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">RP</div>
+    <div class="brand-text">
+      <div class="brand-name">Rukphong Pullaoy</div>
+      <div class="brand-sub">Senior PM &amp; Consultant · Infor APAC</div>
     </div>
   </div>
+  <div class="page-title" id="pageTitle">Dashboard</div>
 
-  <nav class="tabs" id="tabs">
-    <a class="tab active" data-src="dashboard.html"  href="#">🏠 Dashboard</a>
-    <a class="tab"        data-src="profile.html"    href="#">👤 Profile</a>
-    <a class="tab"        data-src="expense.html"    href="#">💰 Expense</a>
-    <a class="tab"        data-src="tasks.html"      href="#">✅ Tasks</a>
-    <a class="tab"        data-src="notes.html"      href="#">📝 Notes</a>
-    <a class="tab"        data-src="investment.html"   href="#">📈 Investment</a>
-    <a class="tab"        data-src="smart-import.html" href="#">🤖 Smart Import</a>
-    <a class="tab"        data-src="help.html"         href="#">❓ Help</a>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <a class="tab active" data-src="dashboard.html"    href="#"><svg><use href="#i-home"/></svg>Dashboard</a>
+    <a class="tab"        data-src="expense.html"      href="#"><svg><use href="#i-wallet"/></svg>Expense</a>
+    <a class="tab"        data-src="tasks.html"        href="#"><svg><use href="#i-check"/></svg>Tasks</a>
+    <a class="tab"        data-src="notes.html"        href="#"><svg><use href="#i-note"/></svg>Notes</a>
+    <a class="tab"        data-src="investment.html"   href="#"><svg><use href="#i-chart"/></svg>Investment</a>
+    <a class="tab"        data-src="smart-import.html" href="#"><svg><use href="#i-spark"/></svg>Smart Import</a>
+    <a class="tab"        data-src="help.html"         href="#"><svg><use href="#i-help"/></svg>Help</a>
+    <a class="tab"        data-src="profile.html"      href="#"><svg><use href="#i-user"/></svg>Profile</a>
   </nav>
 
-  <div class="header-right">
-    <span class="badge">APAC</span>
-    <span id="clock"></span>
-  </div>
+  <div class="top-right"><span id="clock"></span></div>
 </header>
 
 <div class="frame-wrap">
   <iframe id="main-frame" src="dashboard.html" title="Content"></iframe>
 </div>
 
+<nav class="bottom-nav" id="bottomNav" aria-label="Sections">
+  <button class="nav-item active" data-src="dashboard.html"><span class="pill"><svg><use href="#i-home"/></svg></span>หน้าหลัก</button>
+  <button class="nav-item" data-src="expense.html"><span class="pill"><svg><use href="#i-wallet"/></svg></span>รายจ่าย</button>
+  <button class="nav-item" data-src="tasks.html"><span class="pill"><svg><use href="#i-check"/></svg></span>งาน</button>
+  <button class="nav-item" data-src="investment.html"><span class="pill"><svg><use href="#i-chart"/></svg></span>ลงทุน</button>
+  <button class="nav-item" id="moreBtn" data-more="1"><span class="pill"><svg><use href="#i-more"/></svg></span>เพิ่มเติม</button>
+</nav>
+
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="More">
+  <div class="sheet-grip"></div>
+  <div class="sheet-title">เมนูเพิ่มเติม</div>
+  <button class="sheet-item" data-src="notes.html"><span class="sheet-icon"><svg><use href="#i-note"/></svg></span><span>โน้ต<span class="sheet-desc">บันทึกและไอเดีย</span></span></button>
+  <button class="sheet-item" data-src="smart-import.html"><span class="sheet-icon"><svg><use href="#i-spark"/></svg></span><span>Smart Import<span class="sheet-desc">วางข้อความให้ AI แยกเป็นงาน/รายจ่าย/โน้ต</span></span></button>
+  <button class="sheet-item" data-src="help.html"><span class="sheet-icon"><svg><use href="#i-help"/></svg></span><span>วิธีใช้<span class="sheet-desc">คำสั่ง LINE และการตั้งค่า</span></span></button>
+  <button class="sheet-item" data-src="profile.html"><span class="sheet-icon"><svg><use href="#i-user"/></svg></span><span>โปรไฟล์<span class="sheet-desc">Rukphong Pullaoy</span></span></button>
+</div>
+
 <script>
   const frame = document.getElementById('main-frame');
+  const TITLES = {
+    'dashboard.html': 'Dashboard', 'expense.html': 'รายจ่าย', 'tasks.html': 'งาน',
+    'notes.html': 'โน้ต', 'investment.html': 'การลงทุน', 'smart-import.html': 'Smart Import',
+    'help.html': 'วิธีใช้', 'profile.html': 'โปรไฟล์',
+  };
+  const MORE = ['notes.html', 'smart-import.html', 'help.html', 'profile.html'];
+
+  function closeSheet() { document.body.classList.remove('sheet-open'); }
 
   function switchTab(src) {
-    const tab = document.querySelector(`.tab[data-src="${src}"]`);
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    if (tab) tab.classList.add('active');
-    frame.src = src;
+    document.querySelectorAll('[data-src]').forEach(el => el.classList.toggle('active', el.dataset.src === src));
+    document.getElementById('moreBtn').classList.toggle('active', MORE.includes(src));
+    document.getElementById('pageTitle').textContent = TITLES[src] || '';
+    if (frame.getAttribute('src') !== src) frame.src = src;
+    closeSheet();
   }
 
-  document.getElementById('tabs').addEventListener('click', e => {
-    const tab = e.target.closest('.tab');
-    if (!tab) return;
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-src], [data-more]');
+    if (!el) return;
     e.preventDefault();
-    switchTab(tab.dataset.src);
+    if (el.dataset.more) { document.body.classList.toggle('sheet-open'); return; }
+    switchTab(el.dataset.src);
   });
+  document.getElementById('sheetBackdrop').addEventListener('click', closeSheet);
 
   // Allow child iframes (dashboard) to trigger tab navigation
   window.addEventListener('message', e => {
@@ -131,9 +233,9 @@
 
   function tick() {
     document.getElementById('clock').textContent =
-      new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
   }
-  tick(); setInterval(tick, 1000);
+  tick(); setInterval(tick, 15000);
 
   // PWA: ติดตั้งเป็นแอปบน Android ได้
   if ('serviceWorker' in navigator) {

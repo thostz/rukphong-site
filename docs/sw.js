@@ -1,9 +1,9 @@
 // Rukphong PWA service worker
 // - Same-origin files (pages, config.js, icons): network first, cache fallback → เปิดแอปได้แม้เน็ตหลุด
 // - Cross-origin (Apps Script API, CDN, fonts): ไม่แตะ ปล่อยให้ browser จัดการเอง
-const CACHE = 'rukphong-v1';
+const CACHE = 'rukphong-v2';
 const SHELL = [
-  './', './index.html', './config.js', './manifest.webmanifest',
+  './', './index.html', './config.js', './manifest.webmanifest', './theme.css', './theme.js',
   './dashboard.html', './expense.html', './tasks.html', './notes.html',
   './investment.html', './smart-import.html', './profile.html', './help.html',
   './icons/icon-192.png', './icons/icon-512.png',
