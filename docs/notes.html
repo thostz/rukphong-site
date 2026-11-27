@@ -8,27 +8,27 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   * { box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #F5F7FA; color: #1A2340; }
+  body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
 
-  .container { width: 90%; max-width: 1100px; margin: 28px auto; padding: 24px; background: #fff; border-radius: 12px; border-top: 3px solid #B8963E; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
-  h1 { font-weight: 800; color: #1A2340; font-size: 1.6em; margin-bottom: 20px; text-align: center; }
+  .container { width: 90%; max-width: 1100px; margin: 28px auto; padding: 24px; background: var(--surface); border-radius: 12px; border-top: 3px solid var(--accent); box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  h1 { font-weight: 800; color: var(--text); font-size: 1.6em; margin-bottom: 20px; text-align: center; }
 
-  .section-header { font-weight: 700; color: #1A2340; font-size: 1.1em; margin: 24px 0 12px; border-bottom: 2px solid rgba(184,150,62,0.2); padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-  .form-section { background: #F8FAFC; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+  .section-header { font-weight: 700; color: var(--text); font-size: 1.1em; margin: 24px 0 12px; border-bottom: 2px solid rgba(184,150,62,0.2); padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .form-section { background: var(--surface-2); border-radius: 8px; padding: 18px; margin-bottom: 16px; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width:600px) { .form-row { grid-template-columns: 1fr; } }
   .form-group { display: flex; flex-direction: column; gap: 5px; }
-  label { font-size: 0.8em; font-weight: 600; color: #5A6E8C; }
+  label { font-size: 0.8em; font-weight: 600; color: var(--muted); }
   input, select, textarea {
-    padding: 8px 10px; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px;
-    font-family: 'Inter', sans-serif; font-size: 0.88em; color: #1A2340; background: #fff;
+    padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: 6px;
+    font-family: 'Inter', sans-serif; font-size: 0.88em; color: var(--text); background: var(--surface);
   }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: #B8963E; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
   textarea { resize: vertical; min-height: 90px; }
 
   .btn { padding: 8px 18px; border-radius: 7px; font-size: 0.82em; font-weight: 700; border: none; cursor: pointer; transition: opacity .15s; }
   .btn:hover { opacity: 0.85; }
-  .btn-primary { background: #B8963E; color: #fff; }
+  .btn-primary { background: var(--accent); color: #fff; }
   .btn-sm { padding: 4px 10px; font-size: 0.75em; }
 
   .search-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -37,21 +37,27 @@
 
   .notes-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 14px; }
   .note-card {
-    background: #fff; border-radius: 10px; padding: 16px;
-    border: 1px solid rgba(0,0,0,0.07); border-top: 3px solid #B8963E;
+    background: var(--surface); border-radius: 10px; padding: 16px;
+    border: 1px solid var(--border); border-top: 3px solid var(--accent);
     box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: box-shadow .2s;
   }
   .note-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-  .note-title { font-weight: 700; font-size: 0.92em; color: #1A2340; margin-bottom: 8px; }
-  .note-content { font-size: 0.83em; color: #5A6E8C; line-height: 1.6; margin-bottom: 10px; white-space: pre-wrap; max-height: 100px; overflow: hidden; text-overflow: ellipsis; }
+  .note-title { font-weight: 700; font-size: 0.92em; color: var(--text); margin-bottom: 8px; }
+  .note-content { font-size: 0.83em; color: var(--muted); line-height: 1.6; margin-bottom: 10px; white-space: pre-wrap; max-height: 100px; overflow: hidden; text-overflow: ellipsis; }
   .note-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
-  .note-meta { font-size: 0.72em; color: #8898AA; }
-  .cat-pill { font-size: 0.68em; padding: 2px 8px; border-radius: 99px; background: rgba(184,150,62,0.1); color: #8A6E28; font-weight: 600; }
+  .note-meta { font-size: 0.72em; color: var(--subtle); }
+  .cat-pill { font-size: 0.68em; padding: 2px 8px; border-radius: 99px; background: rgba(184,150,62,0.1); color: var(--accent-ink); font-weight: 600; }
   .note-actions { display: flex; gap: 5px; }
 
-  #noData { text-align: center; color: #5A6E8C; padding: 32px; font-size: 0.9em; }
-  .spinner { text-align: center; padding: 32px; color: #B8963E; font-size: 0.9em; }
+  #noData { text-align: center; color: var(--muted); padding: 32px; font-size: 0.9em; }
+  .spinner { text-align: center; padding: 32px; color: var(--accent); font-size: 0.9em; }
 </style>
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 <body>
 
@@ -86,7 +92,7 @@
     </div>
     <div style="margin-top:14px; display:flex; gap:8px;">
       <button class="btn btn-primary" onclick="saveNote()">💾 Save</button>
-      <button class="btn btn-sm" style="background:#F5F7FA;color:#5A6E8C;border:1px solid rgba(0,0,0,0.1)" onclick="clearForm()">Clear</button>
+      <button class="btn btn-sm" style="background:var(--bg);color:var(--muted);border:1px solid var(--border-strong)" onclick="clearForm()">Clear</button>
     </div>
   </div>
 
@@ -145,8 +151,8 @@ function render() {
             ${r.date}
           </div>
           <div class="note-actions">
-            <button class="btn btn-sm" style="background:#F5F7FA;border:1px solid rgba(0,0,0,0.1);color:#1A2340" onclick="editRow('${r.id}')">✏️</button>
-            <button class="btn btn-sm" style="background:#FFF0F0;color:#e74c3c;border:1px solid rgba(231,76,60,0.2)" onclick="deleteRow('${r.id}')">🗑</button>
+            <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border-strong);color:var(--text)" onclick="editRow('${r.id}')">✏️</button>
+            <button class="btn btn-sm" style="background:var(--danger-soft);color:var(--danger);border:1px solid rgba(231,76,60,0.2)" onclick="deleteRow('${r.id}')">🗑</button>
           </div>
         </div>
       </div>`);

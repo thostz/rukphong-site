@@ -6,18 +6,12 @@
 <title>Smart Import — Rukphong Dashboard</title>
 <style>
   :root {
-    --bg:      #0f1117;
-    --card:    #1a2340;
-    --card2:   #151d30;
-    --accent:  #4f8ef7;
-    --green:   #22c55e;
-    --yellow:  #f59e0b;
-    --red:     #ef4444;
-    --purple:  #a855f7;
-    --text:    #e2e8f0;
-    --muted:   #64748b;
-    --border:  #2d3748;
-    --radius:  12px;
+    --card:    var(--surface);
+    --card2:   var(--surface-2);
+    --green:   var(--success);
+    --yellow:  var(--warning);
+    --red:     var(--danger);
+    --radius:  14px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -129,15 +123,15 @@
     padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600;
     white-space: nowrap;
   }
-  .badge-high   { background: #3f1515; color: var(--red); }
-  .badge-medium { background: #3a2c10; color: var(--yellow); }
-  .badge-low    { background: #1a3a20; color: var(--green); }
-  .badge-amount { background: #1a2e50; color: var(--accent); }
+  .badge-high   { background: var(--danger-soft); color: var(--red); }
+  .badge-medium { background: var(--warning-soft); color: var(--yellow); }
+  .badge-low    { background: var(--success-soft); color: var(--green); }
+  .badge-amount { background: var(--accent-soft); color: var(--accent-ink); }
 
   /* ── Success banner ── */
   .success-banner {
-    background: #14261a;
-    border: 1px solid #22c55e44;
+    background: var(--success-soft);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 14px 18px;
     margin-bottom: 16px;
@@ -145,8 +139,8 @@
     font-size: 0.92rem;
   }
   .error-banner {
-    background: #2a1010;
-    border: 1px solid #ef444444;
+    background: var(--danger-soft);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 14px 18px;
     margin-bottom: 16px;
@@ -157,6 +151,12 @@
   .tips { color: var(--muted); font-size: 0.82rem; line-height: 1.7; }
   .tips strong { color: var(--text); }
 </style>
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 <body>
 

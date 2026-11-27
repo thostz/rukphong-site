@@ -1,0 +1,215 @@
+/* ═══════════════════════════════════════════════════════════════
+   Rukphong — shared design system
+   - Light / dark follow the device (prefers-color-scheme)
+   - Loaded AFTER each page's own <style>, so these rules win at
+     equal specificity; page-specific variants (.card.gain …) still apply
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: light dark;
+
+  --font: 'Inter', 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --bg:            #F4F5F8;
+  --surface:       #FFFFFF;
+  --surface-2:     #F7F8FA;
+  --surface-3:     #EEF0F4;
+  --text:          #141B2E;
+  --muted:         #56627A;
+  --subtle:        #8792A6;
+  --border:        rgba(20, 27, 46, 0.08);
+  --border-strong: rgba(20, 27, 46, 0.15);
+
+  --accent:        #B8963E;
+  --accent-strong: #9F7F2E;
+  --accent-ink:    #7A5E1C;
+  --accent-soft:   rgba(184, 150, 62, 0.12);
+  --on-accent:     #FFFFFF;
+
+  --success:       #1E9E57;
+  --success-soft:  #E7F6EE;
+  --danger:        #D6423B;
+  --danger-soft:   #FDECEB;
+  --warning:       #DB8A1E;
+  --warning-ink:   #A8650B;
+  --warning-soft:  #FFF4E1;
+  --purple:        #7C5CDB;
+  --purple-soft:   #F1ECFD;
+  --neutral-soft:  #EEF1F6;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow:    0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 20px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12);
+  --ring:      0 0 0 3px rgba(184, 150, 62, 0.25);
+
+  --radius:    14px;
+  --radius-sm: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:            #0D1017;
+    --surface:       #161B25;
+    --surface-2:     #1B2130;
+    --surface-3:     #232A3B;
+    --text:          #E9EDF4;
+    --muted:         #A4AEC1;
+    --subtle:        #707B91;
+    --border:        rgba(255, 255, 255, 0.07);
+    --border-strong: rgba(255, 255, 255, 0.14);
+
+    --accent:        #D4AF5A;
+    --accent-strong: #E3C47A;
+    --accent-ink:    #E3C47A;
+    --accent-soft:   rgba(212, 175, 90, 0.14);
+    --on-accent:     #1B1508;
+
+    --success:       #3DCB80;
+    --success-soft:  rgba(61, 203, 128, 0.13);
+    --danger:        #F2675F;
+    --danger-soft:   rgba(242, 103, 95, 0.13);
+    --warning:       #F1AA3D;
+    --warning-ink:   #F1AA3D;
+    --warning-soft:  rgba(241, 170, 61, 0.13);
+    --purple:        #A98BFA;
+    --purple-soft:   rgba(169, 139, 250, 0.14);
+    --neutral-soft:  rgba(255, 255, 255, 0.06);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow:    0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+    --ring:      0 0 0 3px rgba(212, 175, 90, 0.3);
+  }
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-tap-highlight-color: transparent;
+}
+::selection { background: var(--accent-soft); }
+a { color: var(--accent); }
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+
+/* ── Page shell (tool pages) ──────────────────────────────────── */
+.container {
+  width: auto; max-width: 1100px;
+  margin: 0 auto; padding: 24px 20px 56px;
+  background: transparent; border: 0; border-radius: 0; box-shadow: none;
+}
+h1 {
+  font-size: 1.55rem; font-weight: 750; letter-spacing: -0.02em; line-height: 1.25;
+  text-align: left; color: var(--text); margin: 0 0 20px;
+}
+.section-header {
+  font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text);
+  margin: 28px 0 12px; padding: 0; border: 0;
+}
+
+/* ── Surfaces ─────────────────────────────────────────────────── */
+.form-section, .chart-box, .portfolio-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 18px;
+}
+.chart-box h3 {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--subtle); margin: 0 0 12px;
+}
+
+/* KPI / summary cards (only inside .summary-grid; :where keeps specificity = .card
+   so page variants like .card.gain still win) */
+.summary-grid { gap: 12px; }
+:where(.summary-grid) .card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-left-color: var(--accent);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+  text-align: left;
+}
+:where(.summary-grid) .card .label {
+  font-size: 0.68rem; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--subtle);
+}
+:where(.summary-grid) .card .value {
+  font-size: 1.35rem; font-weight: 750; letter-spacing: -0.02em; margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Forms ────────────────────────────────────────────────────── */
+label { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+input, select, textarea {
+  font-family: var(--font);
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  transition: border-color .15s, box-shadow .15s;
+}
+input, select { min-height: 44px; }
+textarea { line-height: 1.55; }
+input::placeholder, textarea::placeholder { color: var(--subtle); }
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent); box-shadow: var(--ring);
+}
+input[type="file"] { min-height: 0; }
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 42px; padding: 0 18px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font); font-size: 0.86rem; font-weight: 650; letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s, transform .08s, opacity .15s;
+}
+.btn:hover { opacity: 1; }
+.btn:active { transform: scale(0.97); }
+.btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--accent-strong); }
+.btn-sm { min-height: 34px; padding: 0 12px; font-size: 0.78rem; border-radius: 8px; }
+.btn-danger { background: var(--danger-soft); color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+
+/* ── Tables ───────────────────────────────────────────────────── */
+table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th {
+  background: var(--surface-2); color: var(--subtle);
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+td { border-bottom: 1px solid var(--border); color: var(--text); }
+tr:hover td { background: var(--accent-soft); }
+#tableWrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden;
+}
+@media (max-width: 760px) {
+  /* ตารางกว้างเลื่อนซ้าย-ขวาในกรอบ แทนการล้นจอ */
+  .container table { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+}
+
+/* ── States ───────────────────────────────────────────────────── */
+.spinner, .loading { color: var(--subtle); }
+#noData, .empty { color: var(--subtle); }
+
+/* ── Motion ───────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
