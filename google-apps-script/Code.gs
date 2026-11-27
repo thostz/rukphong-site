@@ -155,6 +155,7 @@ function doPost(e) {
 
     switch (action) {
       case 'smartClassify':    result = smartClassifyApi(record.text || '');         break;
+      case 'scanSlip':         result = scanSlipApi(record);                         break;
       case 'saveExpense':      result = saveExpense(record);                         break;
       case 'deleteExpense':    deleteById('expense', record.id);   result = {ok:true}; break;
       case 'saveTask':         result = saveTask(record);                            break;
@@ -348,6 +349,28 @@ function processSlipImage(messageId, token) {
   } catch (e) {
     Logger.log('Slip OCR error: ' + e);
     return '❌ เกิดข้อผิดพลาด: ' + e.message;
+  }
+}
+
+// Web/PWA: {action:'scanSlip', record:{image:<base64>, mimeType}} → OCR → บันทึกอัตโนมัติ
+function scanSlipApi(r) {
+  try {
+    if (!r || !r.image) return { ok: false, error: 'ไม่มีรูปสลิป' };
+    const blob = Utilities.newBlob(Utilities.base64Decode(r.image), r.mimeType || 'image/jpeg', 'slip.jpg');
+    const text = ocrWithDrive(blob);
+    if (!text || text.trim().length < 3) return { ok: false, error: 'อ่านข้อความจากรูปไม่ได้ ลองรูปที่ชัดขึ้น' };
+
+    const amount = parseSlipAmount(text);
+    if (!amount) return { ok: false, error: 'อ่านข้อความได้แต่ไม่พบจำนวนเงิน', text: text.slice(0, 300) };
+
+    const category = detectSlipCategory(text);
+    const merchant = detectMerchant(text);
+    const notes    = merchant ? `Slip: ${merchant}` : 'จาก Slip';
+    const saved    = saveExpense({ amount, category, notes });
+    return { ok: true, id: saved.id, date: today(), amount, category, merchant, notes };
+  } catch (e) {
+    Logger.log('scanSlipApi error: ' + e);
+    return { ok: false, error: e.message };
   }
 }
 
