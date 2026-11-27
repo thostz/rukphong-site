@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rukphong Pullaoy — Dashboard</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#B8963E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rukphong">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,6 +64,15 @@
 
   .frame-wrap { height: calc(100vh - 58px); width: 100%; }
   #main-frame { width: 100%; height: 100%; border: none; display: block; background: #F5F7FA; }
+  @supports (height: 100dvh) { .frame-wrap { height: calc(100dvh - 58px); } }
+
+  /* มือถือ: ซ่อนชื่อ/badge/นาฬิกา ให้แท็บมีที่พอ เลื่อนแท็บซ้ายขวาได้ */
+  @media (max-width: 700px) {
+    header { padding: 0 10px; gap: 10px; }
+    .logo { padding-right: 10px; }
+    .logo-text, .logo-sub, .header-right { display: none; }
+    .tab { padding: 7px 11px; }
+  }
 </style>
 </head>
 <body>
@@ -118,6 +134,11 @@
       new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
   tick(); setInterval(tick, 1000);
+
+  // PWA: ติดตั้งเป็นแอปบน Android ได้
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW', e)));
+  }
 </script>
 </body>
 </html>

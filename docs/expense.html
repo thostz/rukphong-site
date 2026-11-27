@@ -80,7 +80,12 @@
 
   <div class="section-header">
     <span>Add Expense</span>
+    <div>
+      <input type="file" id="slipInput" accept="image/*" style="display:none" onchange="scanSlip(this)">
+      <button class="btn btn-primary btn-sm" id="slipBtn" onclick="document.getElementById('slipInput').click()">📸 สแกนสลิป</button>
+    </div>
   </div>
+  <div id="slipMsg" style="display:none; padding:10px 14px; border-radius:8px; margin-bottom:12px; font-size:0.85em; white-space:pre-line"></div>
   <div class="form-section">
     <input type="hidden" id="editId">
     <div class="form-grid">
@@ -269,6 +274,58 @@ function clearForm() {
   document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('fCategory').value = '';
   document.getElementById('fPayment').value = '';
+}
+
+// ── Slip scan (OCR ใน Apps Script แล้วบันทึกอัตโนมัติ) ───────────
+function showSlipMsg(text, ok) {
+  const el = document.getElementById('slipMsg');
+  el.textContent = text;
+  el.style.display = 'block';
+  el.style.background = ok === null ? '#FFF8EC' : ok ? '#F0FFF4' : '#FFF5F5';
+  el.style.color = ok === false ? '#c0392b' : '#1A2340';
+}
+
+// ย่อรูปให้ด้านยาวไม่เกิน 1600px ก่อนส่ง (รูปจากกล้องมือถือใหญ่มาก)
+function slipToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(img.src);
+      resolve(c.toDataURL('image/jpeg', 0.9).split(',')[1]);
+    };
+    img.onerror = () => reject(new Error('เปิดรูปไม่ได้'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function scanSlip(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  const btn = document.getElementById('slipBtn');
+  btn.disabled = true;
+  showSlipMsg('⏳ กำลังอ่านสลิป...', null);
+  try {
+    const image = await slipToBase64(file);
+    const j = await gsPost('scanSlip', { image, mimeType: 'image/jpeg' });
+    if (j && j.ok) {
+      const amt = Number(j.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+      showSlipMsg(`✅ บันทึกจากสลิปแล้ว\n💰 ฿${amt}  📂 ${j.category}` + (j.merchant ? `  🏪 ${j.merchant}` : '') +
+                  `\nถ้าไม่ถูก กด ✏️ ที่รายการเพื่อแก้ไข`, true);
+      await load();
+    } else {
+      showSlipMsg('❌ ' + ((j && j.error) || 'สแกนไม่สำเร็จ (ตรวจว่า deploy Apps Script เวอร์ชันใหม่แล้ว)'), false);
+    }
+  } catch (e) {
+    showSlipMsg('❌ ' + e.message, false);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────
