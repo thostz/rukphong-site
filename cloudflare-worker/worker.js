@@ -9,7 +9,7 @@
  */
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
 
     // ── CORS preflight ──────────────────────────────────────────
     if (request.method === 'OPTIONS') {
@@ -36,7 +36,6 @@ export default {
       // Forward to Apps Script in background (non-blocking)
       const gsUrl = env.GS_URL;
       if (gsUrl) {
-        const ctx = { waitUntil: (p) => p };  // fallback if no executionCtx
         const forward = fetch(gsUrl, {
           method: 'POST',
           body,
@@ -44,12 +43,9 @@ export default {
           redirect: 'follow',
         }).catch(() => {});  // ignore errors — LINE already got 200
 
-        // Use executionCtx.waitUntil if available (proper Workers context)
-        try {
-          request.ctx?.waitUntil(forward);
-        } catch {
-          // fire and forget
-        }
+        // ctx.waitUntil ให้ Worker ทำงานต่อจนส่งต่อเสร็จ แม้ตอบ LINE ไปแล้ว
+        // (ถ้าไม่ใช้ การส่งต่ออาจถูกตัดทิ้งหลังตอบ ทำให้ข้อความบางข้อความไม่ถึง Apps Script)
+        ctx.waitUntil(forward);
       }
 
       // Return 200 immediately — before Apps Script responds
