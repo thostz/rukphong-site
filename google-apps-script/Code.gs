@@ -607,7 +607,16 @@ function buildReply(text) {
 //    ① LINE bot  — long text (>120 chars) or keyword trigger → returns reply string
 //    ② Web UI    — doPost {action:'smartClassify', record:{text}} → returns JSON
 
+// ลำดับโมเดลที่ลอง — ตัวแรกที่ตอบได้จะถูกใช้ (โมเดลเก่าบางตัวถูกปิดสำหรับบัญชีใหม่)
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'];
+let _lastGeminiError = '';   // เหตุผลล่าสุดที่เรียก Gemini ไม่สำเร็จ (ไว้แสดงให้ผู้ใช้เห็น)
+
+function _geminiErrMsg(body) {
+  try { return JSON.parse(body).error.message; } catch (e) { return String(body).slice(0, 160); }
+}
+
 function _callGemini(text) {
+  _lastGeminiError = '';
   const apiKey = P.getProperty('GEMINI_API_KEY');
   if (!apiKey) return null;   // no key → fallback
 
@@ -627,32 +636,49 @@ function _callGemini(text) {
     `- ถ้าไม่มีประเภทใด ให้ใส่ [] ว่าง\n` +
     `- priority high = ด่วน/สำคัญมาก, low = ไม่เร่งด่วน, medium = ปกติ`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-  try {
-    const res = UrlFetchApp.fetch(url, {
-      method: 'post',
-      contentType: 'application/json',
-      payload: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 1024 },
-      }),
-      muteHttpExceptions: true,
-    });
 
-    if (res.getResponseCode() !== 200) {
-      Logger.log('Gemini HTTP error ' + res.getResponseCode() + ': ' + res.getContentText());
-      return null;
+  const baseCfg = { temperature: 0.1, maxOutputTokens: 8192, responseMimeType: 'application/json' };
+
+  for (const model of GEMINI_MODELS) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    // 2.5-flash นับ "thinking" รวมใน maxOutputTokens → ปิดไว้ ไม่งั้นคำตอบอาจว่าง/ถูกตัด
+    // ถ้าโมเดลไม่รับ thinkingConfig (HTTP 400) ลองซ้ำแบบไม่ใส่
+    for (const withThinking of [true, false]) {
+      const cfg = withThinking ? Object.assign({ thinkingConfig: { thinkingBudget: 0 } }, baseCfg) : baseCfg;
+      try {
+        const res = UrlFetchApp.fetch(url, {
+          method: 'post',
+          contentType: 'application/json',
+          headers: { 'x-goog-api-key': apiKey },
+          payload: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: cfg }),
+          muteHttpExceptions: true,
+        });
+        const code = res.getResponseCode();
+        if (code !== 200) {
+          _lastGeminiError = `${model} HTTP ${code}: ${_geminiErrMsg(res.getContentText())}`;
+          Logger.log('Gemini ' + _lastGeminiError);
+          if (code === 400 && withThinking) continue;   // ลองซ้ำโดยไม่ใส่ thinkingConfig
+          break;                                        // โมเดลนี้ใช้ไม่ได้ → ไปตัวถัดไป
+        }
+        const resp   = JSON.parse(res.getContentText());
+        const cand   = resp && resp.candidates && resp.candidates[0];
+        const parts  = (cand && cand.content && cand.content.parts) || [];
+        const raw    = parts.map(p => p.text || '').join('');
+        const match  = raw.match(/\{[\s\S]*\}/);   // extract JSON block
+        if (!match) {
+          _lastGeminiError = `${model} ไม่ได้ส่ง JSON กลับมา (finishReason: ${(cand && cand.finishReason) || '?'})`;
+          Logger.log('Gemini ' + _lastGeminiError + ': ' + raw.slice(0, 200));
+          break;
+        }
+        return JSON.parse(match[0]);
+      } catch (e) {
+        _lastGeminiError = `${model}: ${e.message || e}`;
+        Logger.log('_callGemini error: ' + _lastGeminiError);
+        break;
+      }
     }
-
-    const resp  = JSON.parse(res.getContentText());
-    const raw   = resp?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const match = raw.match(/\{[\s\S]*\}/);   // extract JSON block
-    if (!match) { Logger.log('Gemini no JSON in response: ' + raw); return null; }
-    return JSON.parse(match[0]);
-  } catch (e) {
-    Logger.log('_callGemini error: ' + e);
-    return null;
   }
+  return null;
 }
 
 function _saveClassified(classified) {
@@ -694,7 +720,8 @@ function smartClassify(text) {
     saveNote({ title, content: text, category: 'นำเข้า' });
     const hasKey = !!P.getProperty('GEMINI_API_KEY');
     return `📝 บันทึกเป็นโน้ตแล้ว\n"${title}"` +
-           (hasKey ? '' : '\n\n(ตั้งค่า GEMINI_API_KEY เพื่อจำแนกอัตโนมัติ)');
+           (hasKey ? '\n\n(เรียก Gemini ไม่สำเร็จ: ' + _lastGeminiError + ')'
+                   : '\n\n(ตั้งค่า GEMINI_API_KEY เพื่อจำแนกอัตโนมัติ)');
   }
 
   const r = _saveClassified(classified);
@@ -735,7 +762,9 @@ function smartClassifyApi(text) {
     const saved = saveNote({ title, content: text, category: 'นำเข้า' });
     return { ok: true, savedTasks: 0, savedExpenses: 0, savedNotes: 1,
              tasks: [], expenses: [], notes: [{ title, content: text }],
-             warning: 'GEMINI_API_KEY not set — saved as note' };
+             warning: P.getProperty('GEMINI_API_KEY')
+               ? 'เรียก Gemini ไม่สำเร็จ (' + _lastGeminiError + ') — บันทึกเป็นโน้ตก้อนเดียว'
+               : 'GEMINI_API_KEY not set — saved as note' };
   }
 
   const r = _saveClassified(classified);
