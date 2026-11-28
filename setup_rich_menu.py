@@ -19,23 +19,18 @@ W, H = 2500, 843
 COLS, ROWS = 3, 2
 CW, CH = W // COLS, H // ROWS  # 833 x 421
 
-ITEMS = [
-    {"emoji": "💰", "label": "บันทึกรายจ่าย", "text": "จ่าย",           "bg": "#1A9B9F", "fg": "#FFFFFF"},
-    {"emoji": "📋", "label": "บันทึกงาน",     "text": "งาน",            "bg": "#4A7ADB", "fg": "#FFFFFF"},
-    {"emoji": "🕐", "label": "รายจ่ายล่าสุด", "text": "รายจ่ายล่าสุด", "bg": "#E07B54", "fg": "#FFFFFF"},
-    {"emoji": "🕐", "label": "งานล่าสุด",     "text": "งานล่าสุด",     "bg": "#6B5EA8", "fg": "#FFFFFF"},
-    {"emoji": "📊", "label": "สรุปรายจ่าย",   "text": "สรุปรายจ่าย",  "bg": "#C0392B", "fg": "#FFFFFF"},
-    {"emoji": "❓", "label": "ช่วยเหลือ",     "text": "ช่วยเหลือ",    "bg": "#555555", "fg": "#FFFFFF"},
-]
+WEB_URL = "https://thostz.github.io/rukphong-site/"
 
-ICON_MAP = {
-    "บันทึกรายจ่าย": "💰",
-    "บันทึกงาน":     "📋",
-    "รายจ่ายล่าสุด": "📂",
-    "งานล่าสุด":     "📂",
-    "สรุปรายจ่าย":   "📊",
-    "ช่วยเหลือ":     "❓",
-}
+# ทุกปุ่มต้องเป็นข้อความที่บอท Apps Script (google-apps-script/Code.gs → buildReply) ตอบได้
+# การบันทึกต้องพิมพ์ครบในบรรทัดเดียว (เช่น "จ่าย 150 อาหาร") จึงให้ปุ่ม "คำสั่ง" แสดงวิธีพิมพ์
+ITEMS = [
+    {"icon": "money",        "label": "รายจ่ายวันนี้",   "action": {"type": "message", "text": "ดูรายจ่าย"},            "bg": "#1A9B9F", "fg": "#FFFFFF"},
+    {"icon": "chart",        "label": "รายจ่ายเดือนนี้", "action": {"type": "message", "text": "ดูรายจ่าย เดือนนี้"},   "bg": "#E07B54", "fg": "#FFFFFF"},
+    {"icon": "list_work",    "label": "งานค้าง",         "action": {"type": "message", "text": "ดูงาน"},                "bg": "#4A7ADB", "fg": "#FFFFFF"},
+    {"icon": "list_expense", "label": "โน้ตล่าสุด",      "action": {"type": "message", "text": "ดูโน้ต"},               "bg": "#6B5EA8", "fg": "#FFFFFF"},
+    {"icon": "globe",        "label": "เปิดแดชบอร์ด",    "action": {"type": "uri", "uri": WEB_URL},                    "bg": "#C0392B", "fg": "#FFFFFF"},
+    {"icon": "help",         "label": "คำสั่ง/วิธีบันทึก", "action": {"type": "message", "text": "help"},             "bg": "#555555", "fg": "#FFFFFF"},
+]
 
 
 def find_thai_font(size: int) -> ImageFont.FreeTypeFont:
@@ -95,6 +90,13 @@ def draw_icon(draw: ImageDraw.Draw, kind: str, cx: int, cy: int, size: int, colo
             draw.rectangle([bx, cy + s - bh, bx + bar_w, cy + s], fill=color)
         draw.line([cx - s, cy + s, cx + s, cy + s], fill=color, width=w)
 
+    elif kind == "globe":
+        # ลูกโลก: วงกลม + เส้นเมริเดียน + เส้นศูนย์สูตร
+        draw.ellipse([cx - s, cy - s, cx + s, cy + s], outline=color, width=w)
+        draw.ellipse([cx - s // 2, cy - s, cx + s // 2, cy + s], outline=color, width=max(4, w // 2))
+        draw.line([cx - s, cy, cx + s, cy], fill=color, width=max(4, w // 2))
+        draw.line([cx, cy - s, cx, cy + s], fill=color, width=max(4, w // 2))
+
     elif kind == "help":
         # วงกลม + เครื่องหมาย ?
         draw.ellipse([cx - s, cy - s, cx + s, cy + s], outline=color, width=w)
@@ -103,9 +105,6 @@ def draw_icon(draw: ImageDraw.Draw, kind: str, cx: int, cy: int, size: int, colo
         draw.arc([cx - s//2, cy - s//2, cx + s//2, cy], start=200, end=360, fill=color, width=w)
         draw.line([cx, cy + w, cx, cy + s//2], fill=color, width=w)
         draw.ellipse([cx - w, cy + s//2 + w, cx + w, cy + s//2 + w*3], fill=color)
-
-
-ICON_KINDS = ["money", "task", "list_expense", "list_work", "chart", "help"]
 
 
 def make_image(out_path: str = "rich_menu.png"):
@@ -129,7 +128,7 @@ def make_image(out_path: str = "rich_menu.png"):
 
         # ไอคอน (วาดด้วย shapes)
         icon_size = CH // 3
-        draw_icon(draw, ICON_KINDS[i], cx, cy - icon_size // 2, icon_size, "#FFFFFF")
+        draw_icon(draw, item["icon"], cx, cy - icon_size // 2, icon_size, "#FFFFFF")
 
         # ชื่อเมนู
         draw.text((cx, cy + icon_size), item["label"], font=font_label,
@@ -157,7 +156,7 @@ def create_menu() -> str:
         row = i // COLS
         areas.append({
             "bounds": {"x": col * CW, "y": row * CH, "width": CW, "height": CH},
-            "action": {"type": "message", "text": item["text"]},
+            "action": item["action"],
         })
 
     body = {
