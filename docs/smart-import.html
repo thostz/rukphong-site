@@ -157,6 +157,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
+<script src="config.js"></script>
 </head>
 <body>
 
@@ -254,21 +255,7 @@
 </div>
 
 <script>
-// ── Config ─────────────────────────────────────────────────────
-const GS_URL = (() => {
-  try {
-    // Try to import from config.js if loaded as module in parent
-    return window.GS_URL || '';
-  } catch { return ''; }
-})();
-
-// Load config.js dynamically
-(function loadConfig() {
-  if (typeof gsPost === 'function') return;
-  const s = document.createElement('script');
-  s.src = 'config.js';
-  document.head.appendChild(s);
-})();
+// config.js (GS_URL, gsPost) โหลดใน <head> แล้ว
 
 // ── Helpers ───────────────────────────────────────────────────
 const txt = document.getElementById('txt');
@@ -341,10 +328,15 @@ async function analyze() {
       return;
     }
 
-    const result = await gsPost({ action: 'smartClassify', record: { text } });
+    const result = await gsPost('smartClassify', { text });
 
     if (!result || !result.ok) {
       showError(result?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+      return;
+    }
+    // Apps Script ตอบ {ok:true} เปล่า ๆ เมื่อเกิด error ภายใน (เช่น เปิด Sheet ไม่ได้) → อย่าแสดงว่าบันทึกสำเร็จ
+    if (typeof result.savedTasks !== 'number') {
+      showError('Apps Script บันทึกไม่สำเร็จ — ตรวจ Script Property SPREADSHEET_ID และ deploy เวอร์ชันล่าสุด');
       return;
     }
 
